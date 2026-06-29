@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JOLIE LOFT – Đầm Lụa Kem Hali Dress | DoRentMe</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+
+        /* ===== HEADER ===== */
+        header {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%;
+            padding: 10px 50px;
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            z-index: 1000;
+            background: rgba(10, 30, 20, 0.95);
+            box-shadow: 0 2px 20px rgba(0,0,0,0.4);
+        }
+        .logo { grid-column: 1; }
+        .logo img { height: 110px; width: auto; }
+        .nav-menu {
+            grid-column: 2;
+            display: flex;
+            gap: 50px;
+            justify-content: center;
+        }
+        .nav-menu a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: color 0.3s;
+            position: relative;
+        }
+        .nav-menu a::after {
+            content: '';
+            position: absolute;
+            bottom: -4px; left: 0;
+            width: 0; height: 2px;
+            background: #8de9be;
+            transition: width 0.3s;
+        }
+        .nav-menu a:hover { color: #8de9be; }
+        .nav-menu a:hover::after { width: 100%; }
+        .nav-right {
+            grid-column: 3;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+        .nav-btn {
+            padding: 8px 20px;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: 0.3s;
+        }
+        .nav-btn.outline { border: 2px solid #8de9be; color: #8de9be; background: transparent; }
+        .nav-btn.outline:hover { background: #8de9be; color: #0a1e14; }
+        .nav-btn.fill { background: #55b689; color: white; border: 2px solid #55b689; }
+        .nav-btn.fill:hover { background: #3d9e70; border-color: #3d9e70; }
+        /* ===== DROPDOWN ===== */
+        .nav-item { position: relative; display: flex; align-items: center; }
+        .nav-item > a { color: white; text-decoration: none; font-weight: 600; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.5px; transition: color 0.3s; position: relative; cursor: pointer; }
+        .nav-item > a::after { content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 2px; background: #8de9be; transition: width 0.3s; }
+        .nav-item:hover > a { color: #8de9be; }
+        .nav-item:hover > a::after { width: 100%; }
+        .dropdown-menu { display: none; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); padding-top: 14px; z-index: 200; min-width: 160px; }
+        .nav-item:hover .dropdown-menu { display: block; }
+        .dropdown-inner { background: rgba(10,30,20,0.97); border: 1px solid rgba(141,233,190,0.25); border-radius: 10px; overflow: hidden; box-shadow: 0 8px 30px rgba(0,0,0,0.5); }
+        .dropdown-menu a { display: block !important; padding: 11px 22px; color: rgba(255,255,255,0.88) !important; font-size: 0.85rem !important; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; transition: color 0.2s, background 0.2s; text-decoration: none; }
+        .dropdown-menu a::after { display: none !important; }
+        .dropdown-menu a:hover { color: #8de9be !important; background: rgba(141,233,190,0.08); }
+
+        /* ===== PAGE WRAPPER ===== */
+        .page-wrapper {
+            margin-top: 130px;
+            min-height: calc(100vh - 130px);
+            background: #f8faf9;
+        }
+
+        /* ===== BREADCRUMB ===== */
+        .breadcrumb {
+            background: white;
+            padding: 12px 60px;
+            font-size: 0.82rem;
+            color: #888;
+            border-bottom: 1px solid #eee;
+        }
+        .breadcrumb a { color: #888; text-decoration: none; }
+        .breadcrumb a:hover { color: #55b689; }
+        .breadcrumb span { color: #55b689; font-weight: 600; }
+        .breadcrumb .sep { margin: 0 6px; }
+
+        /* ===== PRODUCT DETAIL ===== */
+        .product-detail {
+            max-width: 1100px;
+            margin: 30px auto;
+            padding: 0 30px;
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            gap: 40px;
+            align-items: start;
+        }
+
+        /* LEFT: Image */
+        .product-left {}
+        .main-image {
+            width: 100%;
+            border-radius: 12px;
+            overflow: hidden;
+            background: white;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        .main-image img {
+            width: 100%;
+            height: 480px;
+            object-fit: cover;
+            object-position: top;
+            display: block;
+        }
+        .image-actions {
+            background: white;
+            border-radius: 10px;
+            margin-top: 12px;
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+        }
+        .like-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: none;
+            border: 1.5px solid #e0e0e0;
+            border-radius: 25px;
+            padding: 8px 18px;
+            cursor: pointer;
+            font-size: 0.88rem;
+            color: #555;
+            transition: 0.3s;
+        }
+        .like-btn:hover { border-color: #e05f8a; color: #e05f8a; }
+        .like-btn.liked { border-color: #e05f8a; color: #e05f8a; background: #fff0f5; }
+        .like-btn .heart { font-size: 1.1rem; }
+        .share-btns { display: flex; gap: 8px; }
+        .share-btn {
+            width: 34px; height: 34px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.85rem;
+            color: white;
+            text-decoration: none;
+            transition: 0.3s;
+            font-weight: 700;
+        }
+        .share-btn.zalo { background: #0068FF; }
+        .share-btn.fb { background: #1877F2; }
+        .share-btn:hover { opacity: 0.85; transform: scale(1.08); }
+
+        /* RIGHT: Info */
+        .product-right {
+            background: white;
+            border-radius: 12px;
+            padding: 28px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+        }
+        .product-title {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: #111;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin-bottom: 14px;
+            line-height: 1.4;
+        }
+        .product-meta {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #f0f0f0;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .rating {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .stars { color: #f5a623; font-size: 0.95rem; letter-spacing: 1px; }
+        .rating-num { font-size: 0.85rem; color: #f5a623; font-weight: 700; }
+        .divider-dot { color: #ccc; }
+        .review-count { font-size: 0.85rem; color: #888; }
+        .review-count strong { color: #333; font-weight: 700; }
+        .like-count {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.85rem;
+            color: #888;
+        }
+        .like-count .heart { color: #e05f8a; }
+        .like-count strong { color: #333; font-weight: 700; }
+
+        /* Price */
+        .price-box {
+            background: #fdf8f0;
+            border-radius: 10px;
+            padding: 18px 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #55b689;
+        }
+        .price-row {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+        .price-label { font-size: 0.88rem; color: #555; min-width: 160px; }
+        .price-value { font-size: 1rem; font-weight: 700; color: #c0392b; }
+        .price-note {
+            font-size: 0.8rem;
+            color: #888;
+            margin-bottom: 6px;
+            padding-left: 8px;
+            font-style: italic;
+        }
+        .price-row.secondary .price-value { font-size: 0.92rem; color: #444; font-weight: 600; }
+        .price-row.tag .price-value { color: #888; font-weight: 500; text-decoration: line-through; font-size: 0.88rem; }
+        .price-row.deposit .price-value { color: #e67e22; }
+
+        /* Divider */
+        .info-divider { border: none; border-top: 1px solid #f0f0f0; margin: 18px 0; }
+
+        /* Discount */
+        .info-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            margin-bottom: 16px;
+        }
+        .info-row-label {
+            font-size: 0.85rem;
+            color: #888;
+            min-width: 110px;
+            padding-top: 3px;
+            flex-shrink: 0;
+        }
+        .info-row-content { flex: 1; }
+        .discount-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+        .discount-chip {
+            border: 1px dashed #e05f8a;
+            color: #e05f8a;
+            font-size: 0.78rem;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: 0.2s;
+            background: #fff0f5;
+        }
+        .discount-chip:hover { background: #e05f8a; color: white; }
+
+        /* Shipping */
+        .shipping-info {
+            font-size: 0.85rem;
+            color: #333;
+            line-height: 1.8;
+        }
+        .shipping-info .ship-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+        .ship-icon { font-size: 1rem; }
+        .ship-free {
+            background: #e8f8f1;
+            color: #27ae60;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+        .ship-note { font-size: 0.78rem; color: #888; margin-top: 4px; padding-left: 26px; }
+
+        /* Guarantee */
+        .guarantee-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.83rem;
+            color: #555;
+        }
+        .guarantee-info .shield { color: #27ae60; font-size: 1rem; }
+
+        /* Quantity */
+        .qty-selector {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            border: 1.5px solid #ddd;
+            border-radius: 6px;
+            overflow: hidden;
+            width: fit-content;
+        }
+        .qty-btn {
+            width: 36px; height: 36px;
+            background: #f5f5f5;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: #555;
+            transition: 0.2s;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .qty-btn:hover { background: #e0e0e0; }
+        .qty-input {
+            width: 50px; height: 36px;
+            border: none;
+            text-align: center;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #111;
+            outline: none;
+            border-left: 1.5px solid #ddd;
+            border-right: 1.5px solid #ddd;
+        }
+
+        /* Buttons */
+        .action-btns {
+            display: flex;
+            gap: 14px;
+            margin-top: 24px;
+        }
+        .btn-cart {
+            flex: 1;
+            padding: 14px 0;
+            background: white;
+            border: 2px solid #55b689;
+            color: #55b689;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.3s;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn-cart:hover { background: #e8f8f1; }
+        .btn-rent-now {
+            flex: 1;
+            padding: 14px 0;
+            background: #55b689;
+            border: 2px solid #55b689;
+            color: white;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.3s;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn-rent-now:hover { background: #3d9e70; border-color: #3d9e70; }
+
+        /* ===== FOOTER ===== */
+        footer {
+            background: #060f09;
+            color: #888;
+            padding: 50px 50px 30px;
+            margin-top: 60px;
+        }
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 40px;
+            max-width: 1100px;
+            margin: 0 auto 40px;
+        }
+        .footer-brand img { height: 80px; margin-bottom: 16px; }
+        .footer-brand p { font-size: 0.88rem; line-height: 1.7; color: #666; }
+        .footer-col h4 {
+            color: #8de9be;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 16px;
+        }
+        .footer-col a {
+            display: block;
+            color: #666;
+            text-decoration: none;
+            font-size: 0.88rem;
+            margin-bottom: 10px;
+            transition: color 0.3s;
+        }
+        .footer-col a:hover { color: #8de9be; }
+        .footer-bottom {
+            border-top: 1px solid #1a2e20;
+            padding-top: 24px;
+            text-align: center;
+            font-size: 0.82rem;
+            color: #444;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== HEADER ===== -->
+    <header>
+        <div class="logo">
+            <img src="image-removebg-preview.png" alt="DoRentMe Logo">
+        </div>
+        <nav class="nav-menu">
+            <a href="index.html">Trang chủ</a>
+            <div class="nav-item">
+                <a href="#">Dịch vụ</a>
+                <div class="dropdown-menu">
+                    <div class="dropdown-inner">
+                        <a href="ai-tryon.html">AI Phối đồ</a>
+                        <a href="ai-tryon.html">Thử đồ 3D</a>
+                        <a href="shop.html">Shop</a>
+                    </div>
+                </div>
+            </div>
+            <a href="about.html">Giới thiệu</a>
+            <a href="contact.html">Liên hệ</a>
+        </nav>
+        <div class="nav-right">
+            <a href="#" class="nav-btn outline">Đăng nhập</a>
+            <a href="#" class="nav-btn fill">Đăng ký</a>
+        </div>
+    </header>
+
+    <!-- ===== PAGE WRAPPER ===== -->
+    <div class="page-wrapper">
+
+        <!-- Breadcrumb -->
+        <div class="breadcrumb">
+            <a href="index.html">Trang chủ</a>
+            <span class="sep">›</span>
+            <a href="#" id="bcCategory">Váy dự tiệc</a>
+            <span class="sep">›</span>
+            <span id="bcName">...</span>
+        </div>
+
+        <!-- Product Detail -->
+        <div class="product-detail">
+
+            <!-- LEFT: Image -->
+            <div class="product-left">
+                <div class="main-image">
+                    <img src="" alt="" id="mainImg">
+                </div>
+                <div class="image-actions">
+                    <button class="like-btn" id="likeBtn" onclick="toggleLike()">
+                        <span class="heart">🤍</span>
+                        <span id="likeText">Yêu thích</span>
+                        <strong id="likeNum">0</strong>
+                    </button>
+                    <div class="share-btns">
+                        <a href="#" class="share-btn zalo" title="Chia sẻ Zalo">Z</a>
+                        <a href="#" class="share-btn fb" title="Chia sẻ Facebook">f</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT: Info -->
+            <div class="product-right">
+                <h1 class="product-title" id="prodName"></h1>
+
+                <div class="product-meta">
+                    <div class="rating">
+                        <span class="stars" id="prodStars">★★★★★</span>
+                        <span class="rating-num" id="prodRating"></span>
+                    </div>
+                    <span class="divider-dot">·</span>
+                    <span class="review-count"><strong id="prodReviews"></strong> đánh giá</span>
+                    <span class="divider-dot">·</span>
+                    <span class="like-count">
+                        <span class="heart">♥</span>
+                        <strong id="prodLikes"></strong> lượt thích
+                    </span>
+                </div>
+
+                <div class="price-box">
+                    <div class="price-row">
+                        <span class="price-label">Giá thuê 3 ngày:</span>
+                        <span class="price-value" id="price3day"></span>
+                    </div>
+                    <div class="price-note" id="priceExtra"></div>
+                    <div class="price-row secondary">
+                        <span class="price-label">Giá thuê 1 ngày:</span>
+                        <span class="price-value" id="price1day"></span>
+                    </div>
+                    <div class="price-row tag">
+                        <span class="price-label">Giá tag:</span>
+                        <span class="price-value" id="priceTag"></span>
+                    </div>
+                    <div class="price-row deposit">
+                        <span class="price-label">Giá cọc:</span>
+                        <span class="price-value" id="priceDeposit"></span>
+                    </div>
+                </div>
+
+                <hr class="info-divider">
+
+                <div class="info-row">
+                    <span class="info-row-label">Mã giảm giá</span>
+                    <div class="info-row-content">
+                        <div class="discount-chips">
+                            <span class="discount-chip">Giảm 5%</span>
+                            <span class="discount-chip">Giảm 10%</span>
+                            <span class="discount-chip">Giảm 50K</span>
+                            <span class="discount-chip">Free ship</span>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="info-divider">
+
+                <div class="info-row">
+                    <span class="info-row-label">Vận chuyển</span>
+                    <div class="info-row-content">
+                        <div class="shipping-info">
+                            <div class="ship-row">
+                                <span class="ship-icon">🚚</span>
+                                <span>Giao hàng trong <strong>2–3 ngày</strong></span>
+                                <span class="ship-free">Miễn phí</span>
+                            </div>
+                            <div class="ship-note">Tặng voucher 20.000đ nếu giao sau thời gian trên</div>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="info-divider">
+
+                <div class="info-row">
+                    <span class="info-row-label">An tâm thuê</span>
+                    <div class="info-row-content">
+                        <div class="guarantee-info">
+                            <span class="shield">🛡️</span>
+                            DoRentMe xử lý · Hoàn tiền nếu có vấn đề · Trả đồ miễn phí 24h
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="info-divider">
+
+                <div class="info-row" style="align-items:center;">
+                    <span class="info-row-label">Số lượng</span>
+                    <div class="info-row-content">
+                        <div class="qty-selector">
+                            <button class="qty-btn" onclick="changeQty(-1)">−</button>
+                            <input class="qty-input" type="text" value="1" id="qtyInput" readonly>
+                            <button class="qty-btn" onclick="changeQty(1)">+</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="action-btns">
+                    <button class="btn-cart">🛒 Thêm vào giỏ</button>
+                    <button class="btn-rent-now">⚡ Thuê ngay</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== FOOTER ===== -->
+    <footer>
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <img src="image-removebg-preview.png" alt="DoRentMe">
+                <p>Nền tảng cho thuê thời trang AI hàng đầu Việt Nam. Phong cách không giới hạn — chi phí tối ưu.</p>
+            </div>
+            <div class="footer-col">
+                <h4>Dịch vụ</h4>
+                <a href="productDetail.html">Danh mục đồ thuê</a>
+                <a href="ai-tryon.html">Thử đồ AI</a>
+                <a href="ai-tryon.html">AI Stylist</a>
+                <a href="#">Gói thành viên</a>
+            </div>
+            <div class="footer-col">
+                <h4>Hỗ trợ</h4>
+                <a href="#">Hướng dẫn thuê</a>
+                <a href="#">Chính sách đổi trả</a>
+                <a href="#">Size guide</a>
+                <a href="contact.html">Liên hệ</a>
+            </div>
+            <div class="footer-col">
+                <h4>Công ty</h4>
+                <a href="#">Về DoRentMe</a>
+                <a href="#">Tin tức</a>
+                <a href="#">Tuyển dụng</a>
+                <a href="#">Điều khoản</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            © 2025 DoRentMe. Tất cả quyền được bảo lưu. · Làm với ❤️ tại Việt Nam
+        </div>
+    </footer>
+
+    <script>
+        const products = {
+            1: {
+                name: 'JOLIE LOFT – Molly Dress Nâu',
+                image: 'jolie-loft-vay-luoi-molly-dress-nau.jpg',
+                category: 'Váy dự tiệc',
+                rating: 4.8, reviews: 64, likes: 112,
+                price3day: '450.000 vnđ', priceExtra: '(Trên 3 ngày +100.000vnđ / ngày)',
+                price1day: '200.000 vnđ', priceTag: '2.800.000 vnđ', priceDeposit: '1.500.000 vnđ'
+            },
+            2: {
+                name: 'AMELIE – Vanessa Dress Xanh Nhạt',
+                image: 'amelie-vanessa-dress-xanh-nhat.jpg',
+                category: 'Váy dự tiệc',
+                rating: 4.9, reviews: 91, likes: 145,
+                price3day: '480.000 vnđ', priceExtra: '(Trên 3 ngày +100.000vnđ / ngày)',
+                price1day: '220.000 vnđ', priceTag: '3.200.000 vnđ', priceDeposit: '1.500.000 vnđ'
+            },
+            3: {
+                name: 'CHOUCHOU – Đầm Ren Nude Dáng Dài',
+                image: 'chouchou-dam-ren-nude-dang-dai.jpg',
+                category: 'Váy dự tiệc',
+                rating: 4.7, reviews: 53, likes: 98,
+                price3day: '420.000 vnđ', priceExtra: '(Trên 3 ngày +100.000vnđ / ngày)',
+                price1day: '190.000 vnđ', priceTag: '2.500.000 vnđ', priceDeposit: '1.200.000 vnđ'
+            },
+            4: {
+                name: 'JOLIE LOFT – Hali Dress Lụa Kem',
+                image: 'jolie-loft-dam-lua-kem-hali-dress.jpg',
+                category: 'Váy lụa',
+                rating: 4.9, reviews: 86, likes: 128,
+                price3day: '500.000 vnđ', priceExtra: '(Trên 3 ngày +100.000vnđ / ngày)',
+                price1day: '230.000 vnđ', priceTag: '3.500.000 vnđ', priceDeposit: '1.800.000 vnđ'
+            },
+            5: {
+                name: 'TIPBLU – Đầm Voan Tím Lavender',
+                image: 'tipblu-dam-voan-tim-lavender.jpg',
+                category: 'Váy casual',
+                rating: 4.7, reviews: 47, likes: 89,
+                price3day: '390.000 vnđ', priceExtra: '(Trên 3 ngày +80.000vnđ / ngày)',
+                price1day: '180.000 vnđ', priceTag: '2.200.000 vnđ', priceDeposit: '1.000.000 vnđ'
+            },
+            6: {
+                name: 'SÒ VINTAGE – Nathalia',
+                image: 'so-vintage-nathalia.jpg',
+                category: 'Váy cổ điển',
+                rating: 5.0, reviews: 120, likes: 203,
+                price3day: '560.000 vnđ', priceExtra: '(Trên 3 ngày +50.000vnđ / ngày)',
+                price1day: '490.000 vnđ', priceTag: '3.620.000 vnđ', priceDeposit: '2.000.000 vnđ'
+            },
+        };
+
+        // Đọc data từ URL
+        const params = new URLSearchParams(window.location.search);
+        let p;
+        if (params.get('name')) {
+            // Dữ liệu truyền thẳng qua URL (từ shop.html)
+            p = {
+                name:         params.get('name'),
+                image:        params.get('image'),
+                category:     params.get('category'),
+                price3day:    params.get('price3day'),
+                priceExtra:   params.get('priceExtra'),
+                price1day:    params.get('price1day'),
+                priceTag:     params.get('priceTag'),
+                priceDeposit: params.get('priceDeposit'),
+                rating:       parseFloat(params.get('rating')) || 4.8,
+                reviews:      parseInt(params.get('reviews'))  || 0,
+                likes:        parseInt(params.get('likes'))    || 0
+            };
+        } else {
+            // Fallback: id-based (cho 6 sản phẩm mẫu từ index.html)
+            const id = parseInt(params.get('id')) || 1;
+            p = products[id] || products[1];
+        }
+
+        // Render
+        document.title = p.name + ' | DoRentMe';
+        document.getElementById('bcName').textContent = p.name;
+        document.getElementById('bcCategory').textContent = p.category;
+        document.getElementById('mainImg').src = p.image;
+        document.getElementById('mainImg').alt = p.name;
+        document.getElementById('prodName').textContent = p.name;
+        document.getElementById('prodRating').textContent = p.rating.toFixed(1);
+        document.getElementById('prodReviews').textContent = p.reviews;
+        document.getElementById('prodLikes').textContent = p.likes;
+        document.getElementById('likeNum').textContent = p.likes;
+        document.getElementById('price3day').textContent = p.price3day;
+        document.getElementById('priceExtra').textContent = p.priceExtra;
+        document.getElementById('price1day').textContent = p.price1day;
+        document.getElementById('priceTag').textContent = p.priceTag;
+        document.getElementById('priceDeposit').textContent = p.priceDeposit;
+
+        // Stars
+        const stars = Math.round(p.rating);
+        document.getElementById('prodStars').textContent = '★'.repeat(stars) + '☆'.repeat(5 - stars);
+
+        function toggleLike() {
+            const btn = document.getElementById('likeBtn');
+            const num = document.getElementById('likeNum');
+            const heart = btn.querySelector('.heart');
+            const isLiked = btn.classList.toggle('liked');
+            heart.textContent = isLiked ? '❤️' : '🤍';
+            num.textContent = isLiked ? p.likes + 1 : p.likes;
+        }
+
+        function changeQty(delta) {
+            const input = document.getElementById('qtyInput');
+            let val = parseInt(input.value) + delta;
+            if (val < 1) val = 1;
+            if (val > 10) val = 10;
+            input.value = val;
+        }
+    </script>
+
+</body>
+</html>

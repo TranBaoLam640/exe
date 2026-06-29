@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cửa Hàng | DoRentMe</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+
+        /* ===== HEADER ===== */
+        header {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%;
+            padding: 10px 50px;
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            z-index: 1000;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.7), transparent);
+            transition: background 0.3s;
+        }
+        header.scrolled {
+            background: rgba(10, 30, 20, 0.95);
+            box-shadow: 0 2px 20px rgba(0,0,0,0.4);
+        }
+        .logo { grid-column: 1; }
+        .logo img { height: 110px; width: auto; }
+        .nav-menu {
+            grid-column: 2;
+            display: flex;
+            gap: 50px;
+            justify-content: center;
+        }
+        .nav-menu a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: color 0.3s;
+            position: relative;
+        }
+        .nav-menu a::after {
+            content: '';
+            position: absolute;
+            bottom: -4px; left: 0;
+            width: 0; height: 2px;
+            background: #8de9be;
+            transition: width 0.3s;
+        }
+        .nav-menu a:hover { color: #8de9be; }
+        .nav-menu a:hover::after { width: 100%; }
+        .nav-menu a.active { color: #8de9be; }
+        .nav-menu a.active::after { width: 100%; }
+        .nav-right {
+            grid-column: 3;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+        .nav-btn {
+            padding: 8px 20px;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: 0.3s;
+        }
+        .nav-btn.outline {
+            border: 2px solid #8de9be;
+            color: #8de9be;
+            background: transparent;
+        }
+        .nav-btn.outline:hover { background: #8de9be; color: #0a1e14; }
+        .nav-btn.fill {
+            background: #55b689;
+            color: white;
+            border: 2px solid #55b689;
+        }
+        .nav-btn.fill:hover { background: #3d9e70; border-color: #3d9e70; }
+        /* ===== DROPDOWN ===== */
+        .nav-item { position: relative; display: flex; align-items: center; }
+        .nav-item > a { color: white; text-decoration: none; font-weight: 600; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.5px; transition: color 0.3s; position: relative; cursor: pointer; }
+        .nav-item > a::after { content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 2px; background: #8de9be; transition: width 0.3s; }
+        .nav-item:hover > a { color: #8de9be; }
+        .nav-item:hover > a::after { width: 100%; }
+        .dropdown-menu { display: none; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); padding-top: 14px; z-index: 200; min-width: 160px; }
+        .nav-item:hover .dropdown-menu { display: block; }
+        .dropdown-inner { background: rgba(10,30,20,0.97); border: 1px solid rgba(141,233,190,0.25); border-radius: 10px; overflow: hidden; box-shadow: 0 8px 30px rgba(0,0,0,0.5); }
+        .dropdown-menu a { display: block !important; padding: 11px 22px; color: rgba(255,255,255,0.88) !important; font-size: 0.85rem !important; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; transition: color 0.2s, background 0.2s; text-decoration: none; }
+        .dropdown-menu a::after { display: none !important; }
+        .dropdown-menu a:hover { color: #8de9be !important; background: rgba(141,233,190,0.08); }
+
+        /* ===== SHOP LAYOUT ===== */
+        .shop-wrapper {
+            margin-top: 130px;
+            display: flex;
+            min-height: 80vh;
+            background: #f7f7f7;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: 210px;
+            flex-shrink: 0;
+            background: white;
+            border-right: 1px solid #eee;
+            padding: 24px 0;
+        }
+        .sidebar-section { margin-bottom: 8px; }
+        .sidebar-title {
+            font-size: 0.78rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #333;
+            padding: 10px 20px 8px;
+            border-bottom: 2px solid #f0f0f0;
+            margin-bottom: 4px;
+        }
+        .sidebar-link {
+            display: block;
+            padding: 8px 20px;
+            font-size: 0.88rem;
+            color: #444;
+            text-decoration: none;
+            transition: color 0.2s, background 0.2s;
+            cursor: pointer;
+        }
+        .sidebar-link:hover { color: #d97706; background: #fffbf0; }
+        .sidebar-link.active { color: #d97706; font-weight: 700; }
+        .brand-link {
+            display: block;
+            padding: 6px 20px;
+            font-size: 0.85rem;
+            color: #c8960a;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.2s;
+            cursor: pointer;
+        }
+        .brand-link:hover { color: #a37200; }
+        .brand-link.active { color: #1a5c3a; font-weight: 700; }
+
+        /* MAIN CONTENT */
+        .shop-main {
+            flex: 1;
+            padding: 24px 30px;
+        }
+        .breadcrumb {
+            font-size: 0.82rem;
+            color: #888;
+            margin-bottom: 18px;
+        }
+        .breadcrumb a { color: #888; text-decoration: none; }
+        .breadcrumb a:hover { color: #d97706; }
+        .breadcrumb span { color: #333; font-weight: 600; }
+
+        .shop-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            gap: 12px;
+        }
+        .result-count { font-size: 0.85rem; color: #666; }
+        .search-box {
+            display: flex;
+            align-items: center;
+            border: 1.5px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            background: white;
+        }
+        .search-box input {
+            border: none; outline: none;
+            padding: 8px 14px;
+            font-size: 0.88rem;
+            width: 240px;
+            font-family: inherit;
+            color: #333;
+        }
+        .search-box button {
+            background: #d97706;
+            border: none;
+            padding: 8px 14px;
+            color: white;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+        }
+        .search-box button:hover { background: #b45309; }
+
+        /* PRODUCT GRID */
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+        .product-card {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            cursor: pointer;
+            transition: box-shadow 0.2s, transform 0.2s;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+        .product-card:hover { box-shadow: 0 6px 20px rgba(0,0,0,0.12); transform: translateY(-3px); }
+        .product-card img {
+            width: 100%;
+            aspect-ratio: 3/4;
+            object-fit: cover;
+            object-position: top;
+            display: block;
+        }
+        .card-info {
+            padding: 14px 16px;
+            text-align: center;
+        }
+        .card-name {
+            font-size: 0.88rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: #111;
+            margin-bottom: 10px;
+            letter-spacing: 0.3px;
+        }
+        .card-price { font-size: 0.8rem; color: #333; line-height: 1.8; }
+        .card-price .extra { color: #d97706; }
+        .card-price .red { color: #c0392b; font-weight: 600; }
+
+        .empty-state {
+            display: none;
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 60px 20px;
+            color: #aaa;
+        }
+        .empty-state .empty-icon { font-size: 3rem; margin-bottom: 12px; }
+        .empty-state p { font-size: 1rem; }
+
+        /* ===== PAGINATION ===== */
+        .pagination {
+            display: none;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            margin-top: 36px;
+        }
+        .page-btn {
+            width: 38px; height: 38px;
+            border: 1.5px solid #ddd;
+            background: white;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #555;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .page-btn:hover { border-color: #8de9be; color: #1a5c3a; }
+        .page-btn.active { background: #1a5c3a; color: white; border-color: #1a5c3a; }
+        .page-btn.arrow { font-size: 1rem; color: #8de9be; border-color: #8de9be; }
+        .page-btn.arrow:hover { background: #8de9be; color: #0a1e14; }
+
+        /* ===== FOOTER ===== */
+        footer {
+            background: #060f09;
+            color: #888;
+            padding: 50px 50px 30px;
+        }
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 40px;
+            max-width: 1100px;
+            margin: 0 auto 40px;
+        }
+        .footer-brand img { height: 80px; margin-bottom: 16px; }
+        .footer-brand p { font-size: 0.88rem; line-height: 1.7; color: #666; }
+        .footer-col h4 {
+            color: #8de9be;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 16px;
+        }
+        .footer-col a {
+            display: block;
+            color: #666;
+            text-decoration: none;
+            font-size: 0.88rem;
+            margin-bottom: 10px;
+            transition: color 0.3s;
+        }
+        .footer-col a:hover { color: #8de9be; }
+        .footer-bottom {
+            border-top: 1px solid #1a2e20;
+            padding-top: 24px;
+            text-align: center;
+            font-size: 0.82rem;
+            color: #444;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        /* ===== SCROLL ANIMATION ===== */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ===== PLACEHOLDER BODY ===== */
+        .page-body {
+            margin-top: 130px;
+            min-height: 60vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #aaa;
+            font-size: 1.2rem;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== HEADER ===== -->
+    <header id="mainHeader">
+        <div class="logo">
+            <img src="image-removebg-preview.png" alt="DoRentMe Logo">
+        </div>
+        <nav class="nav-menu">
+            <a href="index.html">Trang chủ</a>
+            <div class="nav-item">
+                <a href="#" class="active">Dịch vụ</a>
+                <div class="dropdown-menu">
+                    <div class="dropdown-inner">
+                        <a href="ai-tryon.html">AI Phối đồ</a>
+                        <a href="ai-tryon.html">Thử đồ 3D</a>
+                        <a href="shop.html">Shop</a>
+                    </div>
+                </div>
+            </div>
+            <a href="about.html">Giới thiệu</a>
+            <a href="contact.html">Liên hệ</a>
+        </nav>
+        <div class="nav-right">
+            <a href="#" class="nav-btn outline">Đăng nhập</a>
+            <a href="#" class="nav-btn fill">Đăng ký</a>
+        </div>
+    </header>
+
+    <!-- ===== SHOP BODY ===== -->
+    <div class="shop-wrapper">
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-title">Danh mục sản phẩm</div>
+                <a class="sidebar-link" onclick="filterCategory('all')">Tất cả</a>
+                <a class="sidebar-link active" onclick="filterCategory('ao-dai')">Áo dài</a>
+                <a class="sidebar-link" onclick="filterCategory('vay-di-bien')">Váy đi biển</a>
+                <a class="sidebar-link" onclick="filterCategory('vay-du-tiec')">Váy dự tiệc</a>
+                <a class="sidebar-link" onclick="filterCategory('phu-kien')">Phụ kiện</a>
+                <a class="sidebar-link" onclick="filterCategory('vay-lua')">Váy lụa</a>
+                <a class="sidebar-link" onclick="filterCategory('thanh-ly')">Thanh lý</a>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">Thương hiệu</div>
+                <a class="brand-link active" onclick="filterBrand('all')">Tất cả</a>
+                <a class="brand-link" onclick="filterBrand('SÒ VINTAGE')">SÒ VINTAGE</a>
+                <a class="brand-link" onclick="filterBrand('D.CHIC')">D.CHIC</a>
+                <a class="brand-link" onclick="filterBrand('FLANE')">FLANE</a>
+                <a class="brand-link" onclick="filterBrand('LANE JT')">LANE JT</a>
+                <a class="brand-link" onclick="filterBrand('HƯƠNG BOUTIQUE')">HƯƠNG BOUTIQUE</a>
+                <a class="brand-link" onclick="filterBrand('CHIRON')">CHIRON</a>
+                <a class="brand-link" onclick="filterBrand('JOLIE LOFT')">JOLIE LOFT</a>
+                <a class="brand-link" onclick="filterBrand('MAISON LONG')">MAISON LONG</a>
+                <a class="brand-link" onclick="filterBrand('Mys.P')">Mys.P</a>
+                <a class="brand-link" onclick="filterBrand('KYCÉ')">KYCÉ</a>
+                <a class="brand-link" onclick="filterBrand('Mainichi')">Mainichi</a>
+                <a class="brand-link" onclick="filterBrand('ONONMADE')">ONONMADE</a>
+                <a class="brand-link" onclick="filterBrand('JENNIE CHOO')">JENNIE CHOO</a>
+                <a class="brand-link" onclick="filterBrand('AMELIEE')">AMELIEE</a>
+                <a class="brand-link" onclick="filterBrand('CHOUCHOU')">CHOUCHOU</a>
+                <a class="brand-link" onclick="filterBrand('Bliss Shop')">Bliss Shop</a>
+                <a class="brand-link" onclick="filterBrand('Khác')">Khác</a>
+            </div>
+        </aside>
+
+        <!-- MAIN -->
+        <main class="shop-main">
+            <div class="breadcrumb">
+                <a href="index.html">Trang chủ</a> &rsaquo; <span>Áo dài</span>
+            </div>
+
+            <div class="shop-toolbar">
+                <div class="result-count" id="resultCount">Hiển thị tất cả 10 kết quả</div>
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="Tìm theo tên bộ váy..." oninput="searchProducts()">
+                    <button onclick="searchProducts()">🔍</button>
+                </div>
+            </div>
+
+            <div class="product-grid" id="productGrid">
+
+                <!-- Cards được render bởi JS bên dưới -->
+
+                <div class="empty-state" id="emptyState">
+                    <div class="empty-icon">🛍️</div>
+                    <p>Không có sản phẩm nào trong danh mục này.</p>
+                </div>
+
+            </div>
+            <div class="pagination" id="pagination"></div>
+        </main>
+    </div>
+
+    <!-- ===== FOOTER ===== -->
+    <footer>
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <img src="image-removebg-preview.png" alt="DoRentMe">
+                <p>Nền tảng cho thuê thời trang AI hàng đầu Việt Nam. Phong cách không giới hạn — chi phí tối ưu.</p>
+            </div>
+            <div class="footer-col">
+                <h4>Dịch vụ</h4>
+                <a href="shop.html">Danh mục đồ thuê</a>
+                <a href="ai-tryon.html">Thử đồ AI</a>
+                <a href="ai-tryon.html">AI Stylist</a>
+                <a href="#">Gói thành viên</a>
+            </div>
+            <div class="footer-col">
+                <h4>Hỗ trợ</h4>
+                <a href="#">Hướng dẫn thuê</a>
+                <a href="#">Chính sách đổi trả</a>
+                <a href="#">Size guide</a>
+                <a href="contact.html">Liên hệ</a>
+            </div>
+            <div class="footer-col">
+                <h4>Công ty</h4>
+                <a href="#">Về DoRentMe</a>
+                <a href="#">Tin tức</a>
+                <a href="#">Tuyển dụng</a>
+                <a href="#">Điều khoản</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            © 2025 DoRentMe. Tất cả quyền được bảo lưu. · Làm với ❤️ tại Việt Nam
+        </div>
+    </footer>
+
+    <script>
+        // ===== DATA SẢN PHẨM (nguồn dữ liệu duy nhất) =====
+        const shopProducts = [
+            // ── Áo dài ──
+            { name: 'FLANE – UYỂN KHANH',       image: 'image/ao_dai/flane_uyenkhanh.jpg',        category: 'ao-dai', categoryLabel: 'Áo dài',      brand: 'FLANE',          price3day: '300.000 vnd', priceExtra: '(Trên 3 ngày +50.000 vnd/ngày)', price1day: '260.000 vnd', priceTag: '1.900.000 vnd', priceDeposit: '1.200.000 vnd', rating: 4.8, reviews: 42,  likes: 87 },
+            { name: 'LINN DESIGN – TUỆ HIỀN',   image: 'image/ao_dai/linn_design_tue_hien.jpg',   category: 'ao-dai', categoryLabel: 'Áo dài',      brand: 'Khác',           price3day: '340.000 vnd', priceExtra: '(Trên 3 ngày +50.000 vnd/ngày)', price1day: '295.000 vnd', priceTag: '1.590.000 vnd', priceDeposit: '1.200.000 vnd', rating: 4.9, reviews: 38,  likes: 74 },
+            { name: 'MAINICHI – MỘC MIÊN',      image: 'image/ao_dai/mainichi_moc_mien.png',      category: 'ao-dai', categoryLabel: 'Áo dài',      brand: 'Mainichi',       price3day: '260.000 vnd', priceExtra: '(Trên 3 ngày +50.000 vnd/ngày)', price1day: '220.000 vnd', priceTag: '1.200.000 vnd', priceDeposit: '800.000 vnd',   rating: 4.7, reviews: 31,  likes: 65 },
+            { name: 'MAINICHI – YÊN CHI',       image: 'image/ao_dai/mainichi_yen_chi.jpg',       category: 'ao-dai', categoryLabel: 'Áo dài',      brand: 'Mainichi',       price3day: '290.000 vnd', priceExtra: '(Trên 3 ngày +50.000 vnd/ngày)', price1day: '250.000 vnd', priceTag: '1.550.000 vnd', priceDeposit: '900.000 vnd',   rating: 4.8, reviews: 55,  likes: 102 },
+            { name: 'MAISON LONG – NIỀM NỖI',   image: 'image/ao_dai/maison_long_niem_no.jpg',    category: 'ao-dai', categoryLabel: 'Áo dài',      brand: 'MAISON LONG',    price3day: '220.000 vnd', priceExtra: '(Trên 3 ngày +50.000 vnd/ngày)', price1day: '180.000 vnd', priceTag: '1.150.000 vnd', priceDeposit: '700.000 vnd',   rating: 4.6, reviews: 28,  likes: 59 },
+            { name: 'D.CHIC NÀNG THƠ PHỐ HỘI',  image: 'image/ao_dai/dchic-nang-tho-pho-hoi.jpg', category: 'ao-dai', categoryLabel: 'Áo dài',      brand: 'D.CHIC',         price3day: '320.000 vnd', priceExtra: '(Trên 3 ngày +50.000 vnd/ngày)', price1day: '280.000 vnd', priceTag: '1.950.000 vnd', priceDeposit: '1.200.000 vnd', rating: 4.9, reviews: 67,  likes: 134 },
+            { name: 'D.CHIC COUTURE',            image: 'image/ao_dai/dchic_couture.jpg',           category: 'ao-dai', categoryLabel: 'Áo dài',      brand: 'D.CHIC',         price3day: '500.000 vnd', priceExtra: '(Trên 3 ngày +50.000 vnd/ngày)', price1day: '450.000 vnd', priceTag: '3.500.000 vnd', priceDeposit: '2.000.000 vnd', rating: 5.0, reviews: 89,  likes: 178 },
+            { name: 'D.CHIC XUÂN VIÊN',          image: 'image/ao_dai/d.chic_xuan_vien.jpg',        category: 'ao-dai', categoryLabel: 'Áo dài',      brand: 'D.CHIC',         price3day: '480.000 vnd', priceExtra: '(Trên 3 ngày +50.000 vnd/ngày)', price1day: '440.000 vnd', priceTag: '2.850.000 vnd', priceDeposit: '2.000.000 vnd', rating: 4.9, reviews: 73,  likes: 156 },
+            { name: 'D.CHIC Ý NHIÊN',            image: 'image/ao_dai/dchic_y_nhien.jpg',           category: 'ao-dai', categoryLabel: 'Áo dài',      brand: 'D.CHIC',         price3day: '490.000 vnd', priceExtra: '(Trên 3 ngày +50.000 vnd/ngày)', price1day: '450.000 vnd', priceTag: '2.950.000 vnd', priceDeposit: '2.000.000 vnd', rating: 4.8, reviews: 61,  likes: 120 },
+            { name: 'D.CHIC THIÊN Ý',            image: 'image/ao_dai/d_chic_thien_y.jpg',          category: 'ao-dai', categoryLabel: 'Áo dài',      brand: 'D.CHIC',         price3day: '450.000 vnd', priceExtra: '(Trên 3 ngày +50.000 vnd/ngày)', price1day: '410.000 vnd', priceTag: '2.600.000 vnd', priceDeposit: '1.900.000 vnd', rating: 4.7, reviews: 44,  likes: 93 },
+            // ── Váy đi biển ──
+            { name: 'TIPBLU – ĐẦM VOAN TÍM LAVENDER',          image: 'image/vay_di_bien/tipblu_dam_voan_tim_lavender.jpg',       category: 'vay-di-bien', categoryLabel: 'Váy đi biển', brand: 'Khác',        price3day: '190.000 vnd', priceExtra: '(Trên 3 ngày +30.000 vnd/ngày)', price1day: '160.000 vnd', priceTag: '930.000 vnd',   priceDeposit: '650.000 vnd', rating: 4.7, reviews: 38, likes: 76 },
+            { name: 'CHOUCHOU – ĐẦM REN NUDE DÁNG DÀI',        image: 'image/vay_di_bien/chou_chou_dam_ren_nude_dang_dai.jpg',    category: 'vay-di-bien', categoryLabel: 'Váy đi biển', brand: 'CHOUCHOU',    price3day: '255.000 vnd', priceExtra: '(Trên 3 ngày +30.000 vnd/ngày)', price1day: '225.000 vnd', priceTag: '1.110.000 vnd', priceDeposit: '800.000 vnd', rating: 4.8, reviews: 51, likes: 95 },
+            { name: 'AMELIE – VANESSA DRESS XANH NHẠT',         image: 'image/vay_di_bien/amelie_vanessa_dress_xanh_nhat.jpg',     category: 'vay-di-bien', categoryLabel: 'Váy đi biển', brand: 'AMELIEE',     price3day: '290.000 vnd', priceExtra: '(Trên 3 ngày +40.000 vnd/ngày)', price1day: '250.000 vnd', priceTag: '1.530.000 vnd', priceDeposit: '900.000 vnd', rating: 4.9, reviews: 64, likes: 118 },
+            { name: 'JOLIE LOFT – VÁY LƯỚI MOLLY DRESS NÂU',   image: 'image/vay_di_bien/jolie_loft_vay_luoi_molly_dress_nau.jpg', category: 'vay-di-bien', categoryLabel: 'Váy đi biển', brand: 'JOLIE LOFT',  price3day: '270.000 vnd', priceExtra: '(Trên 3 ngày +30.000 vnd/ngày)', price1day: '230.000 vnd', priceTag: '2.150.000 vnd', priceDeposit: '800.000 vnd', rating: 4.8, reviews: 47, likes: 89 },
+            { name: 'FLANE – REN CỔ YẾM',                       image: 'image/vay_di_bien/flane_ren_co_yem.jpg',                   category: 'vay-di-bien', categoryLabel: 'Váy đi biển', brand: 'FLANE',       price3day: '240.000 vnd', priceExtra: '(Trên 3 ngày +30.000 vnd/ngày)', price1day: '200.000 vnd', priceTag: '1.080.000 vnd', priceDeposit: '800.000 vnd', rating: 4.7, reviews: 33, likes: 67 },
+            { name: 'JOLIE LOFT – LỤA',                          image: 'image/vay_di_bien/jolie_loft_lua.jpg',                     category: 'vay-di-bien', categoryLabel: 'Váy đi biển', brand: 'JOLIE LOFT',  price3day: '195.000 vnd', priceExtra: '(Trên 3 ngày +30.000 vnd/ngày)', price1day: '165.000 vnd', priceTag: '1.320.000 vnd', priceDeposit: '700.000 vnd', rating: 4.8, reviews: 55, likes: 102 },
+            { name: 'JOLIE LOFT – VÁY REN CÓ TAY',              image: 'image/vay_di_bien/jolie_loft_vay_ren_co_tay.jpg',          category: 'vay-di-bien', categoryLabel: 'Váy đi biển', brand: 'JOLIE LOFT',  price3day: '220.000 vnd', priceExtra: '(Trên 3 ngày +30.000 vnd/ngày)', price1day: '190.000 vnd', priceTag: '1.812.000 vnd', priceDeposit: '700.000 vnd', rating: 4.6, reviews: 29, likes: 58 },
+            { name: 'FLANE – REN BỒ MÙI TRẺ VAI',               image: 'image/vay_di_bien/flane_ren_bo_mui_tre_vai.jpg',           category: 'vay-di-bien', categoryLabel: 'Váy đi biển', brand: 'FLANE',       price3day: '195.000 vnd', priceExtra: '(Trên 3 ngày +40.000 vnd/ngày)', price1day: '165.000 vnd', priceTag: '1.006.500 vnd', priceDeposit: '700.000 vnd', rating: 4.7, reviews: 41, likes: 83 },
+            { name: 'AMELIE – VÁY BÍ BABYDOLL CỔ YẾM',          image: 'image/vay_di_bien/amelie_vay_bi_babydoll_co_yem.jpg',      category: 'vay-di-bien', categoryLabel: 'Váy đi biển', brand: 'AMELIEE',     price3day: '170.000 vnd', priceExtra: '(Trên 3 ngày +40.000 vnd/ngày)', price1day: '140.000 vnd', priceTag: '870.000 vnd',   priceDeposit: '600.000 vnd', rating: 4.6, reviews: 26, likes: 54 },
+            { name: 'VÁY REN PHỐI TƠ',                           image: 'image/vay_di_bien/vay_ren_phoi_to.jpg',                    category: 'vay-di-bien', categoryLabel: 'Váy đi biển', brand: 'Khác',        price3day: '130.000 vnd', priceExtra: '(Trên 3 ngày +30.000 vnd/ngày)', price1day: '100.000 vnd', priceTag: '680.000 vnd',   priceDeposit: '400.000 vnd', rating: 4.5, reviews: 19, likes: 43 },
+            { name: 'AMELIEE – GARMENT',                          image: 'image/vay_di_bien/ameliee_garment.jpg',                    category: 'vay-di-bien', categoryLabel: 'Váy đi biển', brand: 'AMELIEE',     price3day: '175.000 vnd', priceExtra: '(Trên 3 ngày +40.000 vnd/ngày)', price1day: '140.000 vnd', priceTag: '888.000 vnd',   priceDeposit: '700.000 vnd', rating: 4.7, reviews: 35, likes: 71 },
+            { name: 'AMELIEE – DIVA',                             image: 'image/vay_di_bien/ameliee_diva.webp',                      category: 'vay-di-bien', categoryLabel: 'Váy đi biển', brand: 'AMELIEE',     price3day: '190.000 vnd', priceExtra: '(Trên 3 ngày +40.000 vnd/ngày)', price1day: '150.000 vnd', priceTag: '960.000 vnd',   priceDeposit: '700.000 vnd', rating: 4.8, reviews: 48, likes: 92 },
+            { name: 'MAISON LONG – THỦY MỊ',                     image: 'image/vay_di_bien/maison_long_thuy_mi.jpg',                category: 'vay-di-bien', categoryLabel: 'Váy đi biển', brand: 'MAISON LONG', price3day: '230.000 vnd', priceExtra: '(Trên 3 ngày +50.000 vnd/ngày)', price1day: '190.000 vnd', priceTag: '1.250.000 vnd', priceDeposit: '750.000 vnd', rating: 4.9, reviews: 57, likes: 109 },
+            { name: 'VÁY HOA MÙA HÈ',                            image: 'image/vay_di_bien/vay_hoa_mua_he.jpg',                     category: 'vay-di-bien', categoryLabel: 'Váy đi biển', brand: 'Khác',        price3day: '120.000 vnd', priceExtra: '(Trên 3 ngày +30.000 vnd/ngày)', price1day: '90.000 vnd',  priceTag: '594.000 vnd',   priceDeposit: '300.000 vnd', rating: 4.5, reviews: 22, likes: 47 },
+            { name: 'SET VÁY 2 DÂY + CHÂN VÁY TRẮNG KEM LANNIE', image: 'image/vay_di_bien/set_vay_2_day_chan_vay_trang_kem_lannie.jpg', category: 'vay-di-bien', categoryLabel: 'Váy đi biển', brand: 'Khác', price3day: '120.000 vnd', priceExtra: '(Trên 3 ngày +30.000 vnd/ngày)', price1day: '100.000 vnd', priceTag: '650.000 vnd', priceDeposit: '400.000 vnd', rating: 4.6, reviews: 31, likes: 63 },
+            // ── Váy dự tiệc ──
+            { name: 'SÒ VINTAGE – NATHALIA',                image: 'image/vay_du_tiec/so_vintage_nathalia.jpg',                category: 'vay-du-tiec', categoryLabel: 'Váy dự tiệc', brand: 'SÒ VINTAGE',     price3day: '560.000 vnd', priceExtra: '(Trên 3 ngày +50.000 vnd/ngày)', price1day: '490.000 vnd', priceTag: '3.620.000 vnd', priceDeposit: '2.000.000 vnd', rating: 5.0, reviews: 120, likes: 203 },
+            { name: 'TIPBLU – ĐẦM VOAN TÍM LAVENDER',       image: 'image/vay_du_tiec/tipblu_dam_voan_tim_lavender.jpg',       category: 'vay-du-tiec', categoryLabel: 'Váy dự tiệc', brand: 'Khác',           price3day: '190.000 vnd', priceExtra: '(Trên 3 ngày +30.000 vnd/ngày)', price1day: '160.000 vnd', priceTag: '930.000 vnd',   priceDeposit: '650.000 vnd',   rating: 4.7, reviews: 38,  likes: 76 },
+            { name: 'JOLIE LOFT – ĐẦM LỤA KEM HALI DRESS',  image: 'image/vay_du_tiec/jolie_loft_dam_lua_kem_hali_dress.jpg',  category: 'vay-du-tiec', categoryLabel: 'Váy dự tiệc', brand: 'JOLIE LOFT',     price3day: '200.000 vnd', priceExtra: '(Trên 3 ngày +30.000 vnd/ngày)', price1day: '175.000 vnd', priceTag: '1.600.000 vnd', priceDeposit: '600.000 vnd',   rating: 4.9, reviews: 86,  likes: 128 },
+            { name: 'CHOUCHOU – ĐẦM REN NUDE DÁNG DÀI',     image: 'image/vay_du_tiec/chouchou_dam_ren_nude_dang_dai.jpg',     category: 'vay-du-tiec', categoryLabel: 'Váy dự tiệc', brand: 'CHOUCHOU',       price3day: '255.000 vnd', priceExtra: '(Trên 3 ngày +30.000 vnd/ngày)', price1day: '225.000 vnd', priceTag: '1.110.000 vnd', priceDeposit: '800.000 vnd',   rating: 4.8, reviews: 51,  likes: 95 },
+            { name: 'AMELIE – VANESSA DRESS XANH NHẠT',      image: 'image/vay_du_tiec/amelie_vanessa_dress_xanh_nhat.jpg',     category: 'vay-du-tiec', categoryLabel: 'Váy dự tiệc', brand: 'AMELIEE',        price3day: '290.000 vnd', priceExtra: '(Trên 3 ngày +40.000 vnd/ngày)', price1day: '250.000 vnd', priceTag: '1.530.000 vnd', priceDeposit: '900.000 vnd',   rating: 4.9, reviews: 64,  likes: 118 },
+            { name: 'JOLIE LOFT – VÁY LƯỚI MOLLY DRESS NÂU', image: 'image/vay_du_tiec/jolie_loft_vay_luoi_molly_dress_nau.jpg', category: 'vay-du-tiec', categoryLabel: 'Váy dự tiệc', brand: 'JOLIE LOFT',   price3day: '270.000 vnd', priceExtra: '(Trên 3 ngày +30.000 vnd/ngày)', price1day: '230.000 vnd', priceTag: '2.150.000 vnd', priceDeposit: '800.000 vnd',   rating: 4.8, reviews: 47,  likes: 89 },
+            { name: 'SÒ VINTAGE – LYRA',                     image: 'image/vay_du_tiec/so_vintage_lyra.jpg',                    category: 'vay-du-tiec', categoryLabel: 'Váy dự tiệc', brand: 'SÒ VINTAGE',     price3day: '420.000 vnd', priceExtra: '(Trên 3 ngày +50.000 vnd/ngày)', price1day: '388.000 vnd', priceTag: '2.388.000 vnd', priceDeposit: '1.500.000 vnd', rating: 4.8, reviews: 59,  likes: 113 },
+            { name: 'WONDER HOUSE – LUA DRESS KEM',          image: 'image/vay_du_tiec/wonder_house_lua_dress_kem.jpg',          category: 'vay-du-tiec', categoryLabel: 'Váy dự tiệc', brand: 'Khác',           price3day: '190.000 vnd', priceExtra: '(Trên 3 ngày +30.000 vnd/ngày)', price1day: '165.000 vnd', priceTag: '795.000 vnd',   priceDeposit: '500.000 vnd',   rating: 4.6, reviews: 33,  likes: 67 },
+            { name: 'SÒ VINTAGE – VELIA (ĐEN)',              image: 'image/vay_du_tiec/so_vintage_velia(den).jpg',              category: 'vay-du-tiec', categoryLabel: 'Váy dự tiệc', brand: 'SÒ VINTAGE',     price3day: '440.000 vnd', priceExtra: '(Trên 3 ngày +50.000 vnd/ngày)', price1day: '390.000 vnd', priceTag: '2.590.000 vnd', priceDeposit: '1.500.000 vnd', rating: 4.9, reviews: 71,  likes: 139 },
+            { name: 'SÒ VINTAGE – VELIANA (ĐEN)',            image: 'image/vay_du_tiec/so_vintage_veliana(den).jpg',            category: 'vay-du-tiec', categoryLabel: 'Váy dự tiệc', brand: 'SÒ VINTAGE',     price3day: '340.000 vnd', priceExtra: '(Trên 3 ngày +50.000 vnd/ngày)', price1day: '290.000 vnd', priceTag: '1.969.000 vnd', priceDeposit: '1.300.000 vnd', rating: 4.7, reviews: 44,  likes: 88 },
+            { name: 'CHOUCHOU – ĐẦM DÀI REN CHOÀNG',        image: 'image/vay_du_tiec/chouchou_dam_dai_ren_choang.jpg',         category: 'vay-du-tiec', categoryLabel: 'Váy dự tiệc', brand: 'CHOUCHOU',       price3day: '230.000 vnd', priceExtra: '(Trên 3 ngày +30.000 vnd/ngày)', price1day: '200.000 vnd', priceTag: '990.000 vnd',   priceDeposit: '700.000 vnd',   rating: 4.7, reviews: 36,  likes: 72 },
+            { name: 'SÒ VINTAGE – VELIA',                    image: 'image/vay_du_tiec/so_vintage_velia.jpg',                   category: 'vay-du-tiec', categoryLabel: 'Váy dự tiệc', brand: 'SÒ VINTAGE',     price3day: '440.000 vnd', priceExtra: '(Trên 3 ngày +50.000 vnd/ngày)', price1day: '390.000 vnd', priceTag: '2.590.000 vnd', priceDeposit: '1.500.000 vnd', rating: 4.9, reviews: 68,  likes: 132 },
+            { name: 'SÒ VINTAGE – LAFINE',                   image: 'image/vay_du_tiec/so_vintage_lafine.jpg',                  category: 'vay-du-tiec', categoryLabel: 'Váy dự tiệc', brand: 'SÒ VINTAGE',     price3day: '450.000 vnd', priceExtra: '(Trên 3 ngày +50.000 vnd/ngày)', price1day: '400.000 vnd', priceTag: '2.629.000 vnd', priceDeposit: '1.500.000 vnd', rating: 4.8, reviews: 55,  likes: 107 },
+            { name: 'SÒ VINTAGE – VELIANA',                  image: 'image/vay_du_tiec/so_vintage_veliana.png',                 category: 'vay-du-tiec', categoryLabel: 'Váy dự tiệc', brand: 'SÒ VINTAGE',     price3day: '340.000 vnd', priceExtra: '(Trên 3 ngày +50.000 vnd/ngày)', price1day: '290.000 vnd', priceTag: '1.969.000 vnd', priceDeposit: '1.300.000 vnd', rating: 4.7, reviews: 41,  likes: 82 },
+            { name: 'JOLIE LOFT – VÁY LỤA LUALA DRESS',     image: 'image/vay_du_tiec/jolie_loft_vay_lua_luala_dress.png',     category: 'vay-du-tiec', categoryLabel: 'Váy dự tiệc', brand: 'JOLIE LOFT',     price3day: '240.000 vnd', priceExtra: '(Trên 3 ngày +30.000 vnd/ngày)', price1day: '210.000 vnd', priceTag: '1.890.000 vnd', priceDeposit: '800.000 vnd',   rating: 4.8, reviews: 62,  likes: 119 },
+            { name: 'HƯƠNG BOUTIQUE – LOUISE LACE DRESS',    image: 'image/vay_du_tiec/huong_boutique_louise_lace_dress.jpg',   category: 'vay-du-tiec', categoryLabel: 'Váy dự tiệc', brand: 'HƯƠNG BOUTIQUE', price3day: '420.000 vnd', priceExtra: '(Trên 3 ngày +50.000 vnd/ngày)', price1day: '380.000 vnd', priceTag: '2.050.000 vnd', priceDeposit: '1.400.000 vnd', rating: 4.9, reviews: 77,  likes: 145 },
+            // ── Phụ kiện ──
+            { name: 'TÚI NHUNG ĐEN D.CHIC',                                      image: 'image/phu_kien/tui_nhung_den_dchic.jpg',       category: 'phu-kien', categoryLabel: 'Phụ kiện', brand: 'D.CHIC',  price3day: '80.000 vnd',  priceExtra: '(Trên 3 ngày +20.000 vnd/ngày)', price1day: '60.000 vnd',  priceTag: '980.000 vnd',  priceDeposit: '300.000 vnd', rating: 4.7, reviews: 28, likes: 54 },
+            { name: 'TÚI DA ĐEN MYS.P',                                           image: 'image/phu_kien/tui_da_den_mysp.jpg',           category: 'phu-kien', categoryLabel: 'Phụ kiện', brand: 'Mys.P',   price3day: '90.000 vnd',  priceExtra: '(Trên 3 ngày +20.000 vnd/ngày)', price1day: '70.000 vnd',  priceTag: '590.000 vnd',  priceDeposit: '400.000 vnd', rating: 4.6, reviews: 19, likes: 41 },
+            { name: 'TÚI DA ĐỎ',                                                  image: 'image/phu_kien/tui_da_do.jpg',                 category: 'phu-kien', categoryLabel: 'Phụ kiện', brand: 'Khác',    price3day: '70.000 vnd',  priceExtra: '(Trên 3 ngày +10.000 vnd/ngày)', price1day: '50.000 vnd',  priceTag: '',             priceDeposit: '300.000 vnd', rating: 4.5, reviews: 14, likes: 29 },
+            { name: 'TÚI TRỨNG NGỌC TRAI',                                        image: 'image/phu_kien/tui_trung_ngoc_trai.jpg',       category: 'phu-kien', categoryLabel: 'Phụ kiện', brand: 'Khác',    price3day: '120.000 vnd', priceExtra: '(Trên 3 ngày +30.000 vnd/ngày)', price1day: '100.000 vnd', priceTag: '',             priceDeposit: '400.000 vnd', rating: 4.8, reviews: 33, likes: 67 },
+            { name: 'COMBO PHỤ KIỆN ÁO DÀI (VÒNG + BỜM + TÚI)',                  image: 'image/phu_kien/com_bo_phu_kien_ao_dai.jpg',    category: 'phu-kien', categoryLabel: 'Phụ kiện', brand: 'CHIRON',  price3day: '100.000 vnd', priceExtra: '(Trên 3 ngày +20.000 vnd/ngày)', price1day: '80.000 vnd',  priceTag: '',             priceDeposit: '300.000 vnd', rating: 4.8, reviews: 41, likes: 78 },
+            { name: 'COMBO NGỌC TRAI (TÚI + VÒNG CỔ, TÚI + BỜM/VÒNG TAY)',      image: 'image/phu_kien/combo_ngoc_trai.jpg',           category: 'phu-kien', categoryLabel: 'Phụ kiện', brand: 'CHIRON',  price3day: '100.000 vnd', priceExtra: '(Trên 3 ngày +20.000 vnd/ngày)', price1day: '80.000 vnd',  priceTag: '',             priceDeposit: '300.000 vnd', rating: 4.7, reviews: 36, likes: 71 },
+            { name: 'TÚI MŨ ĐI BIỂN',                                             image: 'image/phu_kien/tui_mu_di_bien.jpg',            category: 'phu-kien', categoryLabel: 'Phụ kiện', brand: 'Khác',    price3day: '100.000 vnd', priceExtra: '(Trên 3 ngày +20.000 vnd/ngày)', price1day: '80.000 vnd',  priceTag: '500.000 vnd',  priceDeposit: '400.000 vnd', rating: 4.6, reviews: 22, likes: 46 },
+            // ── Váy lụa ──
+            { name: 'JOLIE LOFT – ĐẦM LỤA KEM HALI DRESS', image: 'image/vay_lua/jolie_loft_dam_lua_kem_hali_dress.jpg', category: 'vay-lua', categoryLabel: 'Váy lụa', brand: 'JOLIE LOFT', price3day: '200.000 vnd', priceExtra: '(Trên 3 ngày +30.000 vnd/ngày)', price1day: '175.000 vnd', priceTag: '1.600.000 vnd', priceDeposit: '600.000 vnd', rating: 4.9, reviews: 86, likes: 128 },
+            { name: 'WONDER HOUSE – LUA DRESS KEM',          image: 'image/vay_lua/wonder_house_lua_dress_kem.jpg',        category: 'vay-lua', categoryLabel: 'Váy lụa', brand: 'Khác',       price3day: '190.000 vnd', priceExtra: '(Trên 3 ngày +30.000 vnd/ngày)', price1day: '165.000 vnd', priceTag: '795.000 vnd',   priceDeposit: '500.000 vnd', rating: 4.6, reviews: 33, likes: 67 },
+            { name: 'JOLIE LOFT – VÁY LỤA LUALA DRESS',     image: 'image/vay_lua/jolie_loft_vaylua_dress.png',           category: 'vay-lua', categoryLabel: 'Váy lụa', brand: 'JOLIE LOFT', price3day: '240.000 vnd', priceExtra: '(Trên 3 ngày +30.000 vnd/ngày)', price1day: '210.000 vnd', priceTag: '1.890.000 vnd', priceDeposit: '800.000 vnd', rating: 4.8, reviews: 62, likes: 119 },
+            { name: 'JOLIE LOFT – LỤA',                      image: 'image/vay_lua/jolie_loft_lua.jpg',                    category: 'vay-lua', categoryLabel: 'Váy lụa', brand: 'JOLIE LOFT', price3day: '195.000 vnd', priceExtra: '(Trên 3 ngày +30.000 vnd/ngày)', price1day: '165.000 vnd', priceTag: '1.320.000 vnd', priceDeposit: '700.000 vnd', rating: 4.8, reviews: 55, likes: 102 }
+        ];
+
+        // ===== PAGINATION & RENDER =====
+        const ITEMS_PER_PAGE = 15;
+        let currentCategory = 'ao-dai';
+        let currentBrand = 'all';
+        let currentPage = 1;
+
+        function buildProductUrl(p) {
+            const q = new URLSearchParams({
+                name: p.name, image: p.image, category: p.categoryLabel,
+                price3day: p.price3day, priceExtra: p.priceExtra,
+                price1day: p.price1day, priceTag: p.priceTag,
+                priceDeposit: p.priceDeposit,
+                rating: p.rating, reviews: p.reviews, likes: p.likes
+            });
+            return 'productDetail.html?' + q.toString();
+        }
+
+        function getFiltered(searchQ = '') {
+            return shopProducts.filter(p => {
+                const inCat   = currentCategory === 'all' || p.category === currentCategory;
+                const inBrand = currentBrand === 'all'    || p.brand === currentBrand;
+                const matchSearch = searchQ === '' || p.name.toLowerCase().includes(searchQ.toLowerCase());
+                return inCat && inBrand && matchSearch;
+            });
+        }
+
+        function renderPage() {
+            const grid = document.getElementById('productGrid');
+            const emptyState = document.getElementById('emptyState');
+            const searchQ = document.getElementById('searchInput').value;
+            const filtered = getFiltered(searchQ);
+            const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
+
+            // Xóa cards cũ, giữ empty-state
+            grid.querySelectorAll('.product-card').forEach(c => c.remove());
+
+            if (filtered.length === 0) {
+                emptyState.style.display = 'block';
+                document.getElementById('resultCount').textContent = 'Không có kết quả';
+            } else {
+                emptyState.style.display = 'none';
+                const start = (currentPage - 1) * ITEMS_PER_PAGE;
+                const pageItems = filtered.slice(start, start + ITEMS_PER_PAGE);
+                pageItems.forEach(p => {
+                    const a = document.createElement('a');
+                    a.className = 'product-card';
+                    a.dataset.category = p.category;
+                    a.href = buildProductUrl(p);
+                    a.innerHTML = `
+                        <img src="${p.image}" alt="${p.name}">
+                        <div class="card-info">
+                            <div class="card-name">${p.name}</div>
+                            <div class="card-price">
+                                Giá thuê 3 ngày: <strong>${p.price3day}</strong><br>
+                                <span class="extra">${p.priceExtra}</span><br>
+                                Giá thuê 1 ngày: <strong>${p.price1day}</strong><br>
+                                <span class="red">Giá tag: ${p.priceTag}</span><br>
+                                <span class="red">Giá cọc: ${p.priceDeposit}</span>
+                            </div>
+                        </div>`;
+                    emptyState.parentNode.insertBefore(a, emptyState);
+                });
+                const label = searchQ
+                    ? `Tìm thấy ${filtered.length} kết quả cho "${searchQ}"`
+                    : `Hiển thị tất cả ${filtered.length} kết quả`;
+                document.getElementById('resultCount').textContent = label;
+            }
+
+            renderPagination(totalPages);
+        }
+
+        function renderPagination(totalPages) {
+            const container = document.getElementById('pagination');
+            container.innerHTML = '';
+            if (totalPages <= 1) { container.style.display = 'none'; return; }
+            container.style.display = 'flex';
+
+            for (let i = 1; i <= totalPages; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'page-btn' + (i === currentPage ? ' active' : '');
+                btn.textContent = i;
+                btn.onclick = () => { currentPage = i; renderPage(); window.scrollTo({ top: 300, behavior: 'smooth' }); };
+                container.appendChild(btn);
+            }
+            if (currentPage < totalPages) {
+                const next = document.createElement('button');
+                next.className = 'page-btn arrow';
+                next.textContent = '→';
+                next.onclick = () => { currentPage++; renderPage(); window.scrollTo({ top: 300, behavior: 'smooth' }); };
+                container.appendChild(next);
+            }
+        }
+
+        // Khởi tạo lần đầu
+        renderPage();
+
+        // Search
+        function searchProducts() {
+            currentPage = 1;
+            renderPage();
+        }
+
+        // Category filter
+        function filterCategory(cat) {
+            currentCategory = cat;
+            currentPage = 1;
+            document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            document.getElementById('searchInput').value = '';
+
+            const labels = {
+                'all': 'Tất cả', 'ao-dai': 'Áo dài', 'vay-di-bien': 'Váy đi biển',
+                'vay-du-tiec': 'Váy dự tiệc', 'phu-kien': 'Phụ kiện',
+                'vay-lua': 'Váy lụa', 'thanh-ly': 'Thanh lý'
+            };
+            document.querySelector('.breadcrumb span').textContent = labels[cat] || cat;
+            renderPage();
+        }
+
+        // Brand filter
+        function filterBrand(brand) {
+            currentBrand = brand;
+            currentPage = 1;
+            document.querySelectorAll('.brand-link').forEach(l => l.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            document.getElementById('searchInput').value = '';
+            renderPage();
+        }
+
+        // Header scroll effect
+        const header = document.getElementById('mainHeader');
+        window.addEventListener('scroll', () => {
+            header.classList.toggle('scrolled', window.scrollY > 60);
+        });
+
+        // Fade-in on scroll
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(el => {
+                if (el.isIntersecting) el.target.classList.add('visible');
+            });
+        }, { threshold: 0.15 });
+        document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+    </script>
+
+</body>
+</html>
