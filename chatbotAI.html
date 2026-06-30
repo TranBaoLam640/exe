@@ -387,8 +387,7 @@
     </footer>
 
     <script>
-        const API_KEY = 'AQ.Ab8RN6KKUBafPUB95CXVO-Xk45mwlxi22PBZooRJst9ZyVNgWQ';
-        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${API_KEY}`;
+        const API_URL = '/api/chat';
 
         const SYSTEM_PROMPT = `Bạn là DoStyle AI — trợ lý thời trang của DoRentMe, nền tảng cho thuê trang phục tại TP.HCM.
 
@@ -582,15 +581,13 @@ PHỤ KIỆN:
             showTyping();
 
             try {
-                const body = {
-                    system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
-                    contents: conversationHistory
-                };
-
                 const res = await fetch(API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(body)
+                    body: JSON.stringify({
+                        messages: conversationHistory,
+                        system: SYSTEM_PROMPT
+                    })
                 });
 
                 const data = await res.json();

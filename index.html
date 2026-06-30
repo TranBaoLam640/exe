@@ -12,7 +12,7 @@
         .logo img { height: 70px; width: auto; }
         .nav-menu { grid-column: 2; display: flex; gap: 50px; justify-content: center; }
         .nav-menu a { color: white; text-decoration: none; font-weight: 600; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.5px; transition: color 0.3s; position: relative; }
-        .nav-menu a::after { content: \'\'; position: absolute; bottom: -4px; left: 0; width: 0; height: 2px; background: #8de9be; transition: width 0.3s; }
+        .nav-menu a::after { content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 2px; background: #8de9be; transition: width 0.3s; }
         .nav-menu a:hover, .nav-menu a.active { color: #8de9be; }
         .nav-menu a:hover::after, .nav-menu a.active::after { width: 100%; }
         .nav-right { grid-column: 3; display: flex; justify-content: flex-end; gap: 12px; }
@@ -23,7 +23,7 @@
         .nav-btn.fill:hover { background: #3d9e70; border-color: #3d9e70; }
         .nav-item { position: relative; display: flex; align-items: center; }
         .nav-item > a { color: white; text-decoration: none; font-weight: 600; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.5px; transition: color 0.3s; position: relative; cursor: pointer; }
-        .nav-item > a::after { content: \'\'; position: absolute; bottom: -4px; left: 0; width: 0; height: 2px; background: #8de9be; transition: width 0.3s; }
+        .nav-item > a::after { content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 2px; background: #8de9be; transition: width 0.3s; }
         .nav-item:hover > a { color: #8de9be; }
         .nav-item:hover > a::after { width: 100%; }
         .dropdown-menu { display: none; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); padding-top: 14px; z-index: 200; min-width: 160px; }
@@ -32,7 +32,7 @@
         .dropdown-menu a { display: block !important; padding: 11px 22px; color: rgba(255,255,255,0.88) !important; font-size: 0.85rem !important; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; transition: color 0.2s, background 0.2s; text-decoration: none; }
         .dropdown-menu a::after { display: none !important; }
         .dropdown-menu a:hover { color: #8de9be !important; background: rgba(141,233,190,0.08); }
-        .hero { height: 100vh; background: linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)), url(\'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80\'); background-size: cover; background-position: center; background-attachment: fixed; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; text-align: center; padding: 20px; }
+        .hero { height: 100vh; background: linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)), url('https://images.unsplash.com/photo-1490481651871-ab68de25d43d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80'); background-size: cover; background-position: center; background-attachment: fixed; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; text-align: center; padding: 20px; }
         .hero-badge { display: inline-block; background: rgba(141,233,190,0.2); border: 1px solid #8de9be; color: #8de9be; padding: 6px 18px; border-radius: 20px; font-size: 0.85rem; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 20px; }
         .hero h1 { font-size: 3.8rem; font-weight: 700; margin-bottom: 20px; color: #8de9be; line-height: 1.2; text-shadow: 0 2px 20px rgba(0,0,0,0.5); }
         .hero p { font-size: 1.2rem; margin-bottom: 40px; max-width: 600px; opacity: 0.9; line-height: 1.7; }
@@ -65,7 +65,7 @@
         .btn-rent:hover { background: #3d9e70; }
         .how-it-works { background: white; }
         .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; max-width: 900px; margin: 0 auto; position: relative; }
-        .steps::before { content: \'\'; position: absolute; top: 42px; left: 16%; width: 68%; height: 2px; background: linear-gradient(to right, #8de9be, #55b689); }
+        .steps::before { content: ''; position: absolute; top: 42px; left: 16%; width: 68%; height: 2px; background: linear-gradient(to right, #8de9be, #55b689); }
         .step { text-align: center; position: relative; }
         .step-icon { width: 84px; height: 84px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; position: relative; z-index: 1; box-shadow: 0 6px 20px rgba(85,182,137,0.25); border: 2px solid #8de9be; font-size: 2rem; }
         .step-num { position: absolute; top: -8px; right: -8px; width: 26px; height: 26px; background: #0a1e14; color: #8de9be; border-radius: 50%; font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; justify-content: center; z-index: 2; }
