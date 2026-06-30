@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Điều Khoản Sử Dụng | DoRentMe</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+
+        /* ===== HEADER ===== */
+        header {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%;
+            padding: 8px 50px;
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            z-index: 1000;
+            background: rgba(10, 30, 20, 0.95);
+            box-shadow: 0 2px 20px rgba(0,0,0,0.4);
+        }
+        .logo { grid-column: 1; }
+        .logo img { height: 70px; width: auto; }
+        .nav-menu {
+            grid-column: 2;
+            display: flex;
+            gap: 50px;
+            justify-content: center;
+        }
+        .nav-menu a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: color 0.3s;
+            position: relative;
+        }
+        .nav-menu a::after {
+            content: '';
+            position: absolute;
+            bottom: -4px; left: 0;
+            width: 0; height: 2px;
+            background: #8de9be;
+            transition: width 0.3s;
+        }
+        .nav-menu a:hover { color: #8de9be; }
+        .nav-menu a:hover::after { width: 100%; }
+        .nav-right {
+            grid-column: 3;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+        .nav-btn {
+            padding: 8px 20px;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: 0.3s;
+        }
+        .nav-btn.outline { border: 2px solid #8de9be; color: #8de9be; background: transparent; }
+        .nav-btn.outline:hover { background: #8de9be; color: #0a1e14; }
+        .nav-btn.fill { background: #55b689; color: white; border: 2px solid #55b689; }
+        .nav-btn.fill:hover { background: #3d9e70; border-color: #3d9e70; }
+        /* ===== DROPDOWN ===== */
+        .nav-item { position: relative; display: flex; align-items: center; }
+        .nav-item > a { color: white; text-decoration: none; font-weight: 600; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.5px; transition: color 0.3s; position: relative; cursor: pointer; }
+        .nav-item > a::after { content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 2px; background: #8de9be; transition: width 0.3s; }
+        .nav-item:hover > a { color: #8de9be; }
+        .nav-item:hover > a::after { width: 100%; }
+        .dropdown-menu { display: none; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); padding-top: 14px; z-index: 200; min-width: 160px; }
+        .nav-item:hover .dropdown-menu { display: block; }
+        .dropdown-inner { background: rgba(10,30,20,0.97); border: 1px solid rgba(141,233,190,0.25); border-radius: 10px; overflow: hidden; box-shadow: 0 8px 30px rgba(0,0,0,0.5); }
+        .dropdown-menu a { display: block !important; padding: 11px 22px; color: rgba(255,255,255,0.88) !important; font-size: 0.85rem !important; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; transition: color 0.2s, background 0.2s; text-decoration: none; }
+        .dropdown-menu a::after { display: none !important; }
+        .dropdown-menu a:hover { color: #8de9be !important; background: rgba(141,233,190,0.08); }
+
+        /* ===== PAGE ===== */
+        .page-wrapper {
+            padding-top: 140px;
+            padding-bottom: 80px;
+            background: #f5f7f6;
+            min-height: 100vh;
+        }
+        .page-inner {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+        .page-title {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+        .page-title h1 {
+            font-size: 2.4rem;
+            font-weight: 800;
+            color: #0a1e14;
+            margin-bottom: 10px;
+        }
+        .page-title p { color: #777; font-size: 0.95rem; }
+        .page-title .divider {
+            width: 60px; height: 3px;
+            background: #8de9be;
+            margin: 14px auto 0;
+            border-radius: 2px;
+        }
+        .updated {
+            text-align: center;
+            font-size: 0.82rem;
+            color: #aaa;
+            margin-bottom: 40px;
+        }
+
+        /* ===== TERM BLOCK ===== */
+        .term-block {
+            background: white;
+            border-radius: 16px;
+            padding: 36px 44px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+            border-left: 5px solid #8de9be;
+        }
+        .term-block h2 {
+            font-size: 1rem;
+            font-weight: 800;
+            color: #1a6640;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .term-block h2 .num {
+            background: #8de9be;
+            color: #0a1e14;
+            font-size: 0.78rem;
+            font-weight: 800;
+            width: 24px; height: 24px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .term-block p {
+            color: #444;
+            font-size: 0.92rem;
+            line-height: 1.75;
+            margin-bottom: 10px;
+        }
+        .term-block p:last-child { margin-bottom: 0; }
+        .term-block ul {
+            list-style: none;
+            padding: 0;
+            margin-top: 4px;
+        }
+        .term-block ul li {
+            padding: 6px 0 6px 18px;
+            position: relative;
+            color: #444;
+            font-size: 0.92rem;
+            line-height: 1.65;
+        }
+        .term-block ul li::before {
+            content: '•';
+            position: absolute;
+            left: 0;
+            color: #8de9be;
+            font-weight: 700;
+        }
+        .highlight-box {
+            background: #f0faf5;
+            border: 1px solid #c2ead6;
+            border-radius: 10px;
+            padding: 14px 18px;
+            margin-top: 14px;
+            font-size: 0.88rem;
+            color: #1a5c3a;
+            line-height: 1.6;
+        }
+
+        /* ===== FOOTER ===== */
+        footer { background: #0a1e14; color: white; padding: 60px 80px 30px; }
+        .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px; margin-bottom: 40px; }
+        .footer-brand img { height: 80px; margin-bottom: 16px; }
+        .footer-brand p { color: rgba(255,255,255,0.6); font-size: 0.88rem; line-height: 1.7; max-width: 240px; }
+        .footer-col h4 { font-size: 0.95rem; font-weight: 700; color: #8de9be; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .footer-col a { display: block; color: rgba(255,255,255,0.6); text-decoration: none; font-size: 0.88rem; margin-bottom: 10px; transition: color 0.2s; }
+        .footer-col a:hover { color: #8de9be; }
+        .footer-bottom { border-top: 1px solid rgba(255,255,255,0.1); padding-top: 24px; text-align: center; color: rgba(255,255,255,0.4); font-size: 0.85rem; }
+    </style>
+</head>
+<body>
+
+    <!-- ===== HEADER ===== -->
+    <header id="mainHeader">
+        <div class="logo">
+            <img src="image-removebg-preview.png" alt="DoRentMe Logo">
+        </div>
+        <nav class="nav-menu">
+            <a href="index.html">Trang chủ</a>
+            <div class="nav-item">
+                <a href="#">Dịch vụ</a>
+                <div class="dropdown-menu">
+                    <div class="dropdown-inner">
+                        <a href="ai-tryon.html">AI Phối đồ</a>
+                        <a href="ai-tryon.html">Thử đồ 3D</a>
+                        <a href="shop.html">Shop</a>
+                        <a href="news.html">Tin tức</a>
+                    </div>
+                </div>
+            </div>
+            <a href="about.html">Giới thiệu</a>
+            <a href="contact.html">Liên hệ</a>
+        </nav>
+        <div class="nav-right">
+            <a href="#" class="nav-btn outline">Đăng nhập</a>
+            <a href="#" class="nav-btn fill">Đăng ký</a>
+        </div>
+    </header>
+
+    <!-- ===== CONTENT ===== -->
+    <div class="page-wrapper">
+        <div class="page-inner">
+
+            <div class="page-title">
+                <h1>Điều Khoản Sử Dụng</h1>
+                <p>Vui lòng đọc kỹ trước khi sử dụng dịch vụ của DoRentMe</p>
+                <div class="divider"></div>
+            </div>
+            <p class="updated">Cập nhật lần cuối: tháng 6, 2026</p>
+
+            <div class="term-block">
+                <h2><span class="num">1</span> Chấp thuận điều khoản</h2>
+                <p>Khi truy cập và sử dụng website DoRentMe, bạn đồng ý bị ràng buộc bởi các điều khoản và điều kiện này. Nếu bạn không đồng ý với bất kỳ phần nào, vui lòng không sử dụng dịch vụ của chúng tôi.</p>
+                <p>DoRentMe có quyền cập nhật điều khoản bất kỳ lúc nào. Việc tiếp tục sử dụng dịch vụ sau khi có thay đổi đồng nghĩa với việc bạn chấp thuận điều khoản mới.</p>
+            </div>
+
+            <div class="term-block">
+                <h2><span class="num">2</span> Điều kiện sử dụng</h2>
+                <ul>
+                    <li>Người dùng phải từ <strong>16 tuổi</strong> trở lên để đặt thuê trang phục.</li>
+                    <li>Thông tin cung cấp khi đặt hàng phải chính xác và trung thực.</li>
+                    <li>Mỗi tài khoản chỉ được sử dụng bởi một cá nhân, không được chia sẻ.</li>
+                    <li>Nghiêm cấm sử dụng dịch vụ cho mục đích thương mại khi chưa có sự cho phép của DoRentMe.</li>
+                </ul>
+            </div>
+
+            <div class="term-block">
+                <h2><span class="num">3</span> Tài khoản & bảo mật</h2>
+                <p>Bạn có trách nhiệm bảo mật thông tin đăng nhập của mình. DoRentMe sẽ không chịu trách nhiệm cho bất kỳ tổn thất nào phát sinh do việc bạn để lộ thông tin tài khoản.</p>
+                <p>Nếu phát hiện tài khoản bị truy cập trái phép, vui lòng thông báo ngay cho chúng tôi qua trang <a href="contact.html" style="color:#1a6640;font-weight:600;">Liên hệ</a>.</p>
+            </div>
+
+            <div class="term-block">
+                <h2><span class="num">4</span> Quyền & nghĩa vụ của khách hàng</h2>
+                <ul>
+                    <li>Thanh toán đầy đủ và đúng hạn theo thỏa thuận khi đặt thuê.</li>
+                    <li>Bảo quản trang phục cẩn thận trong suốt thời gian thuê.</li>
+                    <li>Hoàn trả sản phẩm đúng hạn và đúng tình trạng ban đầu.</li>
+                    <li>Thông báo kịp thời nếu muốn thay đổi lịch hoặc gặp sự cố.</li>
+                </ul>
+            </div>
+
+            <div class="term-block">
+                <h2><span class="num">5</span> Quyền & nghĩa vụ của DoRentMe</h2>
+                <ul>
+                    <li>Cung cấp trang phục đúng mô tả, đảm bảo vệ sinh và chất lượng trước khi giao.</li>
+                    <li>Quay chụp tình trạng sản phẩm trước khi ship để làm căn cứ đối chiếu.</li>
+                    <li>Hỗ trợ khách hàng trong giờ làm việc và xử lý khiếu nại trong vòng 24h.</li>
+                    <li>Bảo mật thông tin cá nhân của khách hàng, không chia sẻ cho bên thứ ba khi chưa được đồng ý.</li>
+                </ul>
+            </div>
+
+            <div class="term-block">
+                <h2><span class="num">6</span> Bảo mật thông tin cá nhân</h2>
+                <p>DoRentMe thu thập một số thông tin cơ bản (tên, số điện thoại, địa chỉ giao hàng) nhằm mục đích xử lý đơn thuê và cải thiện trải nghiệm dịch vụ.</p>
+                <ul>
+                    <li>Thông tin của bạn <strong>không được bán</strong> hoặc chia sẻ với bên thứ ba vì mục đích thương mại.</li>
+                    <li>Chúng tôi có thể gửi thông báo về đơn hàng hoặc ưu đãi qua email/SMS bạn đã đăng ký.</li>
+                    <li>Bạn có thể yêu cầu xóa dữ liệu cá nhân bất kỳ lúc nào bằng cách liên hệ với chúng tôi.</li>
+                </ul>
+            </div>
+
+            <div class="term-block">
+                <h2><span class="num">7</span> Giới hạn trách nhiệm</h2>
+                <p>DoRentMe không chịu trách nhiệm cho các trường hợp ngoài tầm kiểm soát như: thiên tai, sự cố vận chuyển từ đơn vị thứ ba, hoặc các tình huống bất khả kháng khác.</p>
+                <div class="highlight-box">
+                    💡 Trong trường hợp sản phẩm bị thất lạc do lỗi vận chuyển, DoRentMe sẽ hoàn tiền cọc và phối hợp cùng đơn vị vận chuyển để giải quyết.
+                </div>
+            </div>
+
+            <div class="term-block">
+                <h2><span class="num">8</span> Giải quyết tranh chấp</h2>
+                <p>Mọi tranh chấp phát sinh sẽ được ưu tiên giải quyết thông qua thương lượng và hòa giải giữa hai bên.</p>
+                <p>Trong trường hợp không đạt được thỏa thuận, tranh chấp sẽ được giải quyết theo quy định của <strong>pháp luật Việt Nam</strong> tại cơ quan có thẩm quyền.</p>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ===== FOOTER ===== -->
+    <footer>
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <img src="image-removebg-preview.png" alt="DoRentMe">
+                <p>Nền tảng cho thuê thời trang AI hàng đầu Việt Nam. Phong cách không giới hạn — chi phí tối ưu.</p>
+            </div>
+            <div class="footer-col">
+                <h4>Dịch vụ</h4>
+                <a href="shop.html">Danh mục đồ thuê</a>
+                <a href="ai-tryon.html">AI Stylist</a>
+                <a href="#">Gói thành viên</a>
+            </div>
+            <div class="footer-col">
+                <h4>Hỗ trợ</h4>
+                <a href="tutorial.html">Hướng dẫn thuê</a>
+                <a href="policy.html">Chính sách đổi trả</a>
+                <a href="contact.html">Liên hệ</a>
+            </div>
+            <div class="footer-col">
+                <h4>Công ty</h4>
+                <a href="about.html">Về DoRentMe</a>
+                <a href="news.html">Tin tức</a>
+                <a href="terms.html">Điều khoản</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            © 2026 DoRentMe. Tất cả quyền được bảo lưu. · Làm với ❤️ tại Việt Nam
+        </div>
+    </footer>
+
+    <script>
+        const header = document.getElementById('mainHeader');
+        window.addEventListener('scroll', () => {
+            header.classList.toggle('scrolled',

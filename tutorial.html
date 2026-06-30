@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hướng Dẫn Thuê | DoRentMe</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+
+        /* ===== HEADER ===== */
+        header {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%;
+            padding: 8px 50px;
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            z-index: 1000;
+            background: rgba(10, 30, 20, 0.95);
+            box-shadow: 0 2px 20px rgba(0,0,0,0.4);
+        }
+        .logo { grid-column: 1; }
+        .logo img { height: 70px; width: auto; }
+        .nav-menu { grid-column: 2; display: flex; gap: 50px; justify-content: center; }
+        .nav-menu a { color: white; text-decoration: none; font-weight: 600; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.5px; transition: color 0.3s; position: relative; }
+        .nav-menu a::after { content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 2px; background: #8de9be; transition: width 0.3s; }
+        .nav-menu a:hover { color: #8de9be; }
+        .nav-menu a:hover::after { width: 100%; }
+        .nav-right { grid-column: 3; display: flex; justify-content: flex-end; gap: 12px; }
+        .nav-btn { padding: 8px 20px; border-radius: 25px; font-size: 0.9rem; font-weight: 600; cursor: pointer; text-decoration: none; transition: 0.3s; }
+        .nav-btn.outline { border: 2px solid #8de9be; color: #8de9be; background: transparent; }
+        .nav-btn.outline:hover { background: #8de9be; color: #0a1e14; }
+        .nav-btn.fill { background: #55b689; color: white; border: 2px solid #55b689; }
+        .nav-btn.fill:hover { background: #3d9e70; border-color: #3d9e70; }
+        .nav-item { position: relative; display: flex; align-items: center; }
+        .nav-item > a { color: white; text-decoration: none; font-weight: 600; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.5px; transition: color 0.3s; position: relative; cursor: pointer; }
+        .nav-item > a::after { content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 2px; background: #8de9be; transition: width 0.3s; }
+        .nav-item:hover > a { color: #8de9be; }
+        .nav-item:hover > a::after { width: 100%; }
+        .dropdown-menu { display: none; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); padding-top: 14px; z-index: 200; min-width: 160px; }
+        .nav-item:hover .dropdown-menu { display: block; }
+        .dropdown-inner { background: rgba(10,30,20,0.97); border: 1px solid rgba(141,233,190,0.25); border-radius: 10px; overflow: hidden; box-shadow: 0 8px 30px rgba(0,0,0,0.5); }
+        .dropdown-menu a { display: block !important; padding: 11px 22px; color: rgba(255,255,255,0.88) !important; font-size: 0.85rem !important; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; transition: color 0.2s, background 0.2s; text-decoration: none; }
+        .dropdown-menu a::after { display: none !important; }
+        .dropdown-menu a:hover { color: #8de9be !important; background: rgba(141,233,190,0.08); }
+
+        /* ===== PAGE ===== */
+        .page-wrapper {
+            padding-top: 90px;
+            background: #f5f7f6;
+            min-height: 100vh;
+            padding-bottom: 80px;
+        }
+
+        /* HERO STRIP */
+        .hero-strip {
+            background: linear-gradient(135deg, #0a1e14, #1a5c3a);
+            color: white;
+            text-align: center;
+            padding: 52px 24px 48px;
+        }
+        .hero-strip h1 { font-size: 2.2rem; font-weight: 800; margin-bottom: 10px; }
+        .hero-strip p { opacity: 0.8; font-size: 1rem; max-width: 520px; margin: 0 auto; line-height: 1.7; }
+        .hero-strip .divider { width: 50px; height: 3px; background: #8de9be; border-radius: 2px; margin: 16px auto 0; }
+
+        .page-inner { max-width: 980px; margin: 0 auto; padding: 0 24px; }
+
+        /* SECTION TITLE */
+        .section-title {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: #0a1e14;
+            margin: 52px 0 28px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .section-title::after {
+            content: '';
+            flex: 1;
+            height: 2px;
+            background: #e0ede7;
+            border-radius: 2px;
+        }
+
+        /* ===== 3 CHANNEL CARDS ===== */
+        .channel-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            margin-bottom: 16px;
+        }
+        .channel-card {
+            background: white;
+            border-radius: 18px;
+            padding: 32px 28px 28px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+            border-top: 5px solid #8de9be;
+            position: relative;
+        }
+        .channel-card.zalo { border-top-color: #0068ff; }
+        .channel-card.facebook { border-top-color: #1877f2; }
+        .channel-card.direct { border-top-color: #8de9be; }
+        .channel-icon { font-size: 2.6rem; margin-bottom: 14px; }
+        .channel-card h3 { font-size: 1.05rem; font-weight: 800; color: #0a1e14; margin-bottom: 18px; }
+        .step-list { list-style: none; padding: 0; }
+        .step-list li {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            font-size: 0.88rem;
+            color: #555;
+            line-height: 1.6;
+            padding: 7px 0;
+            border-bottom: 1px solid #f3f3f3;
+        }
+        .step-list li:last-child { border-bottom: none; }
+        .step-num {
+            min-width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #0a1e14;
+            color: white;
+            font-size: 0.72rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+        .channel-card.zalo .step-num { background: #0068ff; }
+        .channel-card.facebook .step-num { background: #1877f2; }
+        .channel-card.direct .step-num { background: #1a6640; }
+
+        .channel-badge {
+            display: inline-block;
+            margin-top: 18px;
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        .zalo .channel-badge { background: #e8f0ff; color: #0068ff; }
+        .facebook .channel-badge { background: #e8f0ff; color: #1877f2; }
+        .direct .channel-badge { background: #e8f5ee; color: #1a6640; }
+
+        /* ===== GENERAL RULES ===== */
+        .rules-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 18px;
+            margin-bottom: 16px;
+        }
+        .rule-card {
+            background: white;
+            border-radius: 14px;
+            padding: 22px 24px;
+            box-shadow: 0 2px 14px rgba(0,0,0,0.06);
+            display: flex;
+            gap: 14px;
+            align-items: flex-start;
+        }
+        .rule-icon { font-size: 1.8rem; flex-shrink: 0; }
+        .rule-card h4 { font-size: 0.92rem; font-weight: 800; color: #0a1e14; margin-bottom: 6px; }
+        .rule-card p { font-size: 0.86rem; color: #666; line-height: 1.65; }
+
+        /* ===== FAQ ===== */
+        .faq-list { display: flex; flex-direction: column; gap: 10px; }
+        .faq-item {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            overflow: hidden;
+            border-left: 4px solid #e0ede7;
+            transition: border-color 0.3s;
+        }
+        .faq-item.open { border-left-color: #8de9be; }
+        .faq-q {
+            width: 100%; background: none; border: none;
+            padding: 17px 20px; text-align: left;
+            font-size: 0.93rem; font-weight: 700; color: #0a1e14;
+            cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+            transition: color 0.2s;
+        }
+        .faq-item.open .faq-q { color: #1a6640; }
+        .faq-chevron { font-size: 1.1rem; color: #aaa; transition: transform 0.3s, color 0.3s; }
+        .faq-item.open .faq-chevron { transform: rotate(45deg); color: #8de9be; }
+        .faq-a {
+            max-height: 0; overflow: hidden;
+            transition: max-height 0.35s ease, padding 0.3s;
+            padding: 0 20px; font-size: 0.88rem; color: #666; line-height: 1.8;
+        }
+        .faq-item.open .faq-a { max-height: 200px; padding: 0 20px 16px; }
+
+        /* CTA */
+        .cta-box {
+            background: linear-gradient(135deg, #0a1e14, #1a5c3a);
+            border-radius: 20px;
+            padding: 44px 40px;
+            text-align: center;
+            color: white;
+            margin: 52px 0 0;
+        }
+        .cta-box h3 { font-size: 1.5rem; font-weight: 800; margin-bottom: 10px; }
+        .cta-box p { opacity: 0.8; font-size: 0.95rem; margin-bottom: 24px; }
+        .cta-btn {
+            display: inline-block;
+            padding: 13px 32px;
+            background: #8de9be;
+            color: #0a1e14;
+            font-weight: 800;
+            font-size: 0.95rem;
+            border-radius: 30px;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+        .cta-btn:hover { background: #6dd4a8; }
+
+        /* ===== FOOTER ===== */
+        footer { background: #0a1e14; color: white; padding: 60px 80px 30px; }
+        .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px; margin-bottom: 40px; }
+        .footer-brand img { height: 80px; margin-bottom: 16px; }
+        .footer-brand p { color: rgba(255,255,255,0.6); font-size: 0.88rem; line-height: 1.7; max-width: 240px; }
+        .footer-col h4 { font-size: 0.95rem; font-weight: 700; color: #8de9be; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .footer-col a { display: block; color: rgba(255,255,255,0.6); text-decoration: none; font-size: 0.88rem; margin-bottom: 10px; transition: color 0.2s; }
+        .footer-col a:hover { color: #8de9be; }
+        .footer-bottom { border-top: 1px solid rgba(255,255,255,0.1); padding-top: 24px; text-align: center; color: rgba(255,255,255,0.4); font-size: 0.85rem; }
+    </style>
+</head>
+<body>
+
+    <!-- ===== HEADER ===== -->
+    <header>
+        <div class="logo">
+            <img src="image-removebg-preview.png" alt="DoRentMe Logo">
+        </div>
+        <nav class="nav-menu">
+            <a href="index.html">Trang chủ</a>
+            <div class="nav-item">
+                <a href="#">Dịch vụ</a>
+                <div class="dropdown-menu">
+                    <div class="dropdown-inner">
+                        <a href="ai-tryon.html">AI Phối đồ</a>
+                        <a href="ai-tryon.html">Thử đồ 3D</a>
+                        <a href="shop.html">Shop</a>
+                        <a href="news.html">Tin tức</a>
+                    </div>
+                </div>
+            </div>
+            <a href="about.html">Giới thiệu</a>
+            <a href="contact.html">Liên hệ</a>
+        </nav>
+        <div class="nav-right">
+            <a href="#" class="nav-btn outline">Đăng nhập</a>
+            <a href="#" class="nav-btn fill">Đăng ký</a>
+        </div>
+    </header>
+
+    <div class="page-wrapper">
+
+        <!-- HERO -->
+        <div class="hero-strip">
+            <h1>Hướng Dẫn Thuê Trang Phục</h1>
+            <p>Chọn hình thức thuê phù hợp — đặt lịch nhanh, nhận đồ đẹp, trả dễ dàng.</p>
+            <div class="divider"></div>
+        </div>
+
+        <div class="page-inner">
+
+            <!-- 3 HÌNH THỨC -->
+            <div class="section-title">3 Hình Thức Thuê</div>
+            <div class="channel-grid">
+
+                <!-- ZALO -->
+                <div class="channel-card zalo">
+                    <div class="channel-icon">💬</div>
+                    <h3>Thuê qua Zalo</h3>
+                    <ul class="step-list">
+                        <li><span class="step-num">1</span> Nhắn Zalo số <strong>0934 907 714</strong> với ảnh/tên trang phục muốn thuê</li>
+                        <li><span class="step-num">2</span> Xác nhận size, ngày nhận và ngày trả đồ</li>
+                        <li><span class="step-num">3</span> Chuyển khoản tiền cọc (bằng giá thuê) để giữ lịch</li>
+                        <li><span class="step-num">4</span> Nhận đồ tại shop hoặc qua shipper, kèm ảnh tình trạng đồ</li>
+                        <li><span class="step-num">5</span> Sau khi dùng xong, gửi lại qua bưu điện + nhắn mã vận đơn</li>
+                    </ul>
+                    <span class="channel-badge">📦 Ship toàn quốc</span>
+                </div>
+
+                <!-- FACEBOOK -->
+                <div class="channel-card facebook">
+                    <div class="channel-icon">📘</div>
+                    <h3>Thuê qua Facebook</h3>
+                    <ul class="step-list">
+                        <li><span class="step-num">1</span> Inbox Fanpage DoRentMe với ảnh/tên trang phục muốn thuê</li>
+                        <li><span class="step-num">2</span> Nhân viên tư vấn size, mẫu phù hợp và báo giá chi tiết</li>
+                        <li><span class="step-num">3</span> Xác nhận ngày nhận, ngày trả và chuyển khoản cọc</li>
+                        <li><span class="step-num">4</span> Nhận đồ kèm video/ảnh quay tình trạng trước khi giao</li>
+                        <li><span class="step-num">5</span> Trả đồ đúng hẹn, nhắn mã vận đơn cho shop qua Fanpage</li>
+                    </ul>
+                    <span class="channel-badge">💬 Phản hồi nhanh</span>
+                </div>
+
+                <!-- TRỰC TIẾP -->
+                <div class="channel-card direct">
+                    <div class="channel-icon">🏪</div>
+                    <h3>Thuê trực tiếp tại shop</h3>
+                    <ul class="step-list">
+                        <li><span class="step-num">1</span> Ghé trực tiếp shop tại 195/9-11 Nguyễn Văn Thương, Bình Thạnh</li>
+                        <li><span class="step-num">2</span> Thử đồ, chọn size — nhân viên hỗ trợ tư vấn phối đồ tận tình</li>
+                        <li><span class="step-num">3</span> Xác nhận ngày thuê, thanh toán tiền thuê + cọc tại quầy</li>
+                        <li><span class="step-num">4</span> Nhận đồ ngay, shop chụp ảnh tình trạng đồ trước khi giao</li>
+                        <li><span class="step-num">5</span> Trả đồ tại shop đúng hẹn, hoàn cọc nếu đồ nguyên vẹn</li>
+                    </ul>
+                    <span class="channel-badge">⏰ 9:00 – 20:00 mỗi ngày</span>
+                </div>
+
+            </div>
+
+            <!-- LƯU Ý CHUNG -->
+            <div class="section-title">Lưu Ý Khi Thuê</div>
+            <div class="rules-grid">
+                <div class="rule-card">
+                    <div class="rule-icon">📅</div>
+                    <div>
+                        <h4>Gói thuê 3 ngày</h4>
+                        <p>Gồm ngày thuê, ngày mặc, ngày trả (3 ngày 2 đêm). Trả muộn phụ thu thêm 10% giá thuê/ngày.</p>
+                    </div>
+                </div>
+                <div class="rule-card">
+                    <div class="rule-icon">⏱️</div>
+                    <div>
+                        <h4>Gói thuê 24h</h4>
+                        <p>Nhận và hoàn trả trong vòng 24 giờ kể từ khi nhận sản phẩm. Phù hợp chụp ảnh, sự kiện 1 ngày.</p>
+                    </div>
+                </div>
+                <div class="rule-card">
+                    <div class="rule-icon">🚿</div>
+                    <div>
+                        <h4>Không cần giặt</h4>
+                        <p>Bạn không cần giặt sau khi sử dụng. Shop sẽ xử lý vệ sinh sau khi nhận lại đồ.</p>
+                    </div>
+                </div>
+                <div class="rule-card">
+                    <div class="rule-icon">⚠️</div>
+                    <div>
+                        <h4>Bảo quản cẩn thận</h4>
+                        <p>Không tự ý sửa, bóp hay giặt trang phục. Hư hỏng nặng hoặc mất đồ phải chịu 100% giá trị sản phẩm.</p>
+                    </div>
+                </div>
+                <div class="rule-card">
+                    <div class="rule-icon">💰</div>
+                    <div>
+                        <h4>Tiền cọc</h4>
+                        <p>Đặt cọc bằng giá thuê để giữ lịch. Hoàn cọc sau khi trả đồ nguyên vẹn đúng hẹn.</p>
+                    </div>
+                </div>
+                <div class="rule-card">
+                    <div class="rule-icon">🔄</div>
+                    <div>
+                        <h4>Đổi lịch</h4>
+                        <p>Shop hỗ trợ đổi lịch khi khách báo trước tối thiểu 3 ngày. Không hỗ trợ đổi mẫu sau khi đã chốt.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FAQ -->
+            <div class="section-title">Câu Hỏi Thường Gặp</div>
+            <div class="faq-list">
+                <div class="faq-item">
+                    <button class="faq-q" onclick="toggleFaq(this)">
+                        Thuê bao lâu thì phù hợp? <span class="faq-chevron">+</span>
+                    </button>
+                    <div class="faq-a">Có 2 gói: <strong>Gói 24h</strong> phù hợp cho chụp ảnh, sự kiện 1 ngày. <strong>Gói 3 ngày</strong> (3 ngày 2 đêm) phù hợp cho các dịp lễ hội, tiệc kéo dài. Trên 3 ngày phụ thu thêm 50.000đ/ngày.</div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-q" onclick="toggleFaq(this)">
+                        Shop có ship tận nơi không? <span class="faq-chevron">+</span>
+                    </button>
+                    <div class="faq-a">Có! DoRentMe hỗ trợ ship đơn thuê toàn quốc qua bưu điện hoặc đơn vị vận chuyển. Phí ship do khách hàng chịu. Khi trả đồ, bạn gửi lại qua bưu điện và nhắn mã vận đơn cho shop.</div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-q" onclick="toggleFaq(this)">
+                        Nếu đồ bị hỏng hoặc vấy bẩn thì sao? <span class="faq-chevron">+</span>
+                    </button>
+                    <div class="faq-a">Vết bẩn nhẹ (mồ hôi, bụi) không phụ thu. Vết bẩn cần tẩy rửa phụ thu 30.000 – 100.000đ. Đồ bị rách, cháy hoặc hư hỏng nặng phải chịu 100% giá trị sản phẩm.</div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-q" onclick="toggleFaq(this)">
+                        Có được đổi mẫu sau khi đặt không? <span class="faq-chevron">+</span>
+                    </button>
+                    <div class="faq-a">Sau khi đã chốt mẫu, shop không hỗ trợ đổi sang mẫu khác. Tuy nhiên có thể đổi lịch nếu báo trước tối thiểu 3 ngày. Vui lòng chọn kỹ trước khi xác nhận.</div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-q" onclick="toggleFaq(this)">
+                        Thời gian thuê tính từ lúc nào? <span class="faq-chevron">+</span>
+                    </button>
+                    <div class="faq-a">Thời gian thuê bắt đầu khi bạn nhận được váy và kết thúc khi bạn gửi mã vận đơn trả hàng cho shop (hoặc trả trực tiếp tại shop).</div>
+                </div>
+            </div>
+
+            <!-- CTA -->
+            <div class="cta-box">
+                <h3>Sẵn sàng thuê rồi? 🎉</h3>
+                <p>Khám phá hàng trăm bộ trang phục đẹp đang chờ bạn tại DoRentMe.</p>
+                <a href="shop.html" class="cta-btn">Xem bộ sưu tập ngay →</a>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ===== FOOTER ===== -->
+    <footer>
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <img src="image-removebg-preview.png" alt="DoRentMe">
+                <p>Nền tảng cho thuê thời trang AI hàng đầu Việt Nam. Phong cách không giới hạn — chi phí tối ưu.</p>
+            </div>
+            <div class="footer-col">
+                <h4>Dịch vụ</h4>
+                <a href="shop.html">Danh mục đồ thuê</a>
+                <a href="ai-tryon.html">AI Stylist</a>
+                <a href="#">Gói thành viên</a>
+            </div>
+            <div class="footer-col">
+                <h4>Hỗ trợ</h4>
+                <a href="tutorial.html">Hướng dẫn thuê</a>
+                <a href="policy.html">Chính sách đổi trả</a>
+                <a href="contact.html">Liên hệ</a>
+            </div>
+            <div class="footer-col">
+                <h4>Công ty</h4>
+                <a href="about.html">Về DoRentMe</a>
+                <a href="news.html">Tin tức</a>
+                <a href="terms.html">Điều khoản</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            © 2026 DoRentMe. Tất cả quyền được bảo lưu. · Làm với ❤️ tại Việt Nam
+        </div>
+    </footer>
+
+    <script>
+        function toggleFaq(btn) {
+            const item = btn.closest('.faq-item');
+            item.classList.toggle('open');
+        }
+    </script>
+
+</body>
+</html>

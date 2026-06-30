@@ -6,85 +6,24 @@
     <title>DoRentMe - Trợ Lý Thời Trang AI</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-
-        /* ===== HEADER ===== */
-        header {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%;
-            padding: 10px 50px;
-            display: grid;
-            grid-template-columns: 1fr auto 1fr;
-            align-items: center;
-            z-index: 1000;
-            background: linear-gradient(to bottom, rgba(0,0,0,0.7), transparent);
-            transition: background 0.3s;
-        }
-        header.scrolled {
-            background: rgba(10, 30, 20, 0.95);
-            box-shadow: 0 2px 20px rgba(0,0,0,0.4);
-        }
+        header { position: fixed; top: 0; left: 0; width: 100%; padding: 8px 50px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; z-index: 1000; background: linear-gradient(to bottom, rgba(0,0,0,0.7), transparent); transition: background 0.3s; }
+        header.scrolled { background: rgba(10,30,20,0.95); box-shadow: 0 2px 20px rgba(0,0,0,0.4); }
         .logo { grid-column: 1; }
-        .logo img { height: 110px; width: auto; }
-        .nav-menu {
-            grid-column: 2;
-            display: flex;
-            gap: 50px;
-            justify-content: center;
-        }
-        .nav-menu a {
-            color: white;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 0.95rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            transition: color 0.3s;
-            position: relative;
-        }
-        .nav-menu a::after {
-            content: '';
-            position: absolute;
-            bottom: -4px; left: 0;
-            width: 0; height: 2px;
-            background: #8de9be;
-            transition: width 0.3s;
-        }
-        .nav-menu a:hover { color: #8de9be; }
-        .nav-menu a:hover::after { width: 100%; }
-        .nav-menu a.active { color: #8de9be; }
-        .nav-menu a.active::after { width: 100%; }
-        .nav-right {
-            grid-column: 3;
-            display: flex;
-            justify-content: flex-end;
-            gap: 12px;
-        }
-        .nav-btn {
-            padding: 8px 20px;
-            border-radius: 25px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            cursor: pointer;
-            text-decoration: none;
-            transition: 0.3s;
-        }
-        .nav-btn.outline {
-            border: 2px solid #8de9be;
-            color: #8de9be;
-            background: transparent;
-        }
+        .logo img { height: 70px; width: auto; }
+        .nav-menu { grid-column: 2; display: flex; gap: 50px; justify-content: center; }
+        .nav-menu a { color: white; text-decoration: none; font-weight: 600; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.5px; transition: color 0.3s; position: relative; }
+        .nav-menu a::after { content: \'\'; position: absolute; bottom: -4px; left: 0; width: 0; height: 2px; background: #8de9be; transition: width 0.3s; }
+        .nav-menu a:hover, .nav-menu a.active { color: #8de9be; }
+        .nav-menu a:hover::after, .nav-menu a.active::after { width: 100%; }
+        .nav-right { grid-column: 3; display: flex; justify-content: flex-end; gap: 12px; }
+        .nav-btn { padding: 8px 20px; border-radius: 25px; font-size: 0.9rem; font-weight: 600; cursor: pointer; text-decoration: none; transition: 0.3s; }
+        .nav-btn.outline { border: 2px solid #8de9be; color: #8de9be; background: transparent; }
         .nav-btn.outline:hover { background: #8de9be; color: #0a1e14; }
-        .nav-btn.fill {
-            background: #55b689;
-            color: white;
-            border: 2px solid #55b689;
-        }
+        .nav-btn.fill { background: #55b689; color: white; border: 2px solid #55b689; }
         .nav-btn.fill:hover { background: #3d9e70; border-color: #3d9e70; }
-        /* ===== DROPDOWN ===== */
         .nav-item { position: relative; display: flex; align-items: center; }
         .nav-item > a { color: white; text-decoration: none; font-weight: 600; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.5px; transition: color 0.3s; position: relative; cursor: pointer; }
-        .nav-item > a::after { content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 2px; background: #8de9be; transition: width 0.3s; }
+        .nav-item > a::after { content: \'\'; position: absolute; bottom: -4px; left: 0; width: 0; height: 2px; background: #8de9be; transition: width 0.3s; }
         .nav-item:hover > a { color: #8de9be; }
         .nav-item:hover > a::after { width: 100%; }
         .dropdown-menu { display: none; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); padding-top: 14px; z-index: 200; min-width: 160px; }
@@ -93,419 +32,84 @@
         .dropdown-menu a { display: block !important; padding: 11px 22px; color: rgba(255,255,255,0.88) !important; font-size: 0.85rem !important; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; transition: color 0.2s, background 0.2s; text-decoration: none; }
         .dropdown-menu a::after { display: none !important; }
         .dropdown-menu a:hover { color: #8de9be !important; background: rgba(141,233,190,0.08); }
-
-        /* ===== HERO ===== */
-        .hero {
-            height: 100vh;
-            background: linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)),
-                        url('https://images.unsplash.com/photo-1490481651871-ab68de25d43d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            color: white;
-            text-align: center;
-            padding: 20px;
-        }
-        .hero-badge {
-            display: inline-block;
-            background: rgba(141, 233, 190, 0.2);
-            border: 1px solid #8de9be;
-            color: #8de9be;
-            padding: 6px 18px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            margin-bottom: 20px;
-        }
-        .hero h1 {
-            font-size: 3.8rem;
-            font-weight: 700;
-            margin-bottom: 20px;
-            color: #8de9be;
-            line-height: 1.2;
-            text-shadow: 0 2px 20px rgba(0,0,0,0.5);
-        }
-        .hero p {
-            font-size: 1.2rem;
-            margin-bottom: 40px;
-            max-width: 600px;
-            opacity: 0.9;
-            line-height: 1.7;
-        }
+        .hero { height: 100vh; background: linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)), url(\'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80\'); background-size: cover; background-position: center; background-attachment: fixed; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; text-align: center; padding: 20px; }
+        .hero-badge { display: inline-block; background: rgba(141,233,190,0.2); border: 1px solid #8de9be; color: #8de9be; padding: 6px 18px; border-radius: 20px; font-size: 0.85rem; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 20px; }
+        .hero h1 { font-size: 3.8rem; font-weight: 700; margin-bottom: 20px; color: #8de9be; line-height: 1.2; text-shadow: 0 2px 20px rgba(0,0,0,0.5); }
+        .hero p { font-size: 1.2rem; margin-bottom: 40px; max-width: 600px; opacity: 0.9; line-height: 1.7; }
         .hero-btns { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
-        .btn-primary {
-            padding: 15px 36px;
-            background: #55b689;
-            color: white;
-            text-decoration: none;
-            border-radius: 30px;
-            font-weight: 700;
-            font-size: 1rem;
-            transition: 0.3s;
-            box-shadow: 0 4px 20px rgba(85,182,137,0.4);
-        }
+        .btn-primary { padding: 15px 36px; background: #55b689; color: white; text-decoration: none; border-radius: 30px; font-weight: 700; font-size: 1rem; transition: 0.3s; box-shadow: 0 4px 20px rgba(85,182,137,0.4); }
         .btn-primary:hover { background: #3d9e70; transform: translateY(-2px); }
-        .btn-secondary {
-            padding: 15px 36px;
-            background: transparent;
-            color: white;
-            text-decoration: none;
-            border-radius: 30px;
-            font-weight: 700;
-            font-size: 1rem;
-            border: 2px solid white;
-            transition: 0.3s;
-        }
+        .btn-secondary { padding: 15px 36px; background: transparent; color: white; text-decoration: none; border-radius: 30px; font-weight: 700; font-size: 1rem; border: 2px solid white; transition: 0.3s; }
         .btn-secondary:hover { background: rgba(255,255,255,0.1); transform: translateY(-2px); }
-
-        /* ===== STATS BAR ===== */
-        .stats-bar {
-            background: #0a1e14;
-            padding: 28px 50px;
-            display: flex;
-            justify-content: center;
-            gap: 80px;
-        }
+        .stats-bar { background: #0a1e14; padding: 28px 50px; display: flex; justify-content: center; gap: 80px; }
         .stat-item { text-align: center; }
-        .stat-item .num {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #8de9be;
-        }
-        .stat-item .label {
-            font-size: 0.85rem;
-            color: #aaa;
-            margin-top: 4px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        /* ===== SECTIONS CHUNG ===== */
+        .stat-item .num { font-size: 2rem; font-weight: 700; color: #8de9be; }
+        .stat-item .label { font-size: 0.85rem; color: #aaa; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
         section { padding: 80px 50px; }
-        .section-tag {
-            text-align: center;
-            color: #55b689;
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            font-weight: 600;
-            margin-bottom: 12px;
-        }
-        .section-title {
-            text-align: center;
-            font-size: 2.2rem;
-            font-weight: 700;
-            color: #111;
-            margin-bottom: 12px;
-        }
-        .section-sub {
-            text-align: center;
-            color: #666;
-            font-size: 1rem;
-            max-width: 560px;
-            margin: 0 auto 50px;
-            line-height: 1.7;
-        }
-
-        /* ===== SẢN PHẨM NỔI BẬT ===== */
+        .section-tag { text-align: center; color: #55b689; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 2px; font-weight: 600; margin-bottom: 12px; }
+        .section-title { text-align: center; font-size: 2.2rem; font-weight: 700; color: #111; margin-bottom: 12px; }
+        .section-sub { text-align: center; color: #666; font-size: 1rem; max-width: 560px; margin: 0 auto 50px; line-height: 1.7; }
         .products { background: #f8faf9; }
-        .products-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 24px;
-            max-width: 1100px;
-            margin: 0 auto;
-        }
-        .product-card {
-            background: white;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-            transition: transform 0.3s, box-shadow 0.3s;
-            cursor: pointer;
-            position: relative;
-        }
-        .product-card:hover {
-            transform: translateY(-6px);
-            box-shadow: 0 14px 40px rgba(0,0,0,0.15);
-        }
-        .card-badge {
-            position: absolute;
-            top: 12px; left: 12px;
-            background: #e8c840;
-            color: #333;
-            font-size: 0.7rem;
-            font-weight: 800;
-            padding: 4px 10px;
-            border-radius: 4px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            z-index: 2;
-        }
-        .product-img {
-            width: 100%;
-            height: 320px;
-            object-fit: cover;
-            object-position: top;
-            display: block;
-        }
-        .product-info {
-            padding: 14px 16px 16px;
-            border-top: 1px solid #f0f0f0;
-        }
-        .product-name {
-            font-size: 0.88rem;
-            font-weight: 800;
-            color: #111;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-            margin-bottom: 10px;
-            text-align: center;
-        }
+        .products-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; max-width: 1100px; margin: 0 auto; }
+        .product-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08); transition: transform 0.3s, box-shadow 0.3s; cursor: pointer; position: relative; }
+        .product-card:hover { transform: translateY(-6px); box-shadow: 0 14px 40px rgba(0,0,0,0.15); }
+        .card-badge { position: absolute; top: 12px; left: 12px; background: #e8c840; color: #333; font-size: 0.7rem; font-weight: 800; padding: 4px 10px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px; z-index: 2; }
+        .product-img { width: 100%; height: 320px; object-fit: cover; object-position: top; display: block; }
+        .product-info { padding: 14px 16px 16px; border-top: 1px solid #f0f0f0; }
+        .product-name { font-size: 0.88rem; font-weight: 800; color: #111; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 10px; text-align: center; }
         .price-list { list-style: none; margin-bottom: 14px; }
-        .price-list li {
-            font-size: 0.82rem;
-            color: #444;
-            padding: 2px 0;
-            line-height: 1.5;
-        }
+        .price-list li { font-size: 0.82rem; color: #444; padding: 2px 0; line-height: 1.5; }
         .price-list li.highlight { color: #c0392b; font-weight: 600; }
         .price-list li.muted { color: #888; font-size: 0.78rem; }
-        .btn-rent {
-            display: block;
-            width: 100%;
-            padding: 9px 0;
-            background: #55b689;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 0.85rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: 0.3s;
-            text-decoration: none;
-            text-align: center;
-            letter-spacing: 0.3px;
-        }
+        .btn-rent { display: block; width: 100%; padding: 9px 0; background: #55b689; color: white; border: none; border-radius: 6px; font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: 0.3s; text-decoration: none; text-align: center; letter-spacing: 0.3px; }
         .btn-rent:hover { background: #3d9e70; }
-
-        /* ===== CÁCH HOẠT ĐỘNG ===== */
         .how-it-works { background: white; }
-        .steps {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 40px;
-            max-width: 900px;
-            margin: 0 auto;
-            position: relative;
-        }
-        .steps::before {
-            content: '';
-            position: absolute;
-            top: 42px;
-            left: 16%;
-            width: 68%;
-            height: 2px;
-            background: linear-gradient(to right, #8de9be, #55b689);
-        }
+        .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; max-width: 900px; margin: 0 auto; position: relative; }
+        .steps::before { content: \'\'; position: absolute; top: 42px; left: 16%; width: 68%; height: 2px; background: linear-gradient(to right, #8de9be, #55b689); }
         .step { text-align: center; position: relative; }
-        .step-icon {
-            width: 84px; height: 84px;
-            background: white;
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 20px;
-            position: relative;
-            z-index: 1;
-            box-shadow: 0 6px 20px rgba(85,182,137,0.25);
-            border: 2px solid #8de9be;
-            overflow: hidden;
-        }
-        .step-icon img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        .step-num {
-            position: absolute;
-            top: -8px; right: -8px;
-            width: 26px; height: 26px;
-            background: #0a1e14;
-            color: #8de9be;
-            border-radius: 50%;
-            font-size: 0.75rem;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 2;
-        }
+        .step-icon { width: 84px; height: 84px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; position: relative; z-index: 1; box-shadow: 0 6px 20px rgba(85,182,137,0.25); border: 2px solid #8de9be; font-size: 2rem; }
+        .step-num { position: absolute; top: -8px; right: -8px; width: 26px; height: 26px; background: #0a1e14; color: #8de9be; border-radius: 50%; font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; justify-content: center; z-index: 2; }
         .step h3 { font-size: 1.1rem; font-weight: 700; color: #111; margin-bottom: 10px; }
         .step p { font-size: 0.9rem; color: #666; line-height: 1.6; }
-
-        /* ===== AI BANNER ===== */
-        .ai-banner {
-            background: linear-gradient(135deg, #0a1e14 60%, #0d2d1e);
-            color: white;
-            padding: 48px 50px;
-        }
-        .ai-banner-inner {
-            max-width: 1100px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 40px;
-            align-items: center;
-        }
-        .ai-banner h2 {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: #8de9be;
-            margin-bottom: 12px;
-            line-height: 1.3;
-        }
-        .ai-banner p {
-            color: #bbb;
-            line-height: 1.7;
-            margin-bottom: 20px;
-            font-size: 0.92rem;
-        }
+        .ai-banner { background: linear-gradient(135deg, #0a1e14 60%, #0d2d1e); color: white; padding: 48px 50px; }
+        .ai-banner-inner { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; }
+        .ai-banner h2 { font-size: 1.8rem; font-weight: 700; color: #8de9be; margin-bottom: 12px; line-height: 1.3; }
+        .ai-banner p { color: #bbb; line-height: 1.7; margin-bottom: 20px; font-size: 0.92rem; }
         .ai-features-list { list-style: none; margin-bottom: 36px; }
-        .ai-features-list li {
-            padding: 8px 0;
-            color: #ccc;
-            font-size: 0.95rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .ai-features-list li::before {
-            content: '✓';
-            color: #8de9be;
-            font-weight: 700;
-            font-size: 1rem;
-        }
-        .ai-cards {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-        }
-        .ai-card {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(141,233,190,0.2);
-            border-radius: 14px;
-            padding: 24px 20px;
-            text-align: center;
-            transition: 0.3s;
-        }
-        .ai-card:hover {
-            background: rgba(141,233,190,0.08);
-            border-color: #8de9be;
-        }
+        .ai-features-list li { padding: 8px 0; color: #ccc; font-size: 0.95rem; display: flex; align-items: center; gap: 10px; }
+        .ai-features-list li::before { content: "✓"; color: #8de9be; font-weight: 700; font-size: 1rem; }
+        .ai-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .ai-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(141,233,190,0.2); border-radius: 14px; padding: 24px 20px; text-align: center; transition: 0.3s; }
+        .ai-card:hover { background: rgba(141,233,190,0.08); border-color: #8de9be; }
         .ai-card .icon { font-size: 2.2rem; margin-bottom: 12px; }
         .ai-card h4 { color: white; font-size: 0.95rem; font-weight: 700; margin-bottom: 8px; }
         .ai-card p { color: #999; font-size: 0.8rem; line-height: 1.5; }
-
-        /* ===== TESTIMONIALS ===== */
         .testimonials { background: #f8faf9; }
-        .reviews-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 24px;
-            max-width: 1000px;
-            margin: 0 auto;
-        }
-        .review-card {
-            background: white;
-            border-radius: 14px;
-            padding: 28px;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.07);
-        }
+        .reviews-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; max-width: 1000px; margin: 0 auto; }
+        .review-card { background: white; border-radius: 14px; padding: 28px; box-shadow: 0 4px 16px rgba(0,0,0,0.07); }
         .review-stars { color: #f5a623; font-size: 1rem; margin-bottom: 14px; }
         .review-text { color: #555; font-size: 0.9rem; line-height: 1.7; margin-bottom: 18px; font-style: italic; }
         .reviewer { display: flex; align-items: center; gap: 12px; }
-        .reviewer-avatar {
-            width: 42px; height: 42px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: white;
-        }
+        .reviewer-avatar { width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: 700; color: white; }
         .reviewer-name { font-weight: 700; color: #111; font-size: 0.9rem; }
         .reviewer-info { font-size: 0.78rem; color: #999; }
-
-        /* ===== FOOTER ===== */
-        footer {
-            background: #060f09;
-            color: #888;
-            padding: 50px 50px 30px;
-        }
-        .footer-grid {
-            display: grid;
-            grid-template-columns: 2fr 1fr 1fr 1fr;
-            gap: 40px;
-            max-width: 1100px;
-            margin: 0 auto 40px;
-        }
+        footer { background: #060f09; color: #888; padding: 50px 50px 30px; }
+        .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px; max-width: 1100px; margin: 0 auto 40px; }
         .footer-brand img { height: 80px; margin-bottom: 16px; }
         .footer-brand p { font-size: 0.88rem; line-height: 1.7; color: #666; }
-        .footer-col h4 {
-            color: #8de9be;
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 16px;
-        }
-        .footer-col a {
-            display: block;
-            color: #666;
-            text-decoration: none;
-            font-size: 0.88rem;
-            margin-bottom: 10px;
-            transition: color 0.3s;
-        }
+        .footer-col h4 { color: #8de9be; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; }
+        .footer-col a { display: block; color: #666; text-decoration: none; font-size: 0.88rem; margin-bottom: 10px; transition: color 0.3s; }
         .footer-col a:hover { color: #8de9be; }
-        .footer-bottom {
-            border-top: 1px solid #1a2e20;
-            padding-top: 24px;
-            text-align: center;
-            font-size: 0.82rem;
-            color: #444;
-            max-width: 1100px;
-            margin: 0 auto;
-        }
-
-        /* ===== SCROLL ANIMATION ===== */
-        .fade-in {
-            opacity: 0;
-            transform: translateY(30px);
-            transition: opacity 0.6s ease, transform 0.6s ease;
-        }
-        .fade-in.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
+        .footer-bottom { border-top: 1px solid #1a2e20; padding-top: 24px; text-align: center; font-size: 0.82rem; color: #444; max-width: 1100px; margin: 0 auto; }
+        .fade-in { opacity: 0; transform: translateY(30px); transition: opacity 0.6s ease, transform 0.6s ease; }
+        .fade-in.visible { opacity: 1; transform: translateY(0); }
     </style>
 </head>
 <body>
-
-    <!-- ===== HEADER ===== -->
     <header id="mainHeader">
-        <div class="logo">
-            <img src="image-removebg-preview.png" alt="DoRentMe Logo">
-        </div>
+        <div class="logo"><img src="image-removebg-preview.png" alt="DoRentMe Logo"></div>
         <nav class="nav-menu">
-            <a href="index.html">Trang chủ</a>
+            <a href="index.html" class="active">Trang chủ</a>
             <div class="nav-item">
                 <a href="#">Dịch vụ</a>
                 <div class="dropdown-menu">
@@ -513,6 +117,7 @@
                         <a href="ai-tryon.html">AI Phối đồ</a>
                         <a href="ai-tryon.html">Thử đồ 3D</a>
                         <a href="shop.html">Shop</a>
+                        <a href="news.html">Tin tức</a>
                     </div>
                 </div>
             </div>
@@ -525,178 +130,148 @@
         </div>
     </header>
 
-    <!-- ===== HERO ===== -->
     <section class="hero">
         <span class="hero-badge">✦ Thời trang AI thế hệ mới</span>
         <h1>Trợ Lý Thời Trang AI<br>Của Riêng Bạn</h1>
         <p>Khám phá phong cách cá nhân, cho thuê trang phục cao cấp và thử đồ ảo thông minh — tất cả tại một nơi.</p>
         <div class="hero-btns">
-            <a href="productDetail.html" class="btn-primary">Khám phá BST ngay</a>
+            <a href="shop.html" class="btn-primary">Xem bộ sưu tập ngay</a>
             <a href="ai-tryon.html" class="btn-secondary">Thử đồ AI miễn phí</a>
         </div>
     </section>
 
-    <!-- ===== STATS ===== -->
     <div class="stats-bar">
-        <div class="stat-item">
-            <div class="num">2,500+</div>
-            <div class="label">Trang phục cao cấp</div>
-        </div>
-        <div class="stat-item">
-            <div class="num">15,000+</div>
-            <div class="label">Khách hàng hài lòng</div>
-        </div>
-        <div class="stat-item">
-            <div class="num">98%</div>
-            <div class="label">Đánh giá tích cực</div>
-        </div>
-        <div class="stat-item">
-            <div class="num">24/7</div>
-            <div class="label">Trợ lý AI hỗ trợ</div>
-        </div>
+        <div class="stat-item"><div class="num">2,500+</div><div class="label">Trang phục cao cấp</div></div>
+        <div class="stat-item"><div class="num">15,000+</div><div class="label">Khách hàng hài lòng</div></div>
+        <div class="stat-item"><div class="num">98%</div><div class="label">Đánh giá tích cực</div></div>
+        <div class="stat-item"><div class="num">24/7</div><div class="label">Trợ lý AI hỗ trợ</div></div>
     </div>
 
-    <!-- ===== SẢN PHẨM NỔI BẬT ===== -->
     <section class="products">
         <div class="section-tag">Bộ sưu tập</div>
         <h2 class="section-title">Trang Phục Nổi Bật</h2>
         <p class="section-sub">Những thiết kế được yêu thích nhất tuần này — từ dạ hội sang trọng đến street style năng động.</p>
-
         <div class="products-grid">
-            <!-- Card 1 -->
-            <div class="product-card fade-in" onclick="location.href='productDetail.html?id=1'" style="cursor:pointer">
+            <div class="product-card fade-in">
                 <span class="card-badge">new</span>
-                <img class="product-img" src="jolie-loft-vay-luoi-molly-dress-nau.jpg" alt="Váy lưới Molly Dress Nâu">
+                <img class="product-img" src="image/vay_di_bien/jolie_loft_vay_luoi_molly_dress_nau.jpg" alt="Molly Dress Nâu">
                 <div class="product-info">
                     <div class="product-name">Jolie Loft – Molly Dress Nâu</div>
                     <ul class="price-list">
-                        <li class="highlight">Giá thuê 3 ngày: 450.000 vnd</li>
-                        <li class="muted">(Trên 3 ngày +100.000vnd / ngày)</li>
-                        <li>Giá thuê 1 ngày: 200.000 vnd</li>
-                        <li>Giá tag: 2.800.000</li>
-                        <li>Giá cọc: 1.500.000 vnd</li>
+                        <li class="highlight">Giá thuê 3 ngày: 270.000 vnd</li>
+                        <li class="muted">(Trên 3 ngày +30.000 vnd/ngày)</li>
+                        <li>Giá thuê 1 ngày: 230.000 vnd</li>
+                        <li>Giá tag: 2.150.000 vnd</li>
+                        <li>Giá cọc: 800.000 vnd</li>
                     </ul>
-                    <a href="productDetail.html?id=1" onclick="event.stopPropagation()" class="btn-rent">Thuê ngay</a>
+                    <a href="shop.html" class="btn-rent">Xem thêm</a>
                 </div>
             </div>
-            <!-- Card 2 -->
-            <div class="product-card fade-in" onclick="location.href='productDetail.html?id=2'" style="cursor:pointer">
+            <div class="product-card fade-in">
                 <span class="card-badge">new</span>
-                <img class="product-img" src="amelie-vanessa-dress-xanh-nhat.jpg" alt="Vanessa Dress Xanh Nhạt">
+                <img class="product-img" src="image/vay_di_bien/amelie_vanessa_dress_xanh_nhat.jpg" alt="Vanessa Dress">
                 <div class="product-info">
                     <div class="product-name">Amelie – Vanessa Dress Xanh Nhạt</div>
                     <ul class="price-list">
-                        <li class="highlight">Giá thuê 3 ngày: 480.000 vnd</li>
-                        <li class="muted">(Trên 3 ngày +100.000vnd / ngày)</li>
-                        <li>Giá thuê 1 ngày: 220.000 vnd</li>
-                        <li>Giá tag: 3.200.000</li>
-                        <li>Giá cọc: 1.500.000 vnd</li>
+                        <li class="highlight">Giá thuê 3 ngày: 290.000 vnd</li>
+                        <li class="muted">(Trên 3 ngày +40.000 vnd/ngày)</li>
+                        <li>Giá thuê 1 ngày: 250.000 vnd</li>
+                        <li>Giá tag: 1.530.000 vnd</li>
+                        <li>Giá cọc: 900.000 vnd</li>
                     </ul>
-                    <a href="productDetail.html?id=2" onclick="event.stopPropagation()" class="btn-rent">Thuê ngay</a>
+                    <a href="shop.html" class="btn-rent">Xem thêm</a>
                 </div>
             </div>
-            <!-- Card 3 -->
-            <div class="product-card fade-in" onclick="location.href='productDetail.html?id=3'" style="cursor:pointer">
+            <div class="product-card fade-in">
                 <span class="card-badge">new</span>
-                <img class="product-img" src="chouchou-dam-ren-nude-dang-dai.jpg" alt="Đầm Ren Nude Dáng Dài">
+                <img class="product-img" src="image/vay_di_bien/chou_chou_dam_ren_nude_dang_dai.jpg" alt="Đầm Ren Nude">
                 <div class="product-info">
                     <div class="product-name">Chouchou – Đầm Ren Nude Dáng Dài</div>
                     <ul class="price-list">
-                        <li class="highlight">Giá thuê 3 ngày: 420.000 vnd</li>
-                        <li class="muted">(Trên 3 ngày +100.000vnd / ngày)</li>
-                        <li>Giá thuê 1 ngày: 190.000 vnd</li>
-                        <li>Giá tag: 2.500.000</li>
-                        <li>Giá cọc: 1.200.000 vnd</li>
+                        <li class="highlight">Giá thuê 3 ngày: 255.000 vnd</li>
+                        <li class="muted">(Trên 3 ngày +30.000 vnd/ngày)</li>
+                        <li>Giá thuê 1 ngày: 225.000 vnd</li>
+                        <li>Giá tag: 1.110.000 vnd</li>
+                        <li>Giá cọc: 800.000 vnd</li>
                     </ul>
-                    <a href="productDetail.html?id=3" onclick="event.stopPropagation()" class="btn-rent">Thuê ngay</a>
+                    <a href="shop.html" class="btn-rent">Xem thêm</a>
                 </div>
             </div>
-            <!-- Card 4 -->
-            <div class="product-card fade-in" onclick="location.href='productDetail.html?id=4'" style="cursor:pointer">
+            <div class="product-card fade-in">
                 <span class="card-badge">new</span>
-                <img class="product-img" src="jolie-loft-dam-lua-kem-hali-dress.jpg" alt="Đầm Lụa Kem Hali Dress">
+                <img class="product-img" src="image/vay_lua/jolie_loft_dam_lua_kem_hali_dress.jpg" alt="Hali Dress">
                 <div class="product-info">
                     <div class="product-name">Jolie Loft – Hali Dress Lụa Kem</div>
                     <ul class="price-list">
-                        <li class="highlight">Giá thuê 3 ngày: 500.000 vnd</li>
-                        <li class="muted">(Trên 3 ngày +100.000vnd / ngày)</li>
-                        <li>Giá thuê 1 ngày: 230.000 vnd</li>
-                        <li>Giá tag: 3.500.000</li>
-                        <li>Giá cọc: 1.800.000 vnd</li>
+                        <li class="highlight">Giá thuê 3 ngày: 200.000 vnd</li>
+                        <li class="muted">(Trên 3 ngày +30.000 vnd/ngày)</li>
+                        <li>Giá thuê 1 ngày: 175.000 vnd</li>
+                        <li>Giá tag: 1.600.000 vnd</li>
+                        <li>Giá cọc: 600.000 vnd</li>
                     </ul>
-                    <a href="productDetail.html?id=4" onclick="event.stopPropagation()" class="btn-rent">Thuê ngay</a>
+                    <a href="shop.html" class="btn-rent">Xem thêm</a>
                 </div>
             </div>
-            <!-- Card 5 -->
-            <div class="product-card fade-in" onclick="location.href='productDetail.html?id=5'" style="cursor:pointer">
+            <div class="product-card fade-in">
                 <span class="card-badge">new</span>
-                <img class="product-img" src="tipblu-dam-voan-tim-lavender.jpg" alt="Đầm Voan Tím Lavender">
+                <img class="product-img" src="image/vay_di_bien/tipblu_dam_voan_tim_lavender.jpg" alt="Đầm Voan Tím">
                 <div class="product-info">
                     <div class="product-name">Tipblu – Đầm Voan Tím Lavender</div>
                     <ul class="price-list">
-                        <li class="highlight">Giá thuê 3 ngày: 390.000 vnd</li>
-                        <li class="muted">(Trên 3 ngày +80.000vnd / ngày)</li>
-                        <li>Giá thuê 1 ngày: 180.000 vnd</li>
-                        <li>Giá tag: 2.200.000</li>
-                        <li>Giá cọc: 1.000.000 vnd</li>
+                        <li class="highlight">Giá thuê 3 ngày: 190.000 vnd</li>
+                        <li class="muted">(Trên 3 ngày +30.000 vnd/ngày)</li>
+                        <li>Giá thuê 1 ngày: 160.000 vnd</li>
+                        <li>Giá tag: 930.000 vnd</li>
+                        <li>Giá cọc: 650.000 vnd</li>
                     </ul>
-                    <a href="productDetail.html?id=5" onclick="event.stopPropagation()" class="btn-rent">Thuê ngay</a>
+                    <a href="shop.html" class="btn-rent">Xem thêm</a>
                 </div>
             </div>
-            <!-- Card 6 -->
-            <div class="product-card fade-in" onclick="location.href='productDetail.html?id=6'" style="cursor:pointer">
+            <div class="product-card fade-in">
                 <span class="card-badge">new</span>
-                <img class="product-img" src="so-vintage-nathalia.jpg" alt="Sò Vintage Nathalia">
+                <img class="product-img" src="image/vay_du_tiec/so_vintage_nathalia.jpg" alt="Sò Vintage Nathalia">
                 <div class="product-info">
                     <div class="product-name">Sò Vintage – Nathalia</div>
                     <ul class="price-list">
                         <li class="highlight">Giá thuê 3 ngày: 560.000 vnd</li>
-                        <li class="muted">(Trên 3 ngày +50.000vnd / ngày)</li>
+                        <li class="muted">(Trên 3 ngày +50.000 vnd/ngày)</li>
                         <li>Giá thuê 1 ngày: 490.000 vnd</li>
-                        <li>Giá tag: 3.620.000</li>
+                        <li>Giá tag: 3.620.000 vnd</li>
                         <li>Giá cọc: 2.000.000 vnd</li>
                     </ul>
-                    <a href="productDetail.html?id=6" onclick="event.stopPropagation()" class="btn-rent">Thuê ngay</a>
+                    <a href="shop.html" class="btn-rent">Xem thêm</a>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- ===== CÁCH HOẠT ĐỘNG ===== -->
     <section class="how-it-works">
         <div class="section-tag">Đơn giản & Nhanh chóng</div>
         <h2 class="section-title">Cách Hoạt Động</h2>
         <p class="section-sub">Chỉ 3 bước đơn giản để sở hữu phong cách hoàn hảo mà không tốn quá nhiều.</p>
         <div class="steps">
             <div class="step fade-in">
-                <div class="step-icon">
-                    <img src="step-search.jpg" alt="Chọn trang phục">
-                </div>
+                <div class="step-icon">👗<span class="step-num">1</span></div>
                 <h3>Chọn trang phục</h3>
                 <p>Duyệt qua hàng nghìn thiết kế, lọc theo dịp, phong cách và kích cỡ phù hợp.</p>
             </div>
             <div class="step fade-in">
-                <div class="step-icon">
-                    <img src="step-robot.jpg" alt="Thử đồ bằng AI">
-                </div>
+                <div class="step-icon">🤖<span class="step-num">2</span></div>
                 <h3>Thử đồ bằng AI</h3>
                 <p>Upload ảnh của bạn và xem ngay cách trang phục sẽ trông như thế nào khi mặc.</p>
             </div>
             <div class="step fade-in">
-                <div class="step-icon">
-                    <img src="step-truck.jpg" alt="Nhận & Trả đồ">
-                </div>
+                <div class="step-icon">🚚<span class="step-num">3</span></div>
                 <h3>Nhận & Trả đồ</h3>
                 <p>Chúng tôi giao tận nơi, bạn mặc xong chỉ cần bỏ vào túi — chúng tôi lo phần còn lại.</p>
             </div>
         </div>
     </section>
 
-    <!-- ===== AI BANNER ===== -->
     <section class="ai-banner">
         <div class="ai-banner-inner">
             <div>
-                <div class="section-tag" style="text-align:left; margin-bottom: 12px;">Công nghệ AI tiên tiến</div>
+                <div class="section-tag" style="text-align:left;margin-bottom:12px;">Công nghệ AI tiên tiến</div>
                 <h2>Thử Đồ Ảo & Trợ Lý AI Thời Trang</h2>
                 <p>Không còn lo lắng về việc chọn nhầm size hay kiểu dáng. AI của DoRentMe phân tích vóc dáng và phong cách của bạn để đưa ra gợi ý chính xác nhất.</p>
                 <ul class="ai-features-list">
@@ -708,31 +283,14 @@
                 <a href="ai-tryon.html" class="btn-primary">Trải nghiệm AI miễn phí →</a>
             </div>
             <div class="ai-cards">
-                <div class="ai-card">
-                    <div class="icon" style="color:#FFD700;">⚡</div>
-                    <h4>Virtual Try-On</h4>
-                    <p>Thử hàng trăm bộ đồ chỉ trong vài giây</p>
-                </div>
-                <div class="ai-card">
-                    <div class="icon">💬</div>
-                    <h4>AI Stylist</h4>
-                    <p>Trợ lý thời trang AI sẵn sàng tư vấn 24/7</p>
-                </div>
-                <div class="ai-card">
-                    <div class="icon">📐</div>
-                    <h4>Size Finder</h4>
-                    <p>Xác định size chính xác theo số đo của bạn</p>
-                </div>
-                <div class="ai-card">
-                    <div class="icon">🎨</div>
-                    <h4>Colour Match</h4>
-                    <p>Phối màu hoàn hảo theo tông da cá nhân</p>
-                </div>
+                <div class="ai-card"><div class="icon">⚡</div><h4>Virtual Try-On</h4><p>Thử hàng trăm bộ đồ chỉ trong vài giây</p></div>
+                <div class="ai-card"><div class="icon">💬</div><h4>AI Stylist</h4><p>Trợ lý thời trang AI sẵn sàng tư vấn 24/7</p></div>
+                <div class="ai-card"><div class="icon">📐</div><h4>Size Finder</h4><p>Xác định size chính xác theo số đo của bạn</p></div>
+                <div class="ai-card"><div class="icon">🎨</div><h4>Colour Match</h4><p>Phối màu hoàn hảo theo tông da cá nhân</p></div>
             </div>
         </div>
     </section>
 
-    <!-- ===== TESTIMONIALS ===== -->
     <section class="testimonials">
         <div class="section-tag">Khách hàng nói gì</div>
         <h2 class="section-title">Đánh Giá Từ Cộng Đồng</h2>
@@ -742,39 +300,29 @@
                 <div class="review-stars">★★★★★</div>
                 <p class="review-text">"Chiếc đầm dạ hội mình thuê hoàn hảo đến mức cả đám cưới hỏi mua ở đâu. Tính năng thử đồ AI giúp mình tự tin chọn đúng ngay lần đầu!"</p>
                 <div class="reviewer">
-                    <div class="reviewer-avatar" style="background: linear-gradient(135deg, #55b689, #8de9be);">L</div>
-                    <div>
-                        <div class="reviewer-name">Linh Nguyễn</div>
-                        <div class="reviewer-info">Hà Nội · Thuê 8 lần</div>
-                    </div>
+                    <div class="reviewer-avatar" style="background:linear-gradient(135deg,#55b689,#8de9be);">L</div>
+                    <div><div class="reviewer-name">Linh Nguyễn</div><div class="reviewer-info">Hà Nội · Thuê 8 lần</div></div>
                 </div>
             </div>
             <div class="review-card fade-in">
                 <div class="review-stars">★★★★★</div>
                 <p class="review-text">"Giao diện đẹp, tìm đồ dễ cực. AI stylist gợi ý cho tôi bộ vest phù hợp buổi phỏng vấn, kết quả là tôi đã có việc làm mới!"</p>
                 <div class="reviewer">
-                    <div class="reviewer-avatar" style="background: linear-gradient(135deg, #3a7bd5, #6fa8e0);">M</div>
-                    <div>
-                        <div class="reviewer-name">Minh Trần</div>
-                        <div class="reviewer-info">TP.HCM · Thuê 5 lần</div>
-                    </div>
+                    <div class="reviewer-avatar" style="background:linear-gradient(135deg,#3a7bd5,#6fa8e0);">M</div>
+                    <div><div class="reviewer-name">Minh Trần</div><div class="reviewer-info">TP.HCM · Thuê 5 lần</div></div>
                 </div>
             </div>
             <div class="review-card fade-in">
                 <div class="review-stars">★★★★★</div>
                 <p class="review-text">"Tiết kiệm quá! Thuê áo dài cách tân cho lễ tốt nghiệp chỉ tốn 1/10 so với mua. Đồ sạch, thơm, giao đúng giờ."</p>
                 <div class="reviewer">
-                    <div class="reviewer-avatar" style="background: linear-gradient(135deg, #e05f8a, #f0a0b8);">H</div>
-                    <div>
-                        <div class="reviewer-name">Hà Phương</div>
-                        <div class="reviewer-info">Đà Nẵng · Thuê 3 lần</div>
-                    </div>
+                    <div class="reviewer-avatar" style="background:linear-gradient(135deg,#e05f8a,#f0a0b8);">H</div>
+                    <div><div class="reviewer-name">Hà Phương</div><div class="reviewer-info">Đà Nẵng · Thuê 3 lần</div></div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- ===== FOOTER ===== -->
     <footer>
         <div class="footer-grid">
             <div class="footer-brand">
@@ -783,49 +331,33 @@
             </div>
             <div class="footer-col">
                 <h4>Dịch vụ</h4>
-                <a href="productDetail.html">Danh mục đồ thuê</a>
-                <a href="ai-tryon.html">Thử đồ AI</a>
+                <a href="shop.html">Danh mục đồ thuê</a>
                 <a href="ai-tryon.html">AI Stylist</a>
                 <a href="#">Gói thành viên</a>
             </div>
             <div class="footer-col">
                 <h4>Hỗ trợ</h4>
-                <a href="#">Hướng dẫn thuê</a>
-                <a href="#">Chính sách đổi trả</a>
-                <a href="#">Size guide</a>
+                <a href="tutorial.html">Hướng dẫn thuê</a>
+                <a href="policy.html">Chính sách đổi trả</a>
                 <a href="contact.html">Liên hệ</a>
             </div>
             <div class="footer-col">
                 <h4>Công ty</h4>
-                <a href="#">Về DoRentMe</a>
-                <a href="#">Tin tức</a>
-                <a href="#">Tuyển dụng</a>
-                <a href="#">Điều khoản</a>
+                <a href="about.html">Về DoRentMe</a>
+                <a href="news.html">Tin tức</a>
+                <a href="terms.html">Điều khoản</a>
             </div>
         </div>
-        <div class="footer-bottom">
-            © 2025 DoRentMe. Tất cả quyền được bảo lưu. · Làm với ❤️ tại Việt Nam
-        </div>
+        <div class="footer-bottom">© 2026 DoRentMe. Tất cả quyền được bảo lưu. · Làm với ❤️ tại Việt Nam</div>
     </footer>
 
     <script>
-        // Header scroll effect
         const header = document.getElementById('mainHeader');
-        window.addEventListener('scroll', () => {
-            header.classList.toggle('scrolled', window.scrollY > 60);
-        });
-
-        // Fade-in on scroll
+        window.addEventListener('scroll', () => { header.classList.toggle('scrolled', window.scrollY > 60); });
         const observer = new IntersectionObserver((entries) => {
-            entries.forEach(el => {
-                if (el.isIntersecting) {
-                    el.target.classList.add('visible');
-                }
-            });
+            entries.forEach(el => { if (el.isIntersecting) el.target.classList.add('visible'); });
         }, { threshold: 0.15 });
-
         document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
     </script>
-
 </body>
 </html>
