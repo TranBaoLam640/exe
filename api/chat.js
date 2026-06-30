@@ -5,6 +5,11 @@ export default async function handler(req, res) {
 
     const { messages, system } = req.body;
 
+    // Debug: kiểm tra env var
+    if (!process.env.GEMINI_API_KEY) {
+        return res.status(500).json({ error: { message: 'GEMINI_API_KEY chưa được cấu hình trên server' } });
+    }
+
     if (!messages || !system) {
         return res.status(400).json({ error: 'Missing messages or system prompt' });
     }
