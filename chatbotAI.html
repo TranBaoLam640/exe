@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Phối Đồ | DoRentMe</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+
+        /* HEADER */
+        header {
+            position: fixed; top: 0; left: 0; width: 100%;
+            padding: 8px 50px;
+            display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
+            z-index: 1000;
+            background: rgba(10,30,20,0.97);
+            box-shadow: 0 2px 20px rgba(0,0,0,0.4);
+        }
+        .logo { grid-column: 1; }
+        .logo img { height: 70px; width: auto; }
+        .nav-menu { grid-column: 2; display: flex; gap: 50px; justify-content: center; }
+        .nav-menu a { color: white; text-decoration: none; font-weight: 600; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.5px; transition: color 0.3s; position: relative; }
+        .nav-menu a::after { content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 2px; background: #8de9be; transition: width 0.3s; }
+        .nav-menu a:hover { color: #8de9be; }
+        .nav-menu a:hover::after { width: 100%; }
+        .nav-right { grid-column: 3; display: flex; justify-content: flex-end; gap: 12px; }
+        .nav-btn { padding: 8px 20px; border-radius: 25px; font-size: 0.9rem; font-weight: 600; cursor: pointer; text-decoration: none; transition: 0.3s; }
+        .nav-btn.outline { border: 2px solid #8de9be; color: #8de9be; background: transparent; }
+        .nav-btn.outline:hover { background: #8de9be; color: #0a1e14; }
+        .nav-btn.fill { background: #55b689; color: white; border: 2px solid #55b689; }
+        .nav-btn.fill:hover { background: #3d9e70; border-color: #3d9e70; }
+        .nav-item { position: relative; display: flex; align-items: center; }
+        .nav-item > a { color: white; text-decoration: none; font-weight: 600; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.5px; transition: color 0.3s; position: relative; cursor: pointer; }
+        .nav-item > a::after { content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 2px; background: #8de9be; transition: width 0.3s; }
+        .nav-item:hover > a { color: #8de9be; }
+        .nav-item:hover > a::after { width: 100%; }
+        .dropdown-menu { display: none; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); padding-top: 14px; z-index: 200; min-width: 160px; }
+        .nav-item:hover .dropdown-menu { display: block; }
+        .dropdown-inner { background: rgba(10,30,20,0.97); border: 1px solid rgba(141,233,190,0.25); border-radius: 10px; overflow: hidden; box-shadow: 0 8px 30px rgba(0,0,0,0.5); }
+        .dropdown-menu a { display: block !important; padding: 11px 22px; color: rgba(255,255,255,0.88) !important; font-size: 0.85rem !important; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; transition: color 0.2s, background 0.2s; text-decoration: none; }
+        .dropdown-menu a::after { display: none !important; }
+        .dropdown-menu a:hover { color: #8de9be !important; background: rgba(141,233,190,0.08); }
+
+        /* LAYOUT */
+        body { background: #0a0f0c; min-height: 100vh; display: flex; flex-direction: column; }
+        .chat-layout {
+            margin-top: 86px;
+            flex: 1;
+            display: flex;
+            height: calc(100vh - 86px);
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: 280px;
+            background: #0d1a12;
+            border-right: 1px solid rgba(141,233,190,0.12);
+            display: flex;
+            flex-direction: column;
+            padding: 24px 16px;
+            flex-shrink: 0;
+        }
+        .sidebar-title {
+            color: #8de9be;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 16px;
+            padding-left: 8px;
+        }
+        .new-chat-btn {
+            display: flex; align-items: center; gap: 10px;
+            padding: 11px 14px;
+            background: rgba(141,233,190,0.1);
+            border: 1px solid rgba(141,233,190,0.3);
+            border-radius: 10px;
+            color: #8de9be;
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-bottom: 24px;
+            width: 100%;
+            text-align: left;
+        }
+        .new-chat-btn:hover { background: rgba(141,233,190,0.18); }
+        .suggest-title {
+            color: #555;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            padding-left: 4px;
+        }
+        .suggest-btn {
+            display: block; width: 100%;
+            padding: 10px 12px;
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 8px;
+            color: #bbb;
+            font-size: 0.82rem;
+            line-height: 1.4;
+            cursor: pointer;
+            text-align: left;
+            transition: 0.2s;
+            margin-bottom: 8px;
+        }
+        .suggest-btn:hover { background: rgba(255,255,255,0.05); border-color: rgba(141,233,190,0.2); color: #eee; }
+        .sidebar-footer {
+            margin-top: auto;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255,255,255,0.06);
+        }
+        .sidebar-footer p { font-size: 0.75rem; color: #444; line-height: 1.5; }
+        .sidebar-footer span { color: #8de9be; }
+
+        /* CHAT AREA */
+        .chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .chat-header {
+            padding: 16px 28px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            background: #0d1a12;
+        }
+        .ai-avatar {
+            width: 44px; height: 44px;
+            background: linear-gradient(135deg, #0a3d22, #1a6640);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.3rem;
+            border: 2px solid rgba(141,233,190,0.3);
+            flex-shrink: 0;
+        }
+        .ai-info h3 { color: white; font-size: 1rem; font-weight: 700; }
+        .ai-info p { color: #55b689; font-size: 0.78rem; }
+        .ai-status { display: flex; align-items: center; gap: 6px; margin-top: 2px; }
+        .status-dot { width: 7px; height: 7px; background: #55b689; border-radius: 50%; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+        /* MESSAGES */
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            scroll-behavior: smooth;
+        }
+        .messages::-webkit-scrollbar { width: 4px; }
+        .messages::-webkit-scrollbar-track { background: transparent; }
+        .messages::-webkit-scrollbar-thumb { background: rgba(141,233,190,0.2); border-radius: 4px; }
+
+        .msg { display: flex; gap: 12px; max-width: 75%; animation: msgIn 0.3s ease; }
+        @keyframes msgIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+        .msg.user { align-self: flex-end; flex-direction: row-reverse; }
+        .msg.ai { align-self: flex-start; }
+
+        .msg-avatar {
+            width: 36px; height: 36px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1rem; flex-shrink: 0; margin-top: 2px;
+        }
+        .msg.ai .msg-avatar { background: linear-gradient(135deg,#0a3d22,#1a6640); border: 1px solid rgba(141,233,190,0.3); }
+        .msg.user .msg-avatar { background: linear-gradient(135deg,#1a3a5c,#2d5a8e); }
+
+        .msg-bubble {
+            padding: 12px 16px;
+            border-radius: 18px;
+            font-size: 0.92rem;
+            line-height: 1.65;
+        }
+        .msg.ai .msg-bubble {
+            background: #1a2e1e;
+            color: #e0ede5;
+            border-bottom-left-radius: 4px;
+            border: 1px solid rgba(141,233,190,0.1);
+        }
+        .msg.user .msg-bubble {
+            background: linear-gradient(135deg, #1a5c3a, #0d3d24);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+        .msg-time { font-size: 0.7rem; color: #555; margin-top: 4px; text-align: right; }
+        .msg.ai .msg-time { text-align: left; }
+
+        /* TYPING */
+        .typing-bubble {
+            background: #1a2e1e;
+            border: 1px solid rgba(141,233,190,0.1);
+            padding: 14px 18px;
+            border-radius: 18px;
+            border-bottom-left-radius: 4px;
+            display: flex; gap: 5px; align-items: center;
+        }
+        .typing-dot {
+            width: 7px; height: 7px; background: #8de9be; border-radius: 50%;
+            animation: typingAnim 1.2s infinite;
+        }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes typingAnim { 0%,60%,100%{opacity:0.3;transform:scale(0.8)} 30%{opacity:1;transform:scale(1)} }
+
+        /* INPUT */
+        .input-area {
+            padding: 16px 28px 20px;
+            background: #0a0f0c;
+            border-top: 1px solid rgba(255,255,255,0.06);
+        }
+        .input-wrap {
+            display: flex; gap: 12px; align-items: flex-end;
+            background: #1a2e1e;
+            border: 1px solid rgba(141,233,190,0.2);
+            border-radius: 16px;
+            padding: 10px 14px;
+            transition: border-color 0.2s;
+        }
+        .input-wrap:focus-within { border-color: rgba(141,233,190,0.5); }
+        #userInput {
+            flex: 1; background: transparent; border: none; outline: none;
+            color: white; font-size: 0.95rem; line-height: 1.5;
+            resize: none; max-height: 120px; overflow-y: auto;
+            font-family: 'Segoe UI', sans-serif;
+        }
+        #userInput::placeholder { color: #444; }
+        #userInput::-webkit-scrollbar { width: 0; }
+        .send-btn {
+            width: 38px; height: 38px; border-radius: 10px;
+            background: #55b689; border: none; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: 0.2s; flex-shrink: 0;
+            color: white; font-size: 1.1rem;
+        }
+        .send-btn:hover { background: #3d9e70; transform: scale(1.05); }
+        .send-btn:disabled { background: #2a4a35; cursor: not-allowed; transform: none; opacity: 0.5; }
+        .input-hint { text-align: center; font-size: 0.73rem; color: #333; margin-top: 8px; }
+
+        /* WELCOME */
+        .welcome-screen {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            flex: 1; text-align: center; padding: 40px;
+        }
+        .welcome-icon { font-size: 3.5rem; margin-bottom: 20px; }
+        .welcome-screen h2 { color: white; font-size: 1.6rem; font-weight: 700; margin-bottom: 10px; }
+        .welcome-screen p { color: #666; font-size: 0.95rem; max-width: 420px; line-height: 1.7; margin-bottom: 32px; }
+        .quick-chips { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; max-width: 560px; }
+        .chip {
+            padding: 9px 18px;
+            background: rgba(141,233,190,0.07);
+            border: 1px solid rgba(141,233,190,0.2);
+            border-radius: 25px;
+            color: #8de9be;
+            font-size: 0.83rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .chip:hover { background: rgba(141,233,190,0.15); border-color: rgba(141,233,190,0.5); }
+
+        /* FOOTER */
+        footer { background: #060f09; color: #888; padding: 50px 50px 30px; }
+        .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px; max-width: 1100px; margin: 0 auto 40px; }
+        .footer-brand img { height: 80px; margin-bottom: 16px; }
+        .footer-brand p { font-size: 0.88rem; line-height: 1.7; color: #666; }
+        .footer-col h4 { color: #8de9be; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; }
+        .footer-col a { display: block; color: #666; text-decoration: none; font-size: 0.88rem; margin-bottom: 10px; transition: color 0.3s; }
+        .footer-col a:hover { color: #8de9be; }
+        .footer-bottom { border-top: 1px solid #1a2e20; padding-top: 24px; text-align: center; font-size: 0.82rem; color: #444; max-width: 1100px; margin: 0 auto; }
+    </style>
+</head>
+<body>
+    <header id="mainHeader">
+        <div class="logo"><img src="image-removebg-preview.png" alt="DoRentMe Logo"></div>
+        <nav class="nav-menu">
+            <a href="index.html">Trang chủ</a>
+            <div class="nav-item">
+                <a href="#">Dịch vụ</a>
+                <div class="dropdown-menu">
+                    <div class="dropdown-inner">
+                        <a href="chatbotAI.html">AI Phối đồ</a>
+                        <a href="ai-tryon.html">Thử đồ 3D</a>
+                        <a href="shop.html">Shop</a>
+                        <a href="news.html">Tin tức</a>
+                    </div>
+                </div>
+            </div>
+            <a href="about.html">Giới thiệu</a>
+            <a href="contact.html">Liên hệ</a>
+        </nav>
+        <div class="nav-right">
+            <a href="#" class="nav-btn outline">Đăng nhập</a>
+            <a href="#" class="nav-btn fill">Đăng ký</a>
+        </div>
+    </header>
+
+    <div class="chat-layout">
+        <!-- SIDEBAR -->
+        <div class="sidebar">
+            <div class="sidebar-title">DoStyle AI</div>
+            <button class="new-chat-btn" onclick="newChat()">
+                ✏️ Cuộc trò chuyện mới
+            </button>
+            <div class="suggest-title">Gợi ý nhanh</div>
+            <button class="suggest-btn" onclick="quickSend(this.textContent)">Gợi ý outfit đi tiệc cưới cho tôi</button>
+            <button class="suggest-btn" onclick="quickSend(this.textContent)">Tôi cao 1m60, nên thuê váy gì?</button>
+            <button class="suggest-btn" onclick="quickSend(this.textContent)">Phối đồ đi biển mùa hè cần gì?</button>
+            <button class="suggest-btn" onclick="quickSend(this.textContent)">Outfit công sở thanh lịch cho nữ</button>
+            <button class="suggest-btn" onclick="quickSend(this.textContent)">Giá thuê đồ ở DoRentMe như thế nào?</button>
+            <div class="sidebar-footer">
+                <p>Powered by <span>Gemini AI</span><br>Tư vấn thời trang 24/7</p>
+            </div>
+        </div>
+
+        <!-- CHAT AREA -->
+        <div class="chat-area">
+            <div class="chat-header">
+                <div class="ai-avatar">👗</div>
+                <div class="ai-info">
+                    <h3>DoStyle AI</h3>
+                    <div class="ai-status">
+                        <div class="status-dot"></div>
+                        <p>Trợ lý thời trang AI của DoRentMe</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="messages" id="messages">
+                <div class="welcome-screen" id="welcomeScreen">
+                    <div class="welcome-icon">✨</div>
+                    <h2>Xin chào! Tôi là DoStyle AI</h2>
+                    <p>Trợ lý thời trang thông minh của DoRentMe. Tôi có thể giúp bạn tư vấn phối đồ, gợi ý trang phục thuê phù hợp với từng dịp, vóc dáng và phong cách cá nhân.</p>
+                    <div class="quick-chips">
+                        <span class="chip" onclick="quickSend(this.textContent)">👗 Outfit đi tiệc cưới</span>
+                        <span class="chip" onclick="quickSend(this.textContent)">🌊 Đồ đi biển mùa hè</span>
+                        <span class="chip" onclick="quickSend(this.textContent)">💼 Trang phục công sở</span>
+                        <span class="chip" onclick="quickSend(this.textContent)">🎭 Trang phục hóa trang</span>
+                        <span class="chip" onclick="quickSend(this.textContent)">💃 Váy dự tiệc sang trọng</span>
+                        <span class="chip" onclick="quickSend(this.textContent)">📸 Outfit chụp ảnh kỷ yếu</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="input-area">
+                <div class="input-wrap">
+                    <textarea id="userInput" placeholder="Nhập câu hỏi về thời trang..." rows="1"></textarea>
+                    <button class="send-btn" id="sendBtn" onclick="sendMessage()">➤</button>
+                </div>
+                <div class="input-hint">Enter để gửi · Shift+Enter xuống dòng · DoStyle AI có thể mắc lỗi</div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <img src="image-removebg-preview.png" alt="DoRentMe">
+                <p>Nền tảng cho thuê thời trang AI hàng đầu Việt Nam. Phong cách không giới hạn — chi phí tối ưu.</p>
+            </div>
+            <div class="footer-col">
+                <h4>Dịch vụ</h4>
+                <a href="shop.html">Danh mục đồ thuê</a>
+                <a href="chatbotAI.html">AI Stylist</a>
+                <a href="loyalty.html">Gói thành viên</a>
+            </div>
+            <div class="footer-col">
+                <h4>Hỗ trợ</h4>
+                <a href="tutorial.html">Hướng dẫn thuê</a>
+                <a href="policy.html">Chính sách đổi trả</a>
+                <a href="contact.html">Liên hệ</a>
+            </div>
+            <div class="footer-col">
+                <h4>Công ty</h4>
+                <a href="about.html">Về DoRentMe</a>
+                <a href="news.html">Tin tức</a>
+                <a href="terms.html">Điều khoản</a>
+            </div>
+        </div>
+        <div class="footer-bottom">© 2026 DoRentMe. Tất cả quyền được bảo lưu. · Làm với ❤️ tại Việt Nam</div>
+    </footer>
+
+    <script>
+        const API_KEY = 'AQ.Ab8RN6KKUBafPUB95CXVO-Xk45mwlxi22PBZooRJst9ZyVNgWQ';
+        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${API_KEY}`;
+
+        const SYSTEM_PROMPT = `Bạn là DoStyle AI — trợ lý thời trang của DoRentMe, nền tảng cho thuê trang phục tại TP.HCM.
+
+=== PHẠM VI TRẢ LỜI ===
+Chỉ trả lời các câu hỏi liên quan đến: thời trang, phối đồ, trang phục, phụ kiện, sản phẩm DoRentMe, chính sách thuê, tin tức thời trang.
+Nếu được hỏi ngoài chủ đề này (toán học, lập trình, chính trị, v.v.), lịch sự từ chối và hướng về thời trang.
+
+=== PHONG CÁCH TRẢ LỜI ===
+- Thân thiện, ngắn gọn, dùng emoji vừa phải
+- Gợi ý sản phẩm CỤ THỂ từ danh sách bên dưới, không bịa tên sản phẩm
+- Luôn kèm giá thuê khi gợi ý sản phẩm
+- Nếu hỏi xem sản phẩm, hướng đến: shop.html
+
+=== THÔNG TIN DORENTME ===
+- Địa chỉ: TP.HCM, giao nhận tận nơi
+- Liên hệ đặt thuê: Zalo/Facebook page DoRentMe
+- Khách KHÔNG cần giặt sau khi trả đồ
+- Trả muộn không báo trước → phụ thu 100% giá thuê
+
+=== CHÍNH SÁCH THUÊ ===
+GÓI THUÊ:
+- Gói 3 ngày: gồm ngày nhận + ngày mặc + ngày trả (3 ngày 2 đêm)
+- Gói 24h: nhận và trả trong vòng 24h
+- Trả muộn có báo trước: phụ thu 10% giá thuê/ngày
+- Trả muộn KHÔNG báo: phụ thu 100% giá thuê
+
+ĐẶT LỊCH:
+- Đặt cọc trước bằng giá thuê để giữ lịch
+- Đã chốt mẫu không đổi mẫu khác
+- Đổi lịch phải báo trước tối thiểu 3 ngày
+
+SẢN PHẨM BỊ HƯ HỎNG / BẨN:
+- Vết bẩn nhẹ (café, kem...): phụ thu phí vệ sinh 50.000–150.000đ
+- Rách, hỏng nặng: bồi thường theo giá trị thực tế sản phẩm
+- Mất sản phẩm: đền 100% giá tag
+
+=== CHƯƠNG TRÌNH THÀNH VIÊN ===
+- Gold (0–999đ): giảm 5%, tích 1đ/1.000đ thuê
+- Platinum (1.000–4.999đ): giảm 12%
+- Diamond (5.000đ+): giảm 22%
+- Đổi điểm: 100đ → voucher 50k | 250đ → 150k | 500đ → 350k
+- Bonus: +50đ viết review, +200đ giới thiệu bạn, +500đ sinh nhật
+
+=== DANH MỤC SẢN PHẨM ===
+
+ÁO DÀI:
+- FLANE – UYỂN KHANH: thuê 3 ngày 300k, 1 ngày 260k, cọc 1.200k (tag 1.900k)
+- LINN DESIGN – TUỆ HIỀN: thuê 3 ngày 340k, 1 ngày 295k, cọc 1.200k (tag 1.590k)
+- MAINICHI – MỘC MIÊN: thuê 3 ngày 260k, 1 ngày 220k, cọc 800k (tag 1.200k)
+- MAINICHI – YÊN CHI: thuê 3 ngày 290k, 1 ngày 250k, cọc 900k (tag 1.550k)
+- MAISON LONG – NIỀM NỖI: thuê 3 ngày 220k, 1 ngày 180k, cọc 700k (tag 1.150k)
+- D.CHIC NÀNG THƠ PHỐ HỘI: thuê 3 ngày 320k, 1 ngày 280k, cọc 1.200k (tag 1.950k) ⭐ 4.9
+- D.CHIC COUTURE: thuê 3 ngày 500k, 1 ngày 450k, cọc 2.000k (tag 3.500k) ⭐ 5.0 — cao cấp nhất
+- D.CHIC XUÂN VIÊN: thuê 3 ngày 480k, 1 ngày 440k, cọc 2.000k (tag 2.850k) ⭐ 4.9
+- D.CHIC Ý NHIÊN: thuê 3 ngày 490k, 1 ngày 450k, cọc 2.000k (tag 2.950k)
+- D.CHIC THIÊN Ý: thuê 3 ngày 450k, 1 ngày 410k, cọc 1.900k (tag 2.600k)
+
+VÁY ĐI BIỂN:
+- TIPBLU – ĐẦM VOAN TÍM LAVENDER: thuê 3 ngày 190k, 1 ngày 160k, cọc 650k
+- CHOUCHOU – ĐẦM REN NUDE DÁNG DÀI: thuê 3 ngày 255k, 1 ngày 225k, cọc 800k ⭐ 4.8
+- AMELIE – VANESSA DRESS XANH NHẠT: thuê 3 ngày 290k, 1 ngày 250k, cọc 900k ⭐ 4.9
+- JOLIE LOFT – VÁY LƯỚI MOLLY DRESS NÂU: thuê 3 ngày 270k, 1 ngày 230k, cọc 800k
+- FLANE – REN CỔ YẾM: thuê 3 ngày 240k, 1 ngày 200k, cọc 800k
+- JOLIE LOFT – LỤA: thuê 3 ngày 195k, 1 ngày 165k, cọc 700k
+- JOLIE LOFT – VÁY REN CÓ TAY: thuê 3 ngày 220k, 1 ngày 190k, cọc 700k
+- FLANE – REN BỒ MÙI TRẺ VAI: thuê 3 ngày 195k, 1 ngày 165k, cọc 700k
+- AMELIE – VÁY BÍ BABYDOLL CỔ YẾM: thuê 3 ngày 170k, 1 ngày 140k, cọc 600k
+- VÁY REN PHỐI TƠ: thuê 3 ngày 130k, 1 ngày 100k, cọc 400k — rẻ nhất
+- AMELIEE – GARMENT: thuê 3 ngày 175k, 1 ngày 140k, cọc 700k
+- AMELIEE – DIVA: thuê 3 ngày 190k, 1 ngày 150k, cọc 700k
+- MAISON LONG – THỦY MỊ: thuê 3 ngày 230k, 1 ngày 190k, cọc 750k ⭐ 4.9
+- VÁY HOA MÙA HÈ: thuê 3 ngày 120k, 1 ngày 90k, cọc 300k — tiết kiệm
+- SET VÁY 2 DÂY + CHÂN VÁY TRẮNG KEM LANNIE: thuê 3 ngày 120k, 1 ngày 100k, cọc 400k
+
+VÁY DỰ TIỆC:
+- SÒ VINTAGE – NATHALIA: thuê 3 ngày 560k, 1 ngày 490k, cọc 2.000k ⭐ 5.0 — best seller 120 đánh giá
+- SÒ VINTAGE – VELIA: thuê 3 ngày 440k, 1 ngày 390k, cọc 1.500k ⭐ 4.9
+- SÒ VINTAGE – VELIA (ĐEN): thuê 3 ngày 440k, 1 ngày 390k, cọc 1.500k ⭐ 4.9
+- SÒ VINTAGE – LAFINE: thuê 3 ngày 450k, 1 ngày 400k, cọc 1.500k ⭐ 4.8
+- SÒ VINTAGE – LYRA: thuê 3 ngày 420k, 1 ngày 388k, cọc 1.500k ⭐ 4.8
+- SÒ VINTAGE – VELIANA: thuê 3 ngày 340k, 1 ngày 290k, cọc 1.300k
+- SÒ VINTAGE – VELIANA (ĐEN): thuê 3 ngày 340k, 1 ngày 290k, cọc 1.300k
+- HƯƠNG BOUTIQUE – LOUISE LACE DRESS: thuê 3 ngày 420k, 1 ngày 380k, cọc 1.400k ⭐ 4.9
+- JOLIE LOFT – ĐẦM LỤA KEM HALI DRESS: thuê 3 ngày 200k, 1 ngày 175k, cọc 600k ⭐ 4.9
+- JOLIE LOFT – VÁY LỤA LUALA DRESS: thuê 3 ngày 240k, 1 ngày 210k, cọc 800k
+- JOLIE LOFT – VÁY LƯỚI MOLLY DRESS NÂU: thuê 3 ngày 270k, 1 ngày 230k, cọc 800k
+- CHOUCHOU – ĐẦM REN NUDE DÁNG DÀI: thuê 3 ngày 255k, 1 ngày 225k, cọc 800k
+- CHOUCHOU – ĐẦM DÀI REN CHOÀNG: thuê 3 ngày 230k, 1 ngày 200k, cọc 700k
+- AMELIE – VANESSA DRESS XANH NHẠT: thuê 3 ngày 290k, 1 ngày 250k, cọc 900k
+- TIPBLU – ĐẦM VOAN TÍM LAVENDER: thuê 3 ngày 190k, 1 ngày 160k, cọc 650k
+- WONDER HOUSE – LUA DRESS KEM: thuê 3 ngày 190k, 1 ngày 165k, cọc 500k
+
+VÁY LỤA:
+- JOLIE LOFT – ĐẦM LỤA KEM HALI DRESS: thuê 3 ngày 200k, 1 ngày 175k, cọc 600k ⭐ 4.9
+- JOLIE LOFT – VÁY LỤA LUALA DRESS: thuê 3 ngày 240k, 1 ngày 210k, cọc 800k
+- JOLIE LOFT – LỤA: thuê 3 ngày 195k, 1 ngày 165k, cọc 700k
+- WONDER HOUSE – LUA DRESS KEM: thuê 3 ngày 190k, 1 ngày 165k, cọc 500k
+
+PHỤ KIỆN:
+- TÚI NHUNG ĐEN D.CHIC: thuê 3 ngày 80k, 1 ngày 60k, cọc 300k
+- TÚI DA ĐEN MYS.P: thuê 3 ngày 90k, 1 ngày 70k, cọc 400k
+- TÚI DA ĐỎ: thuê 3 ngày 70k, 1 ngày 50k, cọc 300k
+- TÚI TRỨNG NGỌC TRAI: thuê 3 ngày 120k, 1 ngày 100k, cọc 400k
+- COMBO PHỤ KIỆN ÁO DÀI (VÒNG + BỜM + TÚI): thuê 3 ngày 100k, 1 ngày 80k, cọc 300k
+- COMBO NGỌC TRAI (TÚI + VÒNG CỔ/BỜM/VÒNG TAY): thuê 3 ngày 100k, 1 ngày 80k, cọc 300k
+- TÚI MŨ ĐI BIỂN: thuê 3 ngày 100k, 1 ngày 80k, cọc 400k
+
+=== TIN TỨC NỔI BẬT ===
+1. "Biến Hình Cực Chất Với BST Trang Phục Hóa Trang Mới Toanh" (11/4/2026) — BST hóa trang mới cho cosplay, tiệc chủ đề
+2. "Top Địa Điểm Thuê Trang Phục Uy Tín Cho Kỳ Nghỉ Lễ 30/4 & 1/5" (27/3/2026) — trang phục biểu diễn dịp lễ lớn
+3. "Thuê Trang Phục Biểu Diễn Rẻ - Đẹp HCM" (23/12/2025) — phục vụ văn nghệ, chụp ảnh, sự kiện
+4. "Tuyển Tập Outfit Giáng Sinh Đỏ & Hoá Trang" (15/12/2025) — trang phục Noel, hóa trang mùa lễ
+5. "Thuê Áo Dài Tết 2026 Tại Hồ Chí Minh" (1/1/2026) — áo dài Tết đa dạng mẫu mã`;
+
+        let conversationHistory = [];
+        let isTyping = false;
+
+        const messagesEl = document.getElementById('messages');
+        const inputEl = document.getElementById('userInput');
+        const sendBtn = document.getElementById('sendBtn');
+
+        // Auto-resize textarea
+        inputEl.addEventListener('input', () => {
+            inputEl.style.height = 'auto';
+            inputEl.style.height = Math.min(inputEl.scrollHeight, 120) + 'px';
+        });
+
+        inputEl.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        function getTime() {
+            return new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function hideWelcome() {
+            const welcome = document.getElementById('welcomeScreen');
+            if (welcome) welcome.remove();
+        }
+
+        function appendMessage(role, text) {
+            hideWelcome();
+            const div = document.createElement('div');
+            div.className = `msg ${role}`;
+            const avatar = role === 'ai' ? '👗' : '👤';
+            div.innerHTML = `
+                <div class="msg-avatar">${avatar}</div>
+                <div>
+                    <div class="msg-bubble">${text.replace(/\n/g, '<br>')}</div>
+                    <div class="msg-time">${getTime()}</div>
+                </div>`;
+            messagesEl.appendChild(div);
+            messagesEl.scrollTop = messagesEl.scrollHeight;
+        }
+
+        function showTyping() {
+            hideWelcome();
+            const div = document.createElement('div');
+            div.className = 'msg ai';
+            div.id = 'typingIndicator';
+            div.innerHTML = `
+                <div class="msg-avatar">👗</div>
+                <div class="typing-bubble">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>`;
+            messagesEl.appendChild(div);
+            messagesEl.scrollTop = messagesEl.scrollHeight;
+        }
+
+        function removeTyping() {
+            const t = document.getElementById('typingIndicator');
+            if (t) t.remove();
+        }
+
+        async function sendMessage() {
+            const text = inputEl.value.trim();
+            if (!text || isTyping) return;
+
+            isTyping = true;
+            sendBtn.disabled = true;
+            inputEl.value = '';
+            inputEl.style.height = 'auto';
+
+            appendMessage('user', text);
+            conversationHistory.push({ role: 'user', parts: [{ text }] });
+            showTyping();
+
+            try {
+                const body = {
+                    system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
+                    contents: conversationHistory
+                };
+
+                const res = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+
+                const data = await res.json();
+                removeTyping();
+
+                if (data.candidates && data.candidates[0]) {
+                    const reply = data.candidates[0].content.parts[0].text;
+                    conversationHistory.push({ role: 'model', parts: [{ text: reply }] });
+                    appendMessage('ai', reply);
+                } else if (data.error) {
+                    appendMessage('ai', `⚠️ Lỗi: ${data.error.message}`);
+                } else {
+                    appendMessage('ai', '⚠️ Không nhận được phản hồi từ AI. Vui lòng thử lại.');
+                }
+            } catch (err) {
+                removeTyping();
+                appendMessage('ai', '⚠️ Không kết nối được với AI. Kiểm tra lại kết nối mạng.');
+            }
+
+            isTyping = false;
+            sendBtn.disabled = false;
+            inputEl.focus();
+        }
+
+        function quickSend(text) {
+            inputEl.value = text;
+            sendMessage();
+        }
+
+        function newChat() {
+            conversationHistory = [];
+            messagesEl.innerHTML = `
+                <div class="welcome-screen" id="welcomeScreen">
+                    <div class="welcome-icon">✨</div>
+                    <h2>Xin chào! Tôi là DoStyle AI</h2>
+                    <p>Trợ lý thời trang thông minh của DoRentMe. Tôi có thể giúp bạn tư vấn phối đồ, gợi ý trang phục thuê phù hợp với từng dịp, vóc dáng và phong cách cá nhân.</p>
+                    <div class="quick-chips">
+                        <span class="chip" onclick="quickSend(this.textContent)">👗 Outfit đi tiệc cưới</span>
+                        <span class="chip" onclick="quickSend(this.textContent)">🌊 Đồ đi biển mùa hè</span>
+                        <span class="chip" onclick="quickSend(this.textContent)">💼 Trang phục công sở</span>
+                        <span class="chip" onclick="quickSend(this.textContent)">🎭 Trang phục hóa trang</span>
+                        <span class="chip" onclick="quickSend(this.textContent)">💃 Váy dự tiệc sang trọng</span>
+                        <span class="chip" onclick="quickSend(this.textContent)">📸 Outfit chụp ảnh kỷ yếu</span>
+                    </div>
+                </div>`;
+        }
+    </script>
+</body>
+</html>

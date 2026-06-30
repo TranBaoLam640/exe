@@ -103,6 +103,22 @@
         .footer-bottom { border-top: 1px solid #1a2e20; padding-top: 24px; text-align: center; font-size: 0.82rem; color: #444; max-width: 1100px; margin: 0 auto; }
         .fade-in { opacity: 0; transform: translateY(30px); transition: opacity 0.6s ease, transform 0.6s ease; }
         .fade-in.visible { opacity: 1; transform: translateY(0); }
+        /* ===== NEWS PREVIEW ===== */
+        .news-preview { background: white; }
+        .news-preview-header { display: flex; align-items: flex-end; justify-content: space-between; max-width: 1100px; margin: 0 auto 40px; }
+        .news-preview-header .left .section-tag { text-align: left; margin-bottom: 8px; }
+        .news-preview-header .left .section-title { text-align: left; margin-bottom: 0; }
+        .news-preview-header .view-all { color: #55b689; font-weight: 700; font-size: 0.9rem; text-decoration: none; border: 2px solid #55b689; padding: 8px 20px; border-radius: 25px; transition: 0.3s; white-space: nowrap; }
+        .news-preview-header .view-all:hover { background: #55b689; color: white; }
+        .news-cards-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; max-width: 1100px; margin: 0 auto; }
+        .news-card-item { background: #f8faf9; border-radius: 14px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.07); transition: transform 0.3s, box-shadow 0.3s; cursor: pointer; text-decoration: none; display: block; }
+        .news-card-item:hover { transform: translateY(-5px); box-shadow: 0 12px 36px rgba(0,0,0,0.13); }
+        .news-card-item .news-thumb { width: 100%; height: 200px; object-fit: cover; display: block; }
+        .news-card-item .news-thumb-placeholder { width: 100%; height: 200px; background: linear-gradient(135deg, #0a1e14, #1a5c3a); display: flex; align-items: center; justify-content: center; font-size: 3rem; }
+        .news-card-item .news-body { padding: 20px; }
+        .news-card-item .news-date { font-size: 0.78rem; color: #55b689; font-weight: 600; margin-bottom: 8px; }
+        .news-card-item .news-title { font-size: 0.95rem; font-weight: 700; color: #111; line-height: 1.5; margin-bottom: 10px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .news-card-item .news-desc { font-size: 0.83rem; color: #666; line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
     </style>
 </head>
 <body>
@@ -114,7 +130,7 @@
                 <a href="#">Dịch vụ</a>
                 <div class="dropdown-menu">
                     <div class="dropdown-inner">
-                        <a href="ai-tryon.html">AI Phối đồ</a>
+                        <a href="chatbotAI.html">AI Phối đồ</a>
                         <a href="ai-tryon.html">Thử đồ 3D</a>
                         <a href="shop.html">Shop</a>
                         <a href="news.html">Tin tức</a>
@@ -323,6 +339,17 @@
         </div>
     </section>
 
+    <section class="news-preview">
+        <div class="news-preview-header">
+            <div class="left">
+                <div class="section-tag">Cập nhật mới nhất</div>
+                <h2 class="section-title">Tin Tức & Xu Hướng</h2>
+            </div>
+            <a href="news.html" class="view-all">Xem tất cả →</a>
+        </div>
+        <div class="news-cards-grid" id="homeNewsGrid"></div>
+    </section>
+
     <footer>
         <div class="footer-grid">
             <div class="footer-brand">
@@ -332,8 +359,8 @@
             <div class="footer-col">
                 <h4>Dịch vụ</h4>
                 <a href="shop.html">Danh mục đồ thuê</a>
-                <a href="ai-tryon.html">AI Stylist</a>
-                <a href="#">Gói thành viên</a>
+                <a href="chatbotAI.html">AI Stylist</a>
+                <a href="loyalty.html">Gói thành viên</a>
             </div>
             <div class="footer-col">
                 <h4>Hỗ trợ</h4>
@@ -358,6 +385,54 @@
             entries.forEach(el => { if (el.isIntersecting) el.target.classList.add('visible'); });
         }, { threshold: 0.15 });
         document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+        // ===== NEWS PREVIEW =====
+        const homeNewsData = [
+            {
+                title: 'Biến Hình Cực Chất Với BST Trang Phục Hóa Trang Mới Toanh – Độc & Lạ',
+                description: 'Bạn đang chuẩn bị cho một sự kiện cosplay, buổi tiệc chủ đề hay đơn giản là muốn sở hữu một bộ ảnh "để đời" trong hình hài nhân vật yêu thích?',
+                date: '11 Tháng 04, 2026',
+                image: 'image/news/do_vang_ngay_quoc_khanh_cuu_chien_binh_viet_nam_poster-4_6c96da420d5c4267aa6fbe89a1658cd9_1024x1024.jpg'
+            },
+            {
+                title: 'Top Địa Điểm Thuê Trang Phục Uy Tín Cho Kỳ Nghỉ Lễ 30/4 & 1/5',
+                description: 'Dịp lễ 30/4 và 1/5 đang đến gần, đây không chỉ là kỳ nghỉ lễ dài mà còn là dịp để tỏa sáng trong những bộ trang phục ấn tượng nhất.',
+                date: '27 Tháng 03, 2026',
+                image: 'image/news/do_vang_ngay_quoc_khanh_cuu_chien_binh_viet_nam_poster-3_93465ac020774322b3a5308501a68c69_grande.jpg'
+            },
+            {
+                title: 'Thuê Trang Phục Biểu Diễn Rẻ - Đẹp HCM',
+                description: 'Bạn đang chuẩn bị cho một tiết mục văn nghệ, một buổi chụp ảnh hay sự kiện quan trọng? Việc của bạn là tỏa sáng — còn lại để chúng tôi lo.',
+                date: '23 Tháng 12, 2025',
+                image: 'image/news/thue_trang_phuc_bieu_dien_re_dep_hcm_sand_outfit.jpg'
+            }
+        ];
+
+        const grid = document.getElementById('homeNewsGrid');
+        grid.innerHTML = homeNewsData.map((article, i) => {
+            const q = new URLSearchParams({
+                index: i,
+                title: article.title,
+                description: article.description,
+                date: article.date,
+                image: article.image || ''
+            });
+            const url = 'news_detail.html?' + q.toString();
+            const thumb = article.image
+                ? `<img class="news-thumb" src="${article.image}" alt="${article.title}">`
+                : `<div class="news-thumb-placeholder">📰</div>`;
+            return `
+            <a href="${url}" class="news-card-item fade-in">
+                ${thumb}
+                <div class="news-body">
+                    <div class="news-date">📅 ${article.date}</div>
+                    <div class="news-title">${article.title}</div>
+                    <div class="news-desc">${article.description}</div>
+                </div>
+            </a>`;
+        }).join('');
+
+        document.querySelectorAll('.news-card-item.fade-in').forEach(el => observer.observe(el));
     </script>
 </body>
 </html>
