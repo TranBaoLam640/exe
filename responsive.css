@@ -1,0 +1,632 @@
+/* ============================================
+   RESPONSIVE CSS CHO DORENTME
+   Áp dụng cho toàn bộ website
+   ============================================ */
+
+/* ===== TABLET (768px - 1024px) ===== */
+@media screen and (max-width: 1024px) {
+    /* Header */
+    header {
+        padding: 8px 30px !important;
+        grid-template-columns: auto 1fr auto !important;
+    }
+    
+    .logo img {
+        height: 60px !important;
+    }
+    
+    .nav-menu {
+        gap: 30px !important;
+    }
+    
+    .nav-menu a {
+        font-size: 0.85rem !important;
+    }
+    
+    /* Hero */
+    .hero h1 {
+        font-size: 3rem !important;
+    }
+    
+    .hero p {
+        font-size: 1rem !important;
+    }
+    
+    /* Stats bar */
+    .stats-bar {
+        padding: 20px 30px !important;
+        gap: 40px !important;
+    }
+    
+    .stat-item .num {
+        font-size: 1.6rem !important;
+    }
+    
+    /* Sections */
+    section {
+        padding: 60px 30px !important;
+    }
+    
+    /* Product grid */
+    .products-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 20px !important;
+    }
+    
+    /* Steps */
+    .steps {
+        gap: 30px !important;
+    }
+    
+    .steps::before {
+        left: 12% !important;
+        width: 76% !important;
+    }
+    
+    /* Reviews */
+    .reviews-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+    
+    /* News cards */
+    .news-cards-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+    
+    /* Footer */
+    .footer-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 30px !important;
+    }
+    
+    /* Shop page */
+    .shop-wrapper {
+        flex-direction: column !important;
+    }
+    
+    .sidebar {
+        width: 100% !important;
+        border-right: none !important;
+        border-bottom: 1px solid #eee !important;
+        padding: 20px !important;
+        display: flex !important;
+        gap: 20px !important;
+        overflow-x: auto !important;
+    }
+    
+    .sidebar-section {
+        min-width: 200px !important;
+    }
+    
+    .product-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+    
+    /* About page */
+    .mission-inner {
+        grid-template-columns: 1fr !important;
+        gap: 40px !important;
+    }
+    
+    .tech-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+    
+    .team-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+    
+    /* Contact page */
+    .contact-inner {
+        grid-template-columns: 1fr !important;
+        gap: 40px !important;
+    }
+    
+    /* AI Banner */
+    .ai-banner-inner {
+        grid-template-columns: 1fr !important;
+        gap: 30px !important;
+    }
+}
+
+/* ===== MOBILE (Max 767px) ===== */
+@media screen and (max-width: 767px) {
+    /* Header - Mobile Menu */
+    header {
+        padding: 10px 20px !important;
+        grid-template-columns: 1fr auto !important;
+        background: rgba(10, 30, 20, 0.95) !important;
+    }
+    
+    .logo {
+        grid-column: 1 !important;
+    }
+    
+    .logo img {
+        height: 50px !important;
+    }
+    
+    /* Hide desktop menu */
+    .nav-menu {
+        display: none !important;
+    }
+    
+    .nav-right {
+        grid-column: 2 !important;
+        gap: 8px !important;
+    }
+    
+    .nav-btn {
+        padding: 6px 14px !important;
+        font-size: 0.8rem !important;
+    }
+    
+    /* Hero */
+    .hero {
+        height: 70vh !important;
+        padding: 20px 15px !important;
+        background-attachment: scroll !important;
+    }
+    
+    .hero-badge {
+        font-size: 0.7rem !important;
+        padding: 5px 12px !important;
+    }
+    
+    .hero h1 {
+        font-size: 2rem !important;
+        margin-bottom: 15px !important;
+    }
+    
+    .hero p {
+        font-size: 0.9rem !important;
+        margin-bottom: 25px !important;
+    }
+    
+    .hero-btns {
+        flex-direction: column !important;
+        width: 100% !important;
+        gap: 12px !important;
+    }
+    
+    .btn-primary,
+    .btn-secondary {
+        width: 100% !important;
+        padding: 12px 20px !important;
+        font-size: 0.9rem !important;
+    }
+    
+    /* Hero icon (About page) */
+    .hero-icon {
+        width: 60px !important;
+        height: 60px !important;
+        margin-bottom: 20px !important;
+    }
+    
+    .hero-icon svg {
+        width: 30px !important;
+        height: 30px !important;
+    }
+    
+    /* Stats bar */
+    .stats-bar {
+        padding: 20px 15px !important;
+        flex-wrap: wrap !important;
+        gap: 20px !important;
+        justify-content: space-around !important;
+    }
+    
+    .stat-item {
+        min-width: 40% !important;
+        text-align: center !important;
+    }
+    
+    .stat-item .num {
+        font-size: 1.4rem !important;
+    }
+    
+    .stat-item .label {
+        font-size: 0.75rem !important;
+    }
+    
+    /* Sections */
+    section {
+        padding: 40px 20px !important;
+    }
+    
+    .section-tag {
+        font-size: 0.75rem !important;
+    }
+    
+    .section-title {
+        font-size: 1.6rem !important;
+        margin-bottom: 10px !important;
+    }
+    
+    .section-sub {
+        font-size: 0.9rem !important;
+        margin-bottom: 30px !important;
+    }
+    
+    /* Product grid */
+    .products-grid {
+        grid-template-columns: 1fr !important;
+        gap: 16px !important;
+    }
+    
+    .product-card {
+        max-width: 400px !important;
+        margin: 0 auto !important;
+    }
+    
+    .product-img {
+        height: 380px !important;
+    }
+    
+    .card-badge {
+        font-size: 0.65rem !important;
+        padding: 3px 8px !important;
+    }
+    
+    .product-name {
+        font-size: 0.85rem !important;
+    }
+    
+    .price-list li {
+        font-size: 0.78rem !important;
+    }
+    
+    /* Steps */
+    .steps {
+        grid-template-columns: 1fr !important;
+        gap: 40px !important;
+    }
+    
+    .steps::before {
+        display: none !important;
+    }
+    
+    .step-icon {
+        width: 70px !important;
+        height: 70px !important;
+        font-size: 1.8rem !important;
+    }
+    
+    .step h3 {
+        font-size: 1rem !important;
+    }
+    
+    .step p {
+        font-size: 0.85rem !important;
+    }
+    
+    /* AI Banner */
+    .ai-banner {
+        padding: 40px 20px !important;
+    }
+    
+    .ai-banner-inner {
+        grid-template-columns: 1fr !important;
+        gap: 30px !important;
+    }
+    
+    .ai-banner h2 {
+        font-size: 1.5rem !important;
+    }
+    
+    .ai-banner p {
+        font-size: 0.88rem !important;
+    }
+    
+    .ai-features-list li {
+        font-size: 0.88rem !important;
+    }
+    
+    .ai-cards {
+        grid-template-columns: 1fr !important;
+        gap: 12px !important;
+    }
+    
+    .ai-card {
+        padding: 20px 16px !important;
+    }
+    
+    .ai-card .icon {
+        font-size: 2rem !important;
+    }
+    
+    .ai-card h4 {
+        font-size: 0.9rem !important;
+    }
+    
+    /* Reviews */
+    .reviews-grid {
+        grid-template-columns: 1fr !important;
+        gap: 16px !important;
+    }
+    
+    .review-card {
+        max-width: 400px !important;
+        margin: 0 auto !important;
+    }
+    
+    /* News cards */
+    .news-cards-grid {
+        grid-template-columns: 1fr !important;
+        gap: 16px !important;
+    }
+    
+    .news-card-item {
+        max-width: 400px !important;
+        margin: 0 auto !important;
+    }
+    
+    .news-preview-header {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 15px !important;
+    }
+    
+    .news-preview-header .view-all {
+        align-self: flex-end !important;
+    }
+    
+    /* Footer */
+    footer {
+        padding: 40px 20px 20px !important;
+    }
+    
+    .footer-grid {
+        grid-template-columns: 1fr !important;
+        gap: 25px !important;
+    }
+    
+    .footer-brand img {
+        height: 60px !important;
+    }
+    
+    .footer-bottom {
+        font-size: 0.75rem !important;
+        line-height: 1.6 !important;
+    }
+    
+    /* Shop page */
+    .shop-wrapper {
+        margin-top: 70px !important;
+    }
+    
+    .sidebar {
+        width: 100% !important;
+        border: none !important;
+        padding: 15px !important;
+        display: block !important;
+        max-height: none !important;
+    }
+    
+    .sidebar-section {
+        margin-bottom: 15px !important;
+    }
+    
+    .sidebar-title {
+        font-size: 0.75rem !important;
+        padding: 8px 0 6px !important;
+    }
+    
+    .sidebar-link,
+    .brand-link {
+        padding: 6px 0 !important;
+        font-size: 0.82rem !important;
+    }
+    
+    .shop-main {
+        padding: 20px 15px !important;
+    }
+    
+    .breadcrumb {
+        font-size: 0.75rem !important;
+        margin-bottom: 15px !important;
+    }
+    
+    .shop-toolbar {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 12px !important;
+    }
+    
+    .result-count {
+        text-align: center !important;
+    }
+    
+    .search-box {
+        width: 100% !important;
+    }
+    
+    .search-box input {
+        width: 100% !important;
+        font-size: 0.85rem !important;
+    }
+    
+    .product-grid {
+        grid-template-columns: 1fr !important;
+        gap: 16px !important;
+    }
+    
+    .product-card {
+        max-width: 400px !important;
+        margin: 0 auto !important;
+    }
+    
+    .pagination {
+        flex-wrap: wrap !important;
+        gap: 6px !important;
+    }
+    
+    .page-btn {
+        width: 36px !important;
+        height: 36px !important;
+        font-size: 0.85rem !important;
+    }
+    
+    /* About page */
+    .mission {
+        padding: 50px 20px !important;
+    }
+    
+    .mission-inner {
+        grid-template-columns: 1fr !important;
+        gap: 30px !important;
+    }
+    
+    .mission-img-placeholder {
+        height: 300px !important;
+    }
+    
+    .mission-text h2 {
+        font-size: 1.6rem !important;
+    }
+    
+    .mission-text p {
+        font-size: 0.9rem !important;
+    }
+    
+    .mission-list li {
+        font-size: 0.88rem !important;
+    }
+    
+    .tech {
+        padding: 50px 20px !important;
+    }
+    
+    .tech h2 {
+        font-size: 1.6rem !important;
+    }
+    
+    .tech-grid {
+        grid-template-columns: 1fr !important;
+        gap: 16px !important;
+    }
+    
+    .tech-card {
+        max-width: 400px !important;
+        margin: 0 auto !important;
+    }
+    
+    .team {
+        padding: 50px 20px !important;
+    }
+    
+    .team-header h2 {
+        font-size: 1.6rem !important;
+    }
+    
+    .team-grid {
+        grid-template-columns: 1fr !important;
+        gap: 16px !important;
+    }
+    
+    .team-grid-bottom .team-card {
+        width: 100% !important;
+        max-width: 400px !important;
+    }
+    
+    .team-avatar {
+        height: 250px !important;
+    }
+    
+    /* Contact page */
+    .contact-body {
+        padding: 40px 20px !important;
+    }
+    
+    .contact-inner {
+        grid-template-columns: 1fr !important;
+        gap: 30px !important;
+    }
+    
+    .faq-col h2,
+    .form-col h2 {
+        font-size: 1.5rem !important;
+    }
+    
+    .faq-question {
+        font-size: 0.88rem !important;
+        padding: 14px 16px !important;
+    }
+    
+    .faq-answer {
+        font-size: 0.85rem !important;
+    }
+    
+    .form-col {
+        padding: 28px 20px !important;
+    }
+    
+    .form-group label {
+        font-size: 0.82rem !important;
+    }
+    
+    .form-group input,
+    .form-group textarea {
+        font-size: 0.85rem !important;
+        padding: 10px 12px !important;
+    }
+    
+    .btn-submit {
+        padding: 12px !important;
+        font-size: 0.95rem !important;
+    }
+}
+
+/* ===== SMALL MOBILE (Max 480px) ===== */
+@media screen and (max-width: 480px) {
+    .hero h1 {
+        font-size: 1.8rem !important;
+    }
+    
+    .section-title {
+        font-size: 1.4rem !important;
+    }
+    
+    .stats-bar {
+        flex-direction: column !important;
+        gap: 15px !important;
+    }
+    
+    .stat-item {
+        width: 100% !important;
+    }
+    
+    .nav-btn {
+        padding: 5px 10px !important;
+        font-size: 0.75rem !important;
+    }
+}
+
+/* ===== FIX COMMON ISSUES ===== */
+@media screen and (max-width: 1024px) {
+    /* Prevent horizontal scroll */
+    body {
+        overflow-x: hidden !important;
+    }
+    
+    /* Fix image sizes */
+    img {
+        max-width: 100% !important;
+        height: auto !important;
+    }
+    
+    /* Fix dropdown on mobile */
+    .dropdown-menu {
+        left: 0 !important;
+        transform: none !important;
+        min-width: 100% !important;
+    }
+    
+    /* Better touch targets */
+    button,
+    a,
+    input,
+    textarea {
+        min-height: 44px !important;
+    }
+}
