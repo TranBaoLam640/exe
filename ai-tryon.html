@@ -392,17 +392,15 @@
             const maxAttempts = 40; // ~40 * 3s = 120s
             for (let i = 0; i < maxAttempts; i++) {
                 await new Promise(r => setTimeout(r, 3000));
-                const res = await fetch(`${API_URL}?action=status&id=${encodeURIComponent(requestId)}`);
+                const res = await fetch(`${API_URL}?id=${encodeURIComponent(requestId)}`);
                 const data = await res.json();
                 if (!res.ok) throw new Error(data?.error?.message || 'Không kiểm tra được trạng thái xử lý.');
 
                 if (data.status === 'IN_QUEUE') showLoading('Đang chờ trong hàng đợi...');
                 else if (data.status === 'IN_PROGRESS') showLoading('AI đang xử lý ảnh của bạn...');
+                else if (data.status === 'FAILED') throw new Error(data?.error?.message || 'AI xử lý thất bại, vui lòng thử lại.');
                 else if (data.status === 'COMPLETED') {
-                    const resultRes = await fetch(`${API_URL}?action=result&id=${encodeURIComponent(requestId)}`);
-                    const resultData = await resultRes.json();
-                    if (!resultRes.ok) throw new Error(resultData?.error?.message || 'Không lấy được kết quả.');
-                    showResult(resultData);
+                    showResult(data);
                     return;
                 }
             }
