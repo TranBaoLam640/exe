@@ -194,6 +194,21 @@
         .msg-time { font-size: 0.7rem; color: #555; margin-top: 4px; text-align: right; }
         .msg.ai .msg-time { text-align: left; }
 
+        /* PRODUCT CARDS (gợi ý sản phẩm kèm ảnh) */
+        .product-cards-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; max-width: 340px; }
+        .product-card-chat {
+            display: block; width: 128px; background: #1a2e1e; border: 1px solid rgba(141,233,190,0.15);
+            border-radius: 10px; overflow: hidden; text-decoration: none; transition: 0.2s;
+        }
+        .product-card-chat:hover { border-color: #8de9be; transform: translateY(-2px); }
+        .product-card-chat img { width: 100%; height: 158px; object-fit: cover; object-position: top; display: block; background: #333; }
+        .product-card-chat .pc-info { padding: 8px 10px; }
+        .product-card-chat .pc-name {
+            font-size: 0.72rem; font-weight: 700; color: #e0ede5; line-height: 1.3; margin-bottom: 4px;
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+        }
+        .product-card-chat .pc-price { font-size: 0.68rem; color: #8de9be; font-weight: 600; }
+
         /* TYPING */
         .typing-bubble {
             background: #1a2e1e;
@@ -387,8 +402,26 @@
         <div class="footer-bottom">© 2026 DoRentMe. Tất cả quyền được bảo lưu. · Làm với ❤️ tại Việt Nam</div>
     </footer>
 
+    <script src="products.js"></script>
     <script>
         const API_URL = '/api/chat';
+
+        // Sinh danh mục sản phẩm từ products.js (nguồn dữ liệu duy nhất,
+        // dùng chung với shop.html) — tránh lệch dữ liệu giữa 2 nơi.
+        function buildCatalogText() {
+            const byCategory = {};
+            shopProducts.forEach(p => {
+                (byCategory[p.categoryLabel] = byCategory[p.categoryLabel] || []).push(p);
+            });
+            let text = '';
+            Object.keys(byCategory).forEach(cat => {
+                text += `\n${cat.toUpperCase()}:\n`;
+                byCategory[cat].forEach(p => {
+                    text += `- ${p.name}: thuê 3 ngày ${p.price3day}, 1 ngày ${p.price1day}, cọc ${p.priceDeposit}${p.rating >= 4.8 ? ' ⭐ ' + p.rating : ''}\n`;
+                });
+            });
+            return text;
+        }
 
         const SYSTEM_PROMPT = `Bạn là DoStyle AI — trợ lý thời trang của DoRentMe, nền tảng cho thuê trang phục tại TP.HCM.
 
@@ -401,6 +434,12 @@ Nếu được hỏi ngoài chủ đề này (toán học, lập trình, chính 
 - Gợi ý sản phẩm CỤ THỂ từ danh sách bên dưới, không bịa tên sản phẩm
 - Luôn kèm giá thuê khi gợi ý sản phẩm
 - Nếu hỏi xem sản phẩm, hướng đến: shop.html
+
+=== ĐỊNH DẠNG TRẢ VỀ (BẮT BUỘC) ===
+Luôn trả về ĐÚNG JSON theo schema đã cấu hình, gồm 2 trường:
+- "reply": nội dung trả lời cho khách (dùng \\n để xuống dòng, có thể dùng emoji)
+- "recommendedProducts": mảng TÊN SẢN PHẨM lấy CHÍNH XÁC từng ký tự từ "DANH MỤC SẢN PHẨM" bên dưới (không tự đổi hoa/thường, không thêm bớt dấu câu). Để mảng rỗng [] nếu không gợi ý sản phẩm cụ thể nào.
+Khi khách hỏi về phối đồ, chọn trang phục, hoặc muốn được gợi ý — LUÔN điền recommendedProducts với ít nhất 1 sản phẩm phù hợp, và trong đó ƯU TIÊN có ít nhất 1 sản phẩm thuộc nhóm "Váy" (Váy đi biển / Váy dự tiệc / Váy lụa), trừ khi khách hỏi rõ ràng chỉ về danh mục khác (ví dụ chỉ hỏi riêng về phụ kiện hoặc áo dài).
 
 === THÔNG TIN DORENTME ===
 - Địa chỉ: TP.HCM, giao nhận tận nơi
@@ -433,69 +472,7 @@ SẢN PHẨM BỊ HƯ HỎNG / BẨN:
 - Bonus: +50đ viết review, +200đ giới thiệu bạn, +500đ sinh nhật
 
 === DANH MỤC SẢN PHẨM ===
-
-ÁO DÀI:
-- FLANE – UYỂN KHANH: thuê 3 ngày 300k, 1 ngày 260k, cọc 1.200k (tag 1.900k)
-- LINN DESIGN – TUỆ HIỀN: thuê 3 ngày 340k, 1 ngày 295k, cọc 1.200k (tag 1.590k)
-- MAINICHI – MỘC MIÊN: thuê 3 ngày 260k, 1 ngày 220k, cọc 800k (tag 1.200k)
-- MAINICHI – YÊN CHI: thuê 3 ngày 290k, 1 ngày 250k, cọc 900k (tag 1.550k)
-- MAISON LONG – NIỀM NỖI: thuê 3 ngày 220k, 1 ngày 180k, cọc 700k (tag 1.150k)
-- D.CHIC NÀNG THƠ PHỐ HỘI: thuê 3 ngày 320k, 1 ngày 280k, cọc 1.200k (tag 1.950k) ⭐ 4.9
-- D.CHIC COUTURE: thuê 3 ngày 500k, 1 ngày 450k, cọc 2.000k (tag 3.500k) ⭐ 5.0 — cao cấp nhất
-- D.CHIC XUÂN VIÊN: thuê 3 ngày 480k, 1 ngày 440k, cọc 2.000k (tag 2.850k) ⭐ 4.9
-- D.CHIC Ý NHIÊN: thuê 3 ngày 490k, 1 ngày 450k, cọc 2.000k (tag 2.950k)
-- D.CHIC THIÊN Ý: thuê 3 ngày 450k, 1 ngày 410k, cọc 1.900k (tag 2.600k)
-
-VÁY ĐI BIỂN:
-- TIPBLU – ĐẦM VOAN TÍM LAVENDER: thuê 3 ngày 190k, 1 ngày 160k, cọc 650k
-- CHOUCHOU – ĐẦM REN NUDE DÁNG DÀI: thuê 3 ngày 255k, 1 ngày 225k, cọc 800k ⭐ 4.8
-- AMELIE – VANESSA DRESS XANH NHẠT: thuê 3 ngày 290k, 1 ngày 250k, cọc 900k ⭐ 4.9
-- JOLIE LOFT – VÁY LƯỚI MOLLY DRESS NÂU: thuê 3 ngày 270k, 1 ngày 230k, cọc 800k
-- FLANE – REN CỔ YẾM: thuê 3 ngày 240k, 1 ngày 200k, cọc 800k
-- JOLIE LOFT – LỤA: thuê 3 ngày 195k, 1 ngày 165k, cọc 700k
-- JOLIE LOFT – VÁY REN CÓ TAY: thuê 3 ngày 220k, 1 ngày 190k, cọc 700k
-- FLANE – REN BỒ MÙI TRẺ VAI: thuê 3 ngày 195k, 1 ngày 165k, cọc 700k
-- AMELIE – VÁY BÍ BABYDOLL CỔ YẾM: thuê 3 ngày 170k, 1 ngày 140k, cọc 600k
-- VÁY REN PHỐI TƠ: thuê 3 ngày 130k, 1 ngày 100k, cọc 400k — rẻ nhất
-- AMELIEE – GARMENT: thuê 3 ngày 175k, 1 ngày 140k, cọc 700k
-- AMELIEE – DIVA: thuê 3 ngày 190k, 1 ngày 150k, cọc 700k
-- MAISON LONG – THỦY MỊ: thuê 3 ngày 230k, 1 ngày 190k, cọc 750k ⭐ 4.9
-- VÁY HOA MÙA HÈ: thuê 3 ngày 120k, 1 ngày 90k, cọc 300k — tiết kiệm
-- SET VÁY 2 DÂY + CHÂN VÁY TRẮNG KEM LANNIE: thuê 3 ngày 120k, 1 ngày 100k, cọc 400k
-
-VÁY DỰ TIỆC:
-- SÒ VINTAGE – NATHALIA: thuê 3 ngày 560k, 1 ngày 490k, cọc 2.000k ⭐ 5.0 — best seller 120 đánh giá
-- SÒ VINTAGE – VELIA: thuê 3 ngày 440k, 1 ngày 390k, cọc 1.500k ⭐ 4.9
-- SÒ VINTAGE – VELIA (ĐEN): thuê 3 ngày 440k, 1 ngày 390k, cọc 1.500k ⭐ 4.9
-- SÒ VINTAGE – LAFINE: thuê 3 ngày 450k, 1 ngày 400k, cọc 1.500k ⭐ 4.8
-- SÒ VINTAGE – LYRA: thuê 3 ngày 420k, 1 ngày 388k, cọc 1.500k ⭐ 4.8
-- SÒ VINTAGE – VELIANA: thuê 3 ngày 340k, 1 ngày 290k, cọc 1.300k
-- SÒ VINTAGE – VELIANA (ĐEN): thuê 3 ngày 340k, 1 ngày 290k, cọc 1.300k
-- HƯƠNG BOUTIQUE – LOUISE LACE DRESS: thuê 3 ngày 420k, 1 ngày 380k, cọc 1.400k ⭐ 4.9
-- JOLIE LOFT – ĐẦM LỤA KEM HALI DRESS: thuê 3 ngày 200k, 1 ngày 175k, cọc 600k ⭐ 4.9
-- JOLIE LOFT – VÁY LỤA LUALA DRESS: thuê 3 ngày 240k, 1 ngày 210k, cọc 800k
-- JOLIE LOFT – VÁY LƯỚI MOLLY DRESS NÂU: thuê 3 ngày 270k, 1 ngày 230k, cọc 800k
-- CHOUCHOU – ĐẦM REN NUDE DÁNG DÀI: thuê 3 ngày 255k, 1 ngày 225k, cọc 800k
-- CHOUCHOU – ĐẦM DÀI REN CHOÀNG: thuê 3 ngày 230k, 1 ngày 200k, cọc 700k
-- AMELIE – VANESSA DRESS XANH NHẠT: thuê 3 ngày 290k, 1 ngày 250k, cọc 900k
-- TIPBLU – ĐẦM VOAN TÍM LAVENDER: thuê 3 ngày 190k, 1 ngày 160k, cọc 650k
-- WONDER HOUSE – LUA DRESS KEM: thuê 3 ngày 190k, 1 ngày 165k, cọc 500k
-
-VÁY LỤA:
-- JOLIE LOFT – ĐẦM LỤA KEM HALI DRESS: thuê 3 ngày 200k, 1 ngày 175k, cọc 600k ⭐ 4.9
-- JOLIE LOFT – VÁY LỤA LUALA DRESS: thuê 3 ngày 240k, 1 ngày 210k, cọc 800k
-- JOLIE LOFT – LỤA: thuê 3 ngày 195k, 1 ngày 165k, cọc 700k
-- WONDER HOUSE – LUA DRESS KEM: thuê 3 ngày 190k, 1 ngày 165k, cọc 500k
-
-PHỤ KIỆN:
-- TÚI NHUNG ĐEN D.CHIC: thuê 3 ngày 80k, 1 ngày 60k, cọc 300k
-- TÚI DA ĐEN MYS.P: thuê 3 ngày 90k, 1 ngày 70k, cọc 400k
-- TÚI DA ĐỎ: thuê 3 ngày 70k, 1 ngày 50k, cọc 300k
-- TÚI TRỨNG NGỌC TRAI: thuê 3 ngày 120k, 1 ngày 100k, cọc 400k
-- COMBO PHỤ KIỆN ÁO DÀI (VÒNG + BỜM + TÚI): thuê 3 ngày 100k, 1 ngày 80k, cọc 300k
-- COMBO NGỌC TRAI (TÚI + VÒNG CỔ/BỜM/VÒNG TAY): thuê 3 ngày 100k, 1 ngày 80k, cọc 300k
-- TÚI MŨ ĐI BIỂN: thuê 3 ngày 100k, 1 ngày 80k, cọc 400k
-
+${buildCatalogText()}
 === TIN TỨC NỔI BẬT ===
 1. "Biến Hình Cực Chất Với BST Trang Phục Hóa Trang Mới Toanh" (11/4/2026) — BST hóa trang mới cho cosplay, tiệc chủ đề
 2. "Top Địa Điểm Thuê Trang Phục Uy Tín Cho Kỳ Nghỉ Lễ 30/4 & 1/5" (27/3/2026) — trang phục biểu diễn dịp lễ lớn
@@ -532,15 +509,52 @@ PHỤ KIỆN:
             if (welcome) welcome.remove();
         }
 
-        function appendMessage(role, text) {
+        function esc(s) {
+            return String(s == null ? '' : s).replace(/[&<>"']/g, c =>
+                ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        }
+
+        function findProduct(name) {
+            if (!name) return null;
+            const target = name.trim().toLowerCase();
+            return shopProducts.find(p => p.name === name) ||
+                   shopProducts.find(p => p.name.trim().toLowerCase() === target) || null;
+        }
+
+        function buildProductCardHtml(p) {
+            const q = new URLSearchParams({
+                name: p.name, image: p.image, category: p.categoryLabel,
+                price3day: p.price3day, priceExtra: p.priceExtra,
+                price1day: p.price1day, priceTag: p.priceTag,
+                priceDeposit: p.priceDeposit, rating: p.rating, reviews: p.reviews, likes: p.likes
+            });
+            return `
+                <a class="product-card-chat" href="productDetail.html?${q.toString()}">
+                    <img src="${esc(p.image)}" alt="${esc(p.name)}" onerror="this.style.background='#333';this.removeAttribute('src')">
+                    <div class="pc-info">
+                        <div class="pc-name">${esc(p.name)}</div>
+                        <div class="pc-price">Thuê 3 ngày: ${esc(p.price3day)}</div>
+                    </div>
+                </a>`;
+        }
+
+        function appendMessage(role, text, recommendedProducts) {
             hideWelcome();
             const div = document.createElement('div');
             div.className = `msg ${role}`;
             const avatar = role === 'ai' ? '👗' : '👤';
+
+            let productsHtml = '';
+            if (role === 'ai' && Array.isArray(recommendedProducts) && recommendedProducts.length) {
+                const cards = recommendedProducts.map(findProduct).filter(Boolean).map(buildProductCardHtml).join('');
+                if (cards) productsHtml = `<div class="product-cards-row">${cards}</div>`;
+            }
+
             div.innerHTML = `
                 <div class="msg-avatar">${avatar}</div>
                 <div>
-                    <div class="msg-bubble">${text.replace(/\n/g, '<br>')}</div>
+                    <div class="msg-bubble">${esc(text).replace(/\n/g, '<br>')}</div>
+                    ${productsHtml}
                     <div class="msg-time">${getTime()}</div>
                 </div>`;
             messagesEl.appendChild(div);
@@ -587,7 +601,18 @@ PHỤ KIỆN:
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         messages: conversationHistory,
-                        system: SYSTEM_PROMPT
+                        system: SYSTEM_PROMPT,
+                        generationConfig: {
+                            responseMimeType: 'application/json',
+                            responseSchema: {
+                                type: 'OBJECT',
+                                properties: {
+                                    reply: { type: 'STRING' },
+                                    recommendedProducts: { type: 'ARRAY', items: { type: 'STRING' } }
+                                },
+                                required: ['reply', 'recommendedProducts']
+                            }
+                        }
                     })
                 });
 
@@ -595,9 +620,13 @@ PHỤ KIỆN:
                 removeTyping();
 
                 if (data.candidates && data.candidates[0]) {
-                    const reply = data.candidates[0].content.parts[0].text;
-                    conversationHistory.push({ role: 'model', parts: [{ text: reply }] });
-                    appendMessage('ai', reply);
+                    const rawText = data.candidates[0].content.parts[0].text;
+                    let parsed;
+                    try { parsed = JSON.parse(rawText); }
+                    catch (e) { parsed = { reply: rawText, recommendedProducts: [] }; }
+
+                    conversationHistory.push({ role: 'model', parts: [{ text: rawText }] });
+                    appendMessage('ai', parsed.reply || rawText, parsed.recommendedProducts);
                 } else if (data.error) {
                     appendMessage('ai', `⚠️ Lỗi: ${data.error.message}`);
                 } else {

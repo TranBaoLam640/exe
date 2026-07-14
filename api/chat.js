@@ -3,7 +3,7 @@ export default async function handler(req, res) {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    const { messages, system } = req.body;
+    const { messages, system, generationConfig } = req.body;
 
     // Debug: kiểm tra env var
     if (!process.env.GEMINI_API_KEY) {
@@ -15,15 +15,18 @@ export default async function handler(req, res) {
     }
 
     try {
+        const body = {
+            system_instruction: { parts: [{ text: system }] },
+            contents: messages
+        };
+        if (generationConfig) body.generationConfig = generationConfig;
+
         const response = await fetch(
             `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${process.env.GEMINI_API_KEY}`,
             {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    system_instruction: { parts: [{ text: system }] },
-                    contents: messages
-                })
+                body: JSON.stringify(body)
             }
         );
 
