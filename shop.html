@@ -235,6 +235,21 @@
         .card-price { font-size: 0.8rem; color: #333; line-height: 1.8; }
         .card-price .extra { color: #d97706; }
         .card-price .red { color: #c0392b; font-weight: 600; }
+        .card-add {
+            margin-top: 12px;
+            width: 100%;
+            padding: 9px 0;
+            background: #55b689;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+        }
+        .card-add:hover { background: #3d9e70; }
 
         .empty-state {
             display: none;
@@ -460,6 +475,9 @@
         </div>
     </footer>
 
+    <script src="cart.js"></script>
+    <script src="orders.js"></script>
+    <script src="auth.js"></script>
     <script>
         // ===== DATA SẢN PHẨM (nguồn dữ liệu duy nhất) =====
         const shopProducts = [
@@ -581,7 +599,14 @@
                                 <span class="red">Giá tag: ${p.priceTag}</span><br>
                                 <span class="red">Giá cọc: ${p.priceDeposit}</span>
                             </div>
+                            <button class="card-add" type="button">🛒 Thêm vào giỏ</button>
                         </div>`;
+                    // Thêm vào giỏ (không điều hướng sang trang chi tiết)
+                    a.querySelector('.card-add').addEventListener('click', (ev) => {
+                        ev.preventDefault();
+                        ev.stopPropagation();
+                        DoCart.add(p, 1);
+                    });
                     emptyState.parentNode.insertBefore(a, emptyState);
                 });
                 const label = searchQ

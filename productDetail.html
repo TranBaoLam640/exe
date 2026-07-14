@@ -373,6 +373,16 @@
             display: flex; align-items: center; justify-content: center; gap: 8px;
         }
         .btn-rent-now:hover { background: #3d9e70; border-color: #3d9e70; }
+        .btn-tryon {
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            width: 100%; margin-top: 14px; padding: 13px 0;
+            background: linear-gradient(135deg, #0a1e14, #1a5c3a);
+            border: 1px solid rgba(141,233,190,0.4);
+            color: #8de9be; border-radius: 8px;
+            font-size: 0.92rem; font-weight: 700; text-decoration: none;
+            transition: 0.3s;
+        }
+        .btn-tryon:hover { background: linear-gradient(135deg, #0d2a1c, #1f6e46); border-color: #8de9be; }
 
         /* ===== FOOTER ===== */
         footer {
@@ -573,9 +583,10 @@
                 </div>
 
                 <div class="action-btns">
-                    <button class="btn-cart">🛒 Thêm vào giỏ</button>
-                    <button class="btn-rent-now">⚡ Thuê ngay</button>
+                    <button class="btn-cart" id="btnCart">🛒 Thêm vào giỏ</button>
+                    <button class="btn-rent-now" id="btnRentNow">⚡ Thuê ngay</button>
                 </div>
+                <a href="#" class="btn-tryon" id="btnTryon">🪄 Thử đồ AI với sản phẩm này</a>
             </div>
         </div>
     </div>
@@ -611,6 +622,9 @@
         </div>
     </footer>
 
+    <script src="cart.js"></script>
+    <script src="orders.js"></script>
+    <script src="auth.js"></script>
     <script>
         const products = {
             1: {
@@ -724,6 +738,29 @@
             if (val > 10) val = 10;
             input.value = val;
         }
+
+        // ===== Giỏ hàng =====
+        function currentQty() {
+            return parseInt(document.getElementById('qtyInput').value, 10) || 1;
+        }
+        document.getElementById('btnCart').addEventListener('click', () => {
+            DoCart.add(p, currentQty());
+        });
+        document.getElementById('btnRentNow').addEventListener('click', () => {
+            DoCart.add(p, currentQty());
+            window.location.href = 'cart.html';
+        });
+
+        // ===== Thử đồ AI =====
+        (function () {
+            const q = new URLSearchParams({
+                name: p.name, image: p.image, category: p.category,
+                price3day: p.price3day, priceExtra: p.priceExtra || '',
+                price1day: p.price1day, priceTag: p.priceTag,
+                priceDeposit: p.priceDeposit
+            });
+            document.getElementById('btnTryon').href = 'ai-tryon.html?' + q.toString();
+        })();
     </script>
 </body>
 </html>
