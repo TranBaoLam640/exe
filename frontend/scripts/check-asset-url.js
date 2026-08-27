@@ -7,6 +7,9 @@ const cases = [
   ['https://assets.example.com/', 'image/logo.png', 'https://assets.example.com/image/logo.png'],
   ['https://assets.example.com/', '/image/logo.png', 'https://assets.example.com/image/logo.png'],
   ['https://assets.example.com/assets', '', 'https://assets.example.com/assets'],
+  ['https://assets.example.com/assets', 'image/logo.png?v=1#hero', 'https://assets.example.com/assets/image/logo.png?v=1#hero'],
+  ['https://assets.example.com/assets', 'https://cdn.example.com/image/logo.png?v=1#hero', 'https://cdn.example.com/image/logo.png?v=1#hero'],
+  ['https://assets.example.com/assets', '//cdn.example.com/image/logo.png', '//cdn.example.com/image/logo.png'],
 ];
 
 for (const [base, key, expected] of cases) {
