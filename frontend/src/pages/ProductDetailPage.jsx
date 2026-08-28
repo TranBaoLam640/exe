@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { imageUrl } from '../assets/imageUrl.js';
 import { addProductToCart } from '../features/cart/cartService.js';
-import { buildTryOnProductUrl } from '../features/ai/tryon/tryOnProduct.js';
+import { buildTryOnProductUrl, legacyProductFromParams } from '../features/ai/tryon/tryOnProduct.js';
 import ProductPrice from '../features/catalog/components/ProductPrice.jsx';
 import QuantitySelector from '../features/catalog/components/QuantitySelector.jsx';
 import { getFallbackProduct, getProductById } from '../features/catalog/services/catalogService.js';
@@ -10,8 +10,11 @@ import { useDocumentTitle } from '../hooks/useDocumentTitle.js';
 
 export default function ProductDetailPage() {
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
   const requestedProduct = getProductById(id);
-  const product = requestedProduct || getFallbackProduct();
+  const fallbackProduct = getFallbackProduct();
+  const legacyProduct = legacyProductFromParams(searchParams);
+  const product = requestedProduct || (legacyProduct ? { ...fallbackProduct, ...legacyProduct } : fallbackProduct);
   const [quantity, setQuantity] = useState(1);
   const [liked, setLiked] = useState(false);
   const displayedLikes = liked ? product.likes + 1 : product.likes;

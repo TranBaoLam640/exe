@@ -1,6 +1,35 @@
 {
-  "cleanUrls": true,
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "installCommand": "npm install --prefix frontend",
+  "buildCommand": "npm run build --prefix frontend",
+  "outputDirectory": "frontend/dist",
+  "cleanUrls": false,
   "trailingSlash": false,
+  "redirects": [
+    { "source": "/index.html", "destination": "/", "permanent": false },
+    { "source": "/about.html", "destination": "/about", "permanent": false },
+    { "source": "/contact.html", "destination": "/contact", "permanent": false },
+    { "source": "/policy.html", "destination": "/policy", "permanent": false },
+    { "source": "/terms.html", "destination": "/terms", "permanent": false },
+    { "source": "/tutorial.html", "destination": "/tutorial", "permanent": false },
+    { "source": "/loyalty.html", "destination": "/loyalty", "permanent": false },
+    { "source": "/news.html", "destination": "/news", "permanent": false },
+    { "source": "/news_detail.html", "destination": "/news_detail", "permanent": false },
+    { "source": "/shop.html", "destination": "/shop", "permanent": false },
+    { "source": "/productDetail.html", "destination": "/product", "permanent": false },
+    { "source": "/cart.html", "destination": "/cart", "permanent": false },
+    { "source": "/checkout.html", "destination": "/checkout", "permanent": false },
+    { "source": "/login.html", "destination": "/login", "permanent": false },
+    { "source": "/register.html", "destination": "/register", "permanent": false },
+    { "source": "/orders.html", "destination": "/orders", "permanent": false },
+    { "source": "/order-tracking.html", "destination": "/order-tracking", "permanent": false },
+    { "source": "/shop-admin.html", "destination": "/admin", "permanent": false },
+    { "source": "/chatbotAI.html", "destination": "/chatbot", "permanent": false },
+    { "source": "/ai-tryon.html", "destination": "/ai-tryon", "permanent": false }
+  ],
+  "rewrites": [
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
+  ],
   "headers": [
     {
       "source": "/image/(.*)",

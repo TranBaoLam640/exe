@@ -11,7 +11,7 @@ export default function LoginPage() {
   const [message, setMessage] = useState(null);
   const [invalid, setInvalid] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const redirectTo = searchParams.get('redirect') || '/index.html';
+  const redirectTo = searchParams.get('redirect') || '/';
 
   async function submit(event) {
     event.preventDefault();

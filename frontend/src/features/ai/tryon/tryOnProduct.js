@@ -1,4 +1,12 @@
 export function buildTryOnProductUrl(product) {
+  if (!product?.id) {
+    const params = new URLSearchParams();
+    ['name', 'image', 'category', 'price3day', 'priceExtra', 'price1day', 'priceTag', 'priceDeposit'].forEach((key) => {
+      if (product?.[key]) params.set(key, product[key]);
+    });
+    return `/ai-tryon?${params.toString()}`;
+  }
+
   return `/ai-tryon?product=${encodeURIComponent(product.id)}`;
 }
 

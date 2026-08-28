@@ -18,7 +18,7 @@ export default function RegisterPage() {
   const [message, setMessage] = useState(null);
   const [invalidConfirm, setInvalidConfirm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const redirectTo = searchParams.get('redirect') || '/index.html';
+  const redirectTo = searchParams.get('redirect') || '/';
 
   function updateField(field, value) {
     setForm((current) => ({ ...current, [field]: value }));

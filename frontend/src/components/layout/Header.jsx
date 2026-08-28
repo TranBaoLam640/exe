@@ -54,7 +54,7 @@ export default function Header() {
         </Link>
       </div>
       <nav className="nav-menu" aria-label="Primary navigation">
-        <a href="/index.html">Trang chủ</a>
+        <Link to="/">Trang chủ</Link>
         <ServiceDropdown active={activeLabel === 'Dịch vụ'} />
         <Link className={activeLabel === 'Giới thiệu' ? 'active' : ''} to="/about">
           Giới thiệu
@@ -76,7 +76,7 @@ export default function Header() {
         {session ? (
           <>
             <span className="auth-greeting">👋 {session.name}</span>
-            <a className="nav-btn outline" href="/index.html" onClick={logout}>
+            <a className="nav-btn outline" href="/" onClick={logout}>
               Đăng xuất
             </a>
           </>

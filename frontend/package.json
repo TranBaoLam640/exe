@@ -7,9 +7,13 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "check": "npm run check:asset-url && npm run check:chatbot && npm run check:tryon && npm run validate:catalog && npm run validate:legacy-cart && npm run check:cutover-readiness && npm run build",
     "check:asset-url": "node scripts/check-asset-url.js",
     "check:chatbot": "node scripts/check-chatbot.js",
-    "check:tryon": "node scripts/check-tryon.js"
+    "check:tryon": "node scripts/check-tryon.js",
+    "check:cutover-readiness": "node scripts/check-cutover-readiness.js",
+    "validate:catalog": "node scripts/validate-catalog.js",
+    "validate:legacy-cart": "node scripts/validate-legacy-cart.js"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.0.0",

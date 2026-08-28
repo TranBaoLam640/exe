@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import CatalogPagination from '../features/catalog/components/CatalogPagination.jsx';
 import ProductFilters from '../features/catalog/components/ProductFilters.jsx';
 import ProductGrid from '../features/catalog/components/ProductGrid.jsx';
@@ -57,7 +58,7 @@ export default function ShopPage() {
         />
         <main className="shop-main">
           <div className="catalog-breadcrumb">
-            <a href="/index.html">Trang chủ</a> &rsaquo; <span>{categoryLabel}</span>
+            <Link to="/">Trang chủ</Link> &rsaquo; <span>{categoryLabel}</span>
           </div>
           <div className="shop-toolbar">
             <div className="catalog-result-count">{resultLabel}</div>

@@ -6,7 +6,9 @@ import ChatbotPage from '../pages/ChatbotPage.jsx';
 import CheckoutPage from '../pages/CheckoutPage.jsx';
 import ContactPage from '../pages/ContactPage.jsx';
 import HomePage from '../pages/HomePage.jsx';
+import LegacyRedirect from '../pages/LegacyRedirect.jsx';
 import LoginPage from '../pages/LoginPage.jsx';
+import LoyaltyPage from '../pages/LoyaltyPage.jsx';
 import { PolicyPage, TermsPage } from '../pages/LegalPages.jsx';
 import AdminPage from '../pages/AdminPage.jsx';
 import NewsDetailPage from '../pages/NewsDetailPage.jsx';
@@ -34,68 +36,156 @@ export const router = createBrowserRouter([
         element: <AboutPage />,
       },
       {
+        path: 'about.html',
+        element: <LegacyRedirect to="/about" />,
+      },
+      {
         path: 'contact',
         element: <ContactPage />,
+      },
+      {
+        path: 'contact.html',
+        element: <LegacyRedirect to="/contact" />,
       },
       {
         path: 'shop',
         element: <ShopPage />,
       },
       {
+        path: 'shop.html',
+        element: <LegacyRedirect to="/shop" />,
+      },
+      {
         path: 'cart',
         element: <CartPage />,
+      },
+      {
+        path: 'cart.html',
+        element: <LegacyRedirect to="/cart" />,
       },
       {
         path: 'chatbot',
         element: <ChatbotPage />,
       },
       {
+        path: 'chatbotAI.html',
+        element: <LegacyRedirect to="/chatbot" />,
+      },
+      {
         path: 'ai-tryon',
         element: <TryOnPage />,
+      },
+      {
+        path: 'ai-tryon.html',
+        element: <LegacyRedirect to="/ai-tryon" />,
       },
       {
         path: 'checkout',
         element: <CheckoutPage />,
       },
       {
+        path: 'checkout.html',
+        element: <LegacyRedirect to="/checkout" />,
+      },
+      {
         path: 'login',
         element: <LoginPage />,
+      },
+      {
+        path: 'login.html',
+        element: <LegacyRedirect to="/login" />,
       },
       {
         path: 'register',
         element: <RegisterPage />,
       },
       {
+        path: 'register.html',
+        element: <LegacyRedirect to="/register" />,
+      },
+      {
         path: 'orders',
         element: <OrdersPage />,
+      },
+      {
+        path: 'orders.html',
+        element: <LegacyRedirect to="/orders" />,
+      },
+      {
+        path: 'order-tracking',
+        element: <OrderTrackingPage />,
+      },
+      {
+        path: 'order-tracking.html',
+        element: <LegacyRedirect to="/order-tracking" />,
       },
       {
         path: 'orders/:orderId',
         element: <OrderTrackingPage />,
       },
       {
+        path: 'product',
+        element: <ProductDetailPage />,
+      },
+      {
         path: 'product/:id',
         element: <ProductDetailPage />,
+      },
+      {
+        path: 'productDetail.html',
+        element: <LegacyRedirect to="/product" />,
       },
       {
         path: 'policy',
         element: <PolicyPage />,
       },
       {
+        path: 'policy.html',
+        element: <LegacyRedirect to="/policy" />,
+      },
+      {
         path: 'terms',
         element: <TermsPage />,
+      },
+      {
+        path: 'terms.html',
+        element: <LegacyRedirect to="/terms" />,
       },
       {
         path: 'tutorial',
         element: <TutorialPage />,
       },
       {
+        path: 'tutorial.html',
+        element: <LegacyRedirect to="/tutorial" />,
+      },
+      {
+        path: 'loyalty',
+        element: <LoyaltyPage />,
+      },
+      {
+        path: 'loyalty.html',
+        element: <LegacyRedirect to="/loyalty" />,
+      },
+      {
         path: 'news',
         element: <NewsPage />,
       },
       {
+        path: 'news.html',
+        element: <LegacyRedirect to="/news" />,
+      },
+      {
         path: 'news_detail',
         element: <NewsDetailPage />,
+      },
+      {
+        path: 'news_detail.html',
+        element: <LegacyRedirect to="/news_detail" />,
+      },
+      {
+        path: 'index.html',
+        element: <LegacyRedirect to="/" />,
       },
       {
         path: '*',
@@ -106,5 +196,9 @@ export const router = createBrowserRouter([
   {
     path: '/admin',
     element: <AdminPage />,
+  },
+  {
+    path: '/shop-admin.html',
+    element: <LegacyRedirect to="/admin" />,
   },
 ]);

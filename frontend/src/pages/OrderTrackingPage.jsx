@@ -1,4 +1,4 @@
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { imageUrl } from '../assets/imageUrl.js';
 import { formatVnd, parsePrice } from '../features/cart/cartService.js';
 import {
@@ -91,8 +91,10 @@ function TrackingActions({ order }) {
 
 export default function OrderTrackingPage() {
   const { orderId } = useParams();
+  const [searchParams] = useSearchParams();
   useOrders();
-  const order = orderId ? getOrderById(decodeURIComponent(orderId)) : null;
+  const effectiveOrderId = orderId ? decodeURIComponent(orderId) : searchParams.get('id');
+  const order = effectiveOrderId ? getOrderById(effectiveOrderId) : null;
   useDocumentTitle(order ? `Theo Dõi Đơn ${order.id} | DoRentMe` : 'Theo Dõi Đơn Hàng | DoRentMe');
 
   if (!order) {
