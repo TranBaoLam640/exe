@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useDocumentTitle } from '../hooks/useDocumentTitle.js';
 
 const channels = [
@@ -171,7 +172,7 @@ export default function TutorialPage() {
           <div className="cta-box">
             <h3>Sẵn sàng thuê rồi? 🎉</h3>
             <p>Khám phá hàng trăm bộ trang phục đẹp đang chờ bạn tại DoRentMe.</p>
-            <a href="/shop.html" className="cta-btn">Xem bộ sưu tập ngay →</a>
+            <Link to="/shop" className="cta-btn">Xem bộ sưu tập ngay →</Link>
           </div>
         </div>
       </div>

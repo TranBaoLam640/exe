@@ -7,6 +7,8 @@ import { PolicyPage, TermsPage } from '../pages/LegalPages.jsx';
 import NewsDetailPage from '../pages/NewsDetailPage.jsx';
 import NewsPage from '../pages/NewsPage.jsx';
 import NotFoundPage from '../pages/NotFoundPage.jsx';
+import ProductDetailPage from '../pages/ProductDetailPage.jsx';
+import ShopPage from '../pages/ShopPage.jsx';
 import TutorialPage from '../pages/TutorialPage.jsx';
 
 export const router = createBrowserRouter([
@@ -25,6 +27,14 @@ export const router = createBrowserRouter([
       {
         path: 'contact',
         element: <ContactPage />,
+      },
+      {
+        path: 'shop',
+        element: <ShopPage />,
+      },
+      {
+        path: 'product/:id',
+        element: <ProductDetailPage />,
       },
       {
         path: 'policy',

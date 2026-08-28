@@ -4,19 +4,20 @@ import { imageUrl } from '../../assets/imageUrl.js';
 import { useLegacyHeaderState } from '../../hooks/useLegacyHeaderState.js';
 
 const reactNav = new Map([
+  ['/shop', 'Dịch vụ'],
   ['/about', 'Giới thiệu'],
   ['/contact', 'Liên hệ'],
 ]);
 
-function ServiceDropdown() {
+function ServiceDropdown({ active }) {
   return (
     <div className="nav-item">
-      <a href="/shop.html">Dịch vụ</a>
+      <Link className={active ? 'active' : ''} to="/shop">Dịch vụ</Link>
       <div className="dropdown-menu">
         <div className="dropdown-inner">
           <a href="/chatbotAI.html">AI Phối đồ</a>
           <a href="/ai-tryon.html">Thử đồ 3D</a>
-          <a href="/shop.html">Shop</a>
+          <Link to="/shop">Shop</Link>
           <Link to="/news">Tin tức</Link>
         </div>
       </div>
@@ -28,8 +29,8 @@ export default function Header() {
   const location = useLocation();
   const [scrolled, setScrolled] = useState(false);
   const { session, cartQuantity, hasOrders } = useLegacyHeaderState();
-  const transparent = location.pathname === '/about' || location.pathname === '/contact';
-  const activeLabel = reactNav.get(location.pathname);
+  const transparent = location.pathname === '/' || location.pathname === '/shop' || location.pathname === '/about' || location.pathname === '/contact';
+  const activeLabel = location.pathname.startsWith('/product/') ? 'Dịch vụ' : reactNav.get(location.pathname);
 
   useEffect(() => {
     const update = () => setScrolled(window.scrollY > 60);
@@ -54,7 +55,7 @@ export default function Header() {
       </div>
       <nav className="nav-menu" aria-label="Primary navigation">
         <a href="/index.html">Trang chủ</a>
-        <ServiceDropdown />
+        <ServiceDropdown active={activeLabel === 'Dịch vụ'} />
         <Link className={activeLabel === 'Giới thiệu' ? 'active' : ''} to="/about">
           Giới thiệu
         </Link>
