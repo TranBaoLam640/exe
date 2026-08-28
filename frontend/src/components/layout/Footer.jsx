@@ -12,7 +12,7 @@ export default function Footer() {
         <div className="footer-col">
           <h4>Dịch vụ</h4>
           <Link to="/shop">Danh mục đồ thuê</Link>
-          <a href="/ai-tryon.html">AI Stylist</a>
+          <Link to="/ai-tryon">AI Stylist</Link>
           <a href="/loyalty.html">Gói thành viên</a>
         </div>
         <div className="footer-col">

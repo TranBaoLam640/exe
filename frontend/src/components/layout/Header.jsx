@@ -17,7 +17,7 @@ function ServiceDropdown({ active }) {
       <div className="dropdown-menu">
         <div className="dropdown-inner">
           <Link to="/chatbot">AI Phối đồ</Link>
-          <a href="/ai-tryon.html">Thử đồ 3D</a>
+          <Link to="/ai-tryon">Thử đồ 3D</Link>
           <Link to="/shop">Shop</Link>
           <Link to="/news">Tin tức</Link>
         </div>

@@ -18,6 +18,7 @@ import ProductDetailPage from '../pages/ProductDetailPage.jsx';
 import RegisterPage from '../pages/RegisterPage.jsx';
 import ShopPage from '../pages/ShopPage.jsx';
 import TutorialPage from '../pages/TutorialPage.jsx';
+import TryOnPage from '../pages/TryOnPage.jsx';
 
 export const router = createBrowserRouter([
   {
@@ -47,6 +48,10 @@ export const router = createBrowserRouter([
       {
         path: 'chatbot',
         element: <ChatbotPage />,
+      },
+      {
+        path: 'ai-tryon',
+        element: <TryOnPage />,
       },
       {
         path: 'checkout',

@@ -2,24 +2,11 @@ import { useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { imageUrl } from '../assets/imageUrl.js';
 import { addProductToCart } from '../features/cart/cartService.js';
+import { buildTryOnProductUrl } from '../features/ai/tryon/tryOnProduct.js';
 import ProductPrice from '../features/catalog/components/ProductPrice.jsx';
 import QuantitySelector from '../features/catalog/components/QuantitySelector.jsx';
 import { getFallbackProduct, getProductById } from '../features/catalog/services/catalogService.js';
 import { useDocumentTitle } from '../hooks/useDocumentTitle.js';
-
-function buildTryOnUrl(product) {
-  const query = new URLSearchParams({
-    name: product.name,
-    image: product.image,
-    category: product.category,
-    price3day: product.price3day,
-    priceExtra: product.priceExtra || '',
-    price1day: product.price1day,
-    priceTag: product.priceTag,
-    priceDeposit: product.priceDeposit,
-  });
-  return `/ai-tryon.html?${query.toString()}`;
-}
 
 export default function ProductDetailPage() {
   const { id } = useParams();
@@ -141,7 +128,7 @@ export default function ProductDetailPage() {
               <button className="product-btn-cart" type="button" onClick={addToCart}>🛒 Thêm vào giỏ</button>
               <button className="product-btn-rent-now" type="button" onClick={rentNow}>⚡ Thuê ngay</button>
             </div>
-            <a href={buildTryOnUrl(product)} className="product-btn-tryon">🪄 Thử đồ AI với sản phẩm này</a>
+            <Link to={buildTryOnProductUrl(product)} className="product-btn-tryon">🪄 Thử đồ AI với sản phẩm này</Link>
           </div>
         </div>
       </div>

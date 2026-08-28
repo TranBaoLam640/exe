@@ -77,7 +77,7 @@ export default function HomePage() {
         <p>Khám phá phong cách cá nhân, cho thuê trang phục cao cấp và thử đồ ảo thông minh — tất cả tại một nơi.</p>
         <div className="home-hero-btns">
           <Link to="/shop" className="home-btn-primary">Xem bộ sưu tập ngay</Link>
-          <a href="/ai-tryon.html" className="home-btn-secondary">Thử đồ AI miễn phí</a>
+          <Link to="/ai-tryon" className="home-btn-secondary">Thử đồ AI miễn phí</Link>
           <a href="https://forms.gle/GFz1dVHmityymatcA" target="_blank" rel="noopener noreferrer" className="home-btn-feedback">Đóng góp ý kiến</a>
         </div>
       </section>
@@ -121,7 +121,7 @@ export default function HomePage() {
               <li>Chatbot thời trang hoạt động 24/7</li>
               <li>Phân tích màu sắc phù hợp với tông da</li>
             </ul>
-            <a href="/ai-tryon.html" className="home-btn-primary">Trải nghiệm AI miễn phí →</a>
+            <Link to="/ai-tryon" className="home-btn-primary">Trải nghiệm AI miễn phí →</Link>
           </div>
           <div className="home-ai-cards">
             {aiCards.map(([icon, title, text]) => (
