@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { imageUrl } from '../../assets/imageUrl.js';
 import { useLegacyHeaderState } from '../../hooks/useLegacyHeaderState.js';
@@ -25,9 +26,17 @@ function ServiceDropdown() {
 
 export default function Header() {
   const location = useLocation();
+  const [scrolled, setScrolled] = useState(false);
   const { session, cartQuantity, hasOrders } = useLegacyHeaderState();
   const transparent = location.pathname === '/about' || location.pathname === '/contact';
   const activeLabel = reactNav.get(location.pathname);
+
+  useEffect(() => {
+    const update = () => setScrolled(window.scrollY > 60);
+    update();
+    window.addEventListener('scroll', update);
+    return () => window.removeEventListener('scroll', update);
+  }, [location.pathname]);
 
   function logout(event) {
     event.preventDefault();
@@ -37,7 +46,7 @@ export default function Header() {
   }
 
   return (
-    <header className={`site-header ${transparent ? 'site-header--transparent' : 'site-header--solid'}`}>
+    <header className={`site-header ${transparent && !scrolled ? 'site-header--transparent' : 'site-header--solid'}`}>
       <div className="logo">
         <Link to="/" aria-label="DoRentMe home">
           <img src={imageUrl('Logo.png')} alt="DoRentMe Logo" />

@@ -32,15 +32,15 @@ export default function NewsDetailPage() {
           <h1 className="detail-title">{article.title}</h1>
           {article.image ? <img className="detail-banner" src={imageUrl(article.image)} alt={article.title} /> : null}
           <div className="detail-body">
-            <div className="article-content">
-              {article.content.map(([heading, text]) => (
-                <section key={heading}>
-                  <h2>{heading}</h2>
-                  <p>{text}</p>
-                  <div className="highlight">✨ DoRentMe - Thuê trang phục đẹp, tiện lợi và đúng phong cách</div>
-                </section>
-              ))}
-            </div>
+            {article.content ? (
+              <div className="article-content" dangerouslySetInnerHTML={{ __html: article.content }} />
+            ) : (
+              <>
+                <div className="coming-icon">🛠️</div>
+                <h3>Nội dung đang được nâng cấp</h3>
+                <p>Bài viết chi tiết sẽ sớm được cập nhật. Vui lòng quay lại sau!</p>
+              </>
+            )}
           </div>
         </div>
       </div>
