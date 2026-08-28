@@ -1,13 +1,17 @@
 import { createBrowserRouter } from 'react-router-dom';
 import AppLayout from '../components/layout/AppLayout.jsx';
 import AboutPage from '../pages/AboutPage.jsx';
+import CartPage from '../pages/CartPage.jsx';
+import CheckoutPage from '../pages/CheckoutPage.jsx';
 import ContactPage from '../pages/ContactPage.jsx';
 import HomePage from '../pages/HomePage.jsx';
+import LoginPage from '../pages/LoginPage.jsx';
 import { PolicyPage, TermsPage } from '../pages/LegalPages.jsx';
 import NewsDetailPage from '../pages/NewsDetailPage.jsx';
 import NewsPage from '../pages/NewsPage.jsx';
 import NotFoundPage from '../pages/NotFoundPage.jsx';
 import ProductDetailPage from '../pages/ProductDetailPage.jsx';
+import RegisterPage from '../pages/RegisterPage.jsx';
 import ShopPage from '../pages/ShopPage.jsx';
 import TutorialPage from '../pages/TutorialPage.jsx';
 
@@ -31,6 +35,22 @@ export const router = createBrowserRouter([
       {
         path: 'shop',
         element: <ShopPage />,
+      },
+      {
+        path: 'cart',
+        element: <CartPage />,
+      },
+      {
+        path: 'checkout',
+        element: <CheckoutPage />,
+      },
+      {
+        path: 'login',
+        element: <LoginPage />,
+      },
+      {
+        path: 'register',
+        element: <RegisterPage />,
       },
       {
         path: 'product/:id',

@@ -3,7 +3,7 @@ import CatalogPagination from '../features/catalog/components/CatalogPagination.
 import ProductFilters from '../features/catalog/components/ProductFilters.jsx';
 import ProductGrid from '../features/catalog/components/ProductGrid.jsx';
 import ProductSearch from '../features/catalog/components/ProductSearch.jsx';
-import { addProductToLegacyCart } from '../features/catalog/cart/legacyCartAdapter.js';
+import { addProductToCart } from '../features/cart/cartService.js';
 import { categoryOptions, filterProducts, ITEMS_PER_PAGE, paginateProducts } from '../features/catalog/services/catalogService.js';
 import { useDocumentTitle } from '../hooks/useDocumentTitle.js';
 
@@ -63,7 +63,7 @@ export default function ShopPage() {
             <div className="catalog-result-count">{resultLabel}</div>
             <ProductSearch query={query} onQueryChange={changeQuery} />
           </div>
-          <ProductGrid products={items} onAdd={(product) => addProductToLegacyCart(product, 1)} />
+          <ProductGrid products={items} onAdd={(product) => addProductToCart(product, 1)} />
           <CatalogPagination currentPage={page} totalPages={totalPages} onPageChange={changePage} />
         </main>
       </div>

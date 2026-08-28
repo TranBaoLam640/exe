@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { imageUrl } from '../../assets/imageUrl.js';
+import { logout as logoutSession } from '../../features/auth/authService.js';
 import { useLegacyHeaderState } from '../../hooks/useLegacyHeaderState.js';
 
 const reactNav = new Map([
@@ -41,9 +42,8 @@ export default function Header() {
 
   function logout(event) {
     event.preventDefault();
-    localStorage.removeItem('dorentme_session');
-    document.dispatchEvent(new CustomEvent('auth:changed', { detail: null }));
-    window.location.href = '/index.html';
+    logoutSession();
+    window.location.href = '/';
   }
 
   return (
@@ -64,12 +64,12 @@ export default function Header() {
         </Link>
       </nav>
       <div className="nav-right">
-        <a className="cart-link" href="/cart.html" title="Giỏ hàng" aria-label={`Giỏ hàng: ${cartQuantity} sản phẩm`}>
+        <Link className="cart-link" to="/cart" title="Giỏ hàng" aria-label={`Giỏ hàng: ${cartQuantity} sản phẩm`}>
           🛒
           <span className="cart-badge" style={{ display: cartQuantity > 0 ? 'flex' : 'none' }}>
             {cartQuantity}
           </span>
-        </a>
+        </Link>
         <a className="orders-link" href="/orders.html" title="Đơn hàng của tôi" aria-label="Đơn hàng của tôi">
           {hasOrders ? '🚚' : '📦'}
         </a>
@@ -82,12 +82,12 @@ export default function Header() {
           </>
         ) : (
           <>
-            <a className="nav-btn outline" href="/login.html">
+            <Link className="nav-btn outline" to="/login">
               Đăng nhập
-            </a>
-            <a className="nav-btn fill" href="/register.html">
+            </Link>
+            <Link className="nav-btn fill" to="/register">
               Đăng ký
-            </a>
+            </Link>
           </>
         )}
       </div>

@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { imageUrl } from '../assets/imageUrl.js';
-import { addProductToLegacyCart } from '../features/catalog/cart/legacyCartAdapter.js';
+import { addProductToCart } from '../features/cart/cartService.js';
 import ProductPrice from '../features/catalog/components/ProductPrice.jsx';
 import QuantitySelector from '../features/catalog/components/QuantitySelector.jsx';
 import { getFallbackProduct, getProductById } from '../features/catalog/services/catalogService.js';
@@ -35,12 +35,12 @@ export default function ProductDetailPage() {
   useDocumentTitle(`${product.name} | DoRentMe`);
 
   function addToCart() {
-    addProductToLegacyCart(product, quantity);
+    addProductToCart(product, quantity);
   }
 
   function rentNow() {
     addToCart();
-    window.location.href = '/cart.html';
+    window.location.href = '/cart';
   }
 
   return (
