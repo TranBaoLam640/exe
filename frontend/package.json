@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "check:asset-url": "node scripts/check-asset-url.js"
+    "check:asset-url": "node scripts/check-asset-url.js",
+    "check:chatbot": "node scripts/check-chatbot.js"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.0.0",

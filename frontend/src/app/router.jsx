@@ -2,6 +2,7 @@ import { createBrowserRouter } from 'react-router-dom';
 import AppLayout from '../components/layout/AppLayout.jsx';
 import AboutPage from '../pages/AboutPage.jsx';
 import CartPage from '../pages/CartPage.jsx';
+import ChatbotPage from '../pages/ChatbotPage.jsx';
 import CheckoutPage from '../pages/CheckoutPage.jsx';
 import ContactPage from '../pages/ContactPage.jsx';
 import HomePage from '../pages/HomePage.jsx';
@@ -42,6 +43,10 @@ export const router = createBrowserRouter([
       {
         path: 'cart',
         element: <CartPage />,
+      },
+      {
+        path: 'chatbot',
+        element: <ChatbotPage />,
       },
       {
         path: 'checkout',
