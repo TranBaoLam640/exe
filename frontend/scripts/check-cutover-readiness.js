@@ -100,6 +100,7 @@ for (const [file, tokens] of staleChecks) {
 check(readFrontend('src/pages/ProductDetailPage.jsx').includes('legacyProductFromParams'), 'Product Detail must preserve legacy query context');
 check(readFrontend('src/pages/OrderTrackingPage.jsx').includes("searchParams.get('id')"), 'Order Tracking must preserve legacy id query context');
 check(readFrontend('src/features/ai/tryon/tryOnProduct.js').includes('new URLSearchParams'), 'Try-On URL builder must preserve legacy product context');
+check(readFrontend('.env.production').includes('VITE_ASSET_BASE_URL=https://'), 'frontend/.env.production must define public R2 asset base');
 
 const manifest = readJson('tools/r2/asset-migration-manifest.json');
 const assetMap = readJson('frontend/src/assets/asset-map.json');
