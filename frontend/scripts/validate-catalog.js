@@ -1,6 +1,6 @@
 import assetMap from '../src/assets/asset-map.json' with { type: 'json' };
 import { products } from '../src/features/catalog/data/products.js';
-import { filterProducts, getFallbackProduct, getProductById, ITEMS_PER_PAGE, paginateProducts } from '../src/features/catalog/services/catalogService.js';
+import { filterProducts, getFallbackProduct, getProductById, getProductByLegacyIndex, ITEMS_PER_PAGE, paginateProducts } from '../src/features/catalog/services/catalogService.js';
 
 const failures = [];
 const ids = new Set(products.map((product) => product.id));
@@ -18,6 +18,8 @@ check(mappedImages.length === 52, `expected 52 R2 image mappings, got ${mappedIm
 
 const sample = products.find((product) => product.image === 'image/vay_di_bien/tipblu_dam_voan_tim_lavender.jpg');
 check(sample && getProductById(sample.id)?.image === sample.image, 'getProductById did not return the expected product');
+check(getProductByLegacyIndex('1') === products[1], 'legacy productDetail numeric id=1 fallback changed');
+check(getProductByLegacyIndex('missing') === null, 'invalid legacy productDetail numeric id should not resolve');
 check(getFallbackProduct().image === 'image/vay_du_tiec/jolie_loft_vay_luoi_molly_dress_nau.jpg', 'fallback product changed');
 
 check(filterProducts({ category: 'ao-dai', brand: 'all', query: '' }).length === 10, 'default ao-dai category count changed');

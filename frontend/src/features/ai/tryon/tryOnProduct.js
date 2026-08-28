@@ -13,6 +13,10 @@ export function buildTryOnProductUrl(product) {
 export function legacyProductFromParams(params) {
   if (!params.get('name')) return null;
 
+  const rating = Number.parseFloat(params.get('rating'));
+  const reviews = Number.parseInt(params.get('reviews'), 10);
+  const likes = Number.parseInt(params.get('likes'), 10);
+
   return {
     id: '',
     name: params.get('name'),
@@ -24,6 +28,9 @@ export function legacyProductFromParams(params) {
     price1day: params.get('price1day') || '',
     priceTag: params.get('priceTag') || '',
     priceDeposit: params.get('priceDeposit') || '',
+    rating: Number.isFinite(rating) ? rating : undefined,
+    reviews: Number.isFinite(reviews) ? reviews : undefined,
+    likes: Number.isFinite(likes) ? likes : undefined,
   };
 }
 

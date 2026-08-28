@@ -1,4 +1,4 @@
-import { addProductToLegacyCart, CART_KEY } from '../src/features/catalog/cart/legacyCartAdapter.js';
+import { addProductToCart, CART_KEY } from '../src/features/cart/cartService.js';
 import { products } from '../src/features/catalog/data/products.js';
 
 const storage = new Map();
@@ -18,8 +18,8 @@ const fakeEventTarget = {
 };
 const product = products[0];
 
-addProductToLegacyCart(product, 2, { storage: fakeStorage, eventTarget: fakeEventTarget });
-addProductToLegacyCart(product, 3, { storage: fakeStorage, eventTarget: fakeEventTarget });
+addProductToCart(product, 2, { storage: fakeStorage, eventTarget: fakeEventTarget });
+addProductToCart(product, 3, { storage: fakeStorage, eventTarget: fakeEventTarget });
 
 const cart = JSON.parse(fakeStorage.getItem(CART_KEY));
 const expectedFields = ['name', 'image', 'category', 'price3day', 'price1day', 'priceTag', 'priceDeposit', 'priceExtra', 'qty'];

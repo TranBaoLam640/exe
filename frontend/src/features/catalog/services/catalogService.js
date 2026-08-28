@@ -41,6 +41,12 @@ export function getProductById(id) {
   return products.find((product) => product.id === id) || null;
 }
 
+export function getProductByLegacyIndex(id) {
+  const index = Number.parseInt(id, 10);
+  if (!Number.isFinite(index)) return null;
+  return products[index] || null;
+}
+
 export function getFallbackProduct() {
   return products.find((product) => product.image === 'image/vay_du_tiec/jolie_loft_vay_luoi_molly_dress_nau.jpg') || products[0];
 }

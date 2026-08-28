@@ -43,14 +43,12 @@ const legacyFiles = [
   'orders.js',
   'responsive.css',
   'Logo.png',
-  'api/chat.js',
-  'api/tryon.js',
 ];
 
 for (const file of legacyFiles) {
-  check(existsSync(new URL(file, root)), `legacy file should remain for Phase 7B: ${file}`);
+  check(!existsSync(new URL(file, root)), `legacy file should be absent after Phase 7C: ${file}`);
 }
-check(existsSync(new URL('image/', root)), 'legacy image/ directory should remain for Phase 7B');
+check(!existsSync(new URL('image/', root)), 'legacy image/ directory should be absent after Phase 7C');
 
 const vercel = readJson('vercel.json');
 check(vercel.installCommand === 'npm install --prefix frontend', 'vercel installCommand must install frontend dependencies');
@@ -103,13 +101,29 @@ check(readFrontend('src/pages/ProductDetailPage.jsx').includes('legacyProductFro
 check(readFrontend('src/pages/OrderTrackingPage.jsx').includes("searchParams.get('id')"), 'Order Tracking must preserve legacy id query context');
 check(readFrontend('src/features/ai/tryon/tryOnProduct.js').includes('new URLSearchParams'), 'Try-On URL builder must preserve legacy product context');
 
+const manifest = readJson('tools/r2/asset-migration-manifest.json');
+const assetMap = readJson('frontend/src/assets/asset-map.json');
+const uniqueKeys = new Set(Object.values(assetMap));
+check(Object.keys(assetMap).length === 86, `expected 86 logical asset-map entries, got ${Object.keys(assetMap).length}`);
+check(uniqueKeys.size === 70, `expected 70 canonical R2 keys, got ${uniqueKeys.size}`);
+check(manifest.summary?.sourceFileCount === 86, `expected manifest sourceFileCount 86, got ${manifest.summary?.sourceFileCount}`);
+check(manifest.summary?.canonicalObjectCount === 70, `expected manifest canonicalObjectCount 70, got ${manifest.summary?.canonicalObjectCount}`);
+for (const asset of manifest.assets || []) {
+  check(assetMap[asset.sourcePath] === asset.r2Key, `runtime map mismatch for ${asset.sourcePath}`);
+  check(!existsSync(new URL(asset.sourcePath, root)), `migrated physical image should be absent: ${asset.sourcePath}`);
+}
+check(existsSync(new URL('api/chat.js', root)), 'api/chat.js must remain');
+check(existsSync(new URL('api/tryon.js', root)), 'api/tryon.js must remain');
+
 if (failures.length) {
   console.error(`cutover readiness FAIL\n- ${failures.join('\n- ')}`);
   process.exit(1);
 }
 
 console.log('cutover readiness PASS');
-console.log('legacyFilesRetained=true');
+console.log('legacyFilesRemoved=true');
 console.log('loyaltyRoute=/loyalty');
 console.log('spaFallbackExcludesApi=true');
 console.log(`legacyRedirects=${requiredRedirects.size}`);
+console.log(`assetMapEntries=${Object.keys(assetMap).length}`);
+console.log(`canonicalR2Keys=${uniqueKeys.size}`);

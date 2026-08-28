@@ -5,7 +5,7 @@ import { addProductToCart } from '../features/cart/cartService.js';
 import { buildTryOnProductUrl, legacyProductFromParams } from '../features/ai/tryon/tryOnProduct.js';
 import ProductPrice from '../features/catalog/components/ProductPrice.jsx';
 import QuantitySelector from '../features/catalog/components/QuantitySelector.jsx';
-import { getFallbackProduct, getProductById } from '../features/catalog/services/catalogService.js';
+import { getFallbackProduct, getProductById, getProductByLegacyIndex } from '../features/catalog/services/catalogService.js';
 import { useDocumentTitle } from '../hooks/useDocumentTitle.js';
 
 export default function ProductDetailPage() {
@@ -13,8 +13,9 @@ export default function ProductDetailPage() {
   const [searchParams] = useSearchParams();
   const requestedProduct = getProductById(id);
   const fallbackProduct = getFallbackProduct();
+  const legacyIndexedProduct = getProductByLegacyIndex(searchParams.get('id'));
   const legacyProduct = legacyProductFromParams(searchParams);
-  const product = requestedProduct || (legacyProduct ? { ...fallbackProduct, ...legacyProduct } : fallbackProduct);
+  const product = requestedProduct || (legacyProduct ? { ...fallbackProduct, ...legacyProduct } : legacyIndexedProduct || fallbackProduct);
   const [quantity, setQuantity] = useState(1);
   const [liked, setLiked] = useState(false);
   const displayedLikes = liked ? product.likes + 1 : product.likes;
