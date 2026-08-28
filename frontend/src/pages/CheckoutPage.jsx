@@ -95,7 +95,7 @@ export default function CheckoutPage() {
       customerEmail: currentSession ? currentSession.email : null,
     });
     clearCart();
-    window.location.href = `/order-tracking.html?id=${encodeURIComponent(draftIdRef.current)}`;
+    window.location.href = `/orders/${encodeURIComponent(draftIdRef.current)}`;
   }
 
   function copyAccount() {

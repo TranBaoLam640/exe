@@ -70,9 +70,9 @@ export default function Header() {
             {cartQuantity}
           </span>
         </Link>
-        <a className="orders-link" href="/orders.html" title="Đơn hàng của tôi" aria-label="Đơn hàng của tôi">
+        <Link className="orders-link" to="/orders" title="Đơn hàng của tôi" aria-label="Đơn hàng của tôi">
           {hasOrders ? '🚚' : '📦'}
-        </a>
+        </Link>
         {session ? (
           <>
             <span className="auth-greeting">👋 {session.name}</span>

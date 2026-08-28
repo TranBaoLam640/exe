@@ -7,9 +7,12 @@ import ContactPage from '../pages/ContactPage.jsx';
 import HomePage from '../pages/HomePage.jsx';
 import LoginPage from '../pages/LoginPage.jsx';
 import { PolicyPage, TermsPage } from '../pages/LegalPages.jsx';
+import AdminPage from '../pages/AdminPage.jsx';
 import NewsDetailPage from '../pages/NewsDetailPage.jsx';
 import NewsPage from '../pages/NewsPage.jsx';
 import NotFoundPage from '../pages/NotFoundPage.jsx';
+import OrdersPage from '../pages/OrdersPage.jsx';
+import OrderTrackingPage from '../pages/OrderTrackingPage.jsx';
 import ProductDetailPage from '../pages/ProductDetailPage.jsx';
 import RegisterPage from '../pages/RegisterPage.jsx';
 import ShopPage from '../pages/ShopPage.jsx';
@@ -53,6 +56,14 @@ export const router = createBrowserRouter([
         element: <RegisterPage />,
       },
       {
+        path: 'orders',
+        element: <OrdersPage />,
+      },
+      {
+        path: 'orders/:orderId',
+        element: <OrderTrackingPage />,
+      },
+      {
         path: 'product/:id',
         element: <ProductDetailPage />,
       },
@@ -81,5 +92,9 @@ export const router = createBrowserRouter([
         element: <NotFoundPage />,
       },
     ],
+  },
+  {
+    path: '/admin',
+    element: <AdminPage />,
   },
 ]);

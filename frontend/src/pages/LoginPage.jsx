@@ -74,7 +74,7 @@ export default function LoginPage() {
           Chưa có tài khoản? <Link to="/register">Đăng ký ngay</Link>
         </div>
         <Link className="auth-guest-link" to="/shop">Tiếp tục mua sắm không cần tài khoản →</Link>
-        <a className="auth-admin-link" href="/shop-admin.html">🔐 Bạn là admin? Đăng nhập ở đây →</a>
+        <Link className="auth-admin-link" to="/admin">🔐 Bạn là admin? Đăng nhập ở đây →</Link>
       </div>
     </div>
   );
