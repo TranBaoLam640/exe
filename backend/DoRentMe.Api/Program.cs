@@ -1,36 +1,15 @@
-using DoRentMe.Api.Persistence;
+using DoRentMe.Api.Common.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("Frontend", policy =>
-    {
-        var origins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
-        if (origins is { Length: > 0 })
-        {
-            policy.WithOrigins(origins)
-                .AllowAnyHeader()
-                .AllowAnyMethod();
-        }
-    });
-});
-
-builder.Services.AddSqlServer<DoRentMeDbContext>(
-    builder.Configuration.GetConnectionString("DefaultConnection"));
+builder.Services.AddOpenApiDocumentation();
+builder.Services.AddFrontendCors(builder.Configuration);
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-
+app.UseCentralizedExceptionHandling();
+app.UseOpenApiDocumentation();
 app.UseHttpsRedirection();
 app.UseCors("Frontend");
 

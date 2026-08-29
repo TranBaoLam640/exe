@@ -4,6 +4,8 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4A7F755}") = "DoRentMe.Api", "DoRentMe.Api\DoRentMe.Api.csproj", "{A1F5E3B8-624E-4685-9A2B-0DBD7E6D88E1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DoRentMe.Api.Tests", "DoRentMe.Api.Tests\DoRentMe.Api.Tests.csproj", "{B20F703E-DAA9-44DA-812A-BF4E96CD2E4D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -14,6 +16,10 @@ Global
 		{A1F5E3B8-624E-4685-9A2B-0DBD7E6D88E1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A1F5E3B8-624E-4685-9A2B-0DBD7E6D88E1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A1F5E3B8-624E-4685-9A2B-0DBD7E6D88E1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B20F703E-DAA9-44DA-812A-BF4E96CD2E4D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B20F703E-DAA9-44DA-812A-BF4E96CD2E4D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B20F703E-DAA9-44DA-812A-BF4E96CD2E4D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B20F703E-DAA9-44DA-812A-BF4E96CD2E4D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
