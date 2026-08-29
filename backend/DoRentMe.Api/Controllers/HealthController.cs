@@ -9,6 +9,8 @@ public sealed class HealthController : ControllerBase
     [HttpGet]
     public IActionResult Get()
     {
-        return Ok(new { status = "ok", service = "DoRentMe.Api" });
+        return Ok(new HealthResponse("ok", DateTimeOffset.UtcNow));
     }
 }
+
+public sealed record HealthResponse(string Status, DateTimeOffset CheckedAt);

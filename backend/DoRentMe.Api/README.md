@@ -1,22 +1,14 @@
-# DoRentMe API
+# DoRentMe.Api
 
-ASP.NET Core Web API skeleton for the DoRentMe backend.
+Clean ASP.NET Core Web API foundation for DoRentMe Phase 1.
 
-## Scope
+This backend was recreated from scratch and intentionally contains only the initial API foundation:
 
-This project is a backend foundation only. It defines the API shape, service boundaries, placeholder implementations, and configuration slots for SQL Server, JWT authentication, Gemini, FASHN, and payment providers.
+- ASP.NET Core controller pipeline
+- Swagger in development
+- frontend CORS configuration
+- SQL Server EF Core context
+- domain entities aligned with `database/schema.sql`
+- `GET /api/health`
 
-## Run
-
-Install the .NET 8 SDK, then run:
-
-```bash
-dotnet restore
-dotnet run --project backend/DoRentMe.Api
-```
-
-Swagger is available in development at `/swagger`.
-
-## Configuration
-
-Use user secrets, environment variables, or an untracked `appsettings.Local.json` for private values. Do not commit API keys, JWT secrets, database passwords, or payment credentials.
+Business services, authentication, AI integrations, payment flows, and feature endpoints should be added only when their phase-specific contracts are defined.
