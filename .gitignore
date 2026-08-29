@@ -1,3 +1,4 @@
 .env.r2.local
 .env*.local
 !.env.r2.example
+.history/
