@@ -24,10 +24,14 @@ public class ContactController : ControllerBase
             request,
             cancellationToken);
 
-        return StatusCode(StatusCodes.Status201Created, new
+        var response = new CreateContactResponse
         {
-            contact.Id,
+            Id = contact.Id,
             Message = "Contact message submitted successfully."
-        });
+        };
+
+        return StatusCode(
+    StatusCodes.Status201Created,
+    response);
     }
 }

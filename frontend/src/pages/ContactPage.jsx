@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useDocumentTitle } from '../hooks/useDocumentTitle.js';
 import { useFadeIn } from '../hooks/useFadeIn.js';
-
+import api from "../config/api";
 const faqs = [
   {
     question: 'DoRentMe hoạt động như thế nào?',
@@ -30,15 +30,58 @@ export default function ContactPage() {
   useFadeIn('.contact-page');
   const [openFaq, setOpenFaq] = useState(0);
   const [submitted, setSubmitted] = useState(false);
-
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    message: ""
+  });
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   function toggleFaq(index) {
     setOpenFaq((current) => (current === index ? null : index));
   }
 
-  function submitForm(event) {
+  function handleChange(event) {
+    const { name, value } = event.target;
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  }
+
+  async function submitForm(event) {
     event.preventDefault();
-    setSubmitted(true);
-    event.currentTarget.reset();
+
+    setSubmitted(false);
+    setError("");
+    setIsSubmitting(true);
+
+    try {
+      const response = await api.post("/api/contact", {
+        ...formData,
+        phone: formData.phone || null,
+      });
+
+      console.log(response.data);
+
+      setSubmitted(true);
+
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        message: "",
+      });
+    } catch (error) {
+      setError(
+        error.response?.data?.title ||
+        "Không thể gửi tin nhắn."
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -80,26 +123,68 @@ export default function ContactPage() {
                 <label>
                   Tên của bạn <span>*</span>
                 </label>
-                <input type="text" placeholder="Nguyễn Văn A" required />
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  placeholder="Nguyễn Văn A"
+                  required
+                />
               </div>
               <div className="form-group">
                 <label>
                   Email <span>*</span>
                 </label>
-                <input type="email" placeholder="email@example.com" required />
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder="email@example.com"
+                  required
+                />
               </div>
               <div className="form-group">
                 <label>Số điện thoại</label>
-                <input type="tel" placeholder="0901 234 567" />
+                <input
+                  type="tel"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  placeholder="0901 234 567"
+                />
               </div>
               <div className="form-group">
                 <label>
                   Nội dung <span>*</span>
                 </label>
-                <textarea placeholder="Mô tả câu hỏi hoặc yêu cầu của bạn..." required />
+                <textarea
+                  name="message"
+                  value={formData.message}
+                  onChange={handleChange}
+                  placeholder="Mô tả câu hỏi hoặc yêu cầu của bạn..."
+                  required
+                />
               </div>
-              <button type="submit" className="btn-submit">Gửi tin nhắn</button>
-              {submitted ? <div className="success-msg">✓ Tin nhắn đã được gửi! Chúng tôi sẽ phản hồi trong 24h.</div> : null}
+              <button
+                type="submit"
+                className="btn-submit"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Đang gửi..." : "Gửi tin nhắn"}
+              </button>
+              {submitted ? (
+                <div className="success-msg">
+                  ✓ Tin nhắn đã được gửi! Chúng tôi sẽ phản hồi trong 24h.
+                </div>
+              ) : null}
+
+              {error ? (
+                <div className="error-msg">
+                  {error}
+                </div>
+              ) : null}
             </form>
           </div>
         </div>
