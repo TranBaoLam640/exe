@@ -109,10 +109,10 @@ jobs:
 
 
   # =========================================================
-  # FRONTEND - LINT + BUILD
+  # FRONTEND - CHECK + BUILD
   # =========================================================
   frontend-test:
-    name: Frontend Lint & Build
+    name: Frontend Check & Build
     runs-on: ubuntu-latest
 
     defaults:
@@ -136,11 +136,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Lint frontend
-        run: npm run lint
-
-      - name: Build frontend
-        run: npm run build
+      - name: Check frontend
+        run: npm run check
 
 
   # =========================================================
