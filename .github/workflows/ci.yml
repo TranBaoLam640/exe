@@ -4,15 +4,22 @@ on:
   push:
     branches:
       - main
+    paths:
+      - "backend/**"
+      - "frontend/**"
+      - ".github/workflows/ci.yml"
 
-  pull_request:
-    branches:
-      - main
+  workflow_dispatch:
 
+permissions:
+  contents: read
+  packages: write
 
 jobs:
-
-  backend:
+  # =========================================================
+  # BACKEND - BUILD + TEST
+  # =========================================================
+  backend-test:
     name: Backend Build & Test
     runs-on: ubuntu-latest
 
@@ -34,7 +41,7 @@ jobs:
       ConnectionStrings__DefaultConnection: Server=127.0.0.1;Port=3306;Database=dorentme_ci;User=root;Password=root;
 
     steps:
-      - name: Checkout repository
+      - name: Checkout source
         uses: actions/checkout@v4
 
       - name: Setup .NET 8
@@ -46,24 +53,80 @@ jobs:
         run: dotnet restore backend/DoRentMe.sln
 
       - name: Build backend
-        run: dotnet build backend/DoRentMe.sln --configuration Release --no-restore
+        run: >
+          dotnet build backend/DoRentMe.sln
+          --configuration Release
+          --no-restore
 
       - name: Test backend
-        run: dotnet test backend/DoRentMe.sln --configuration Release --no-build
+        run: >
+          dotnet test backend/DoRentMe.sln
+          --configuration Release
+          --no-build
 
 
-  frontend:
-    name: Frontend Build
+  # =========================================================
+  # BACKEND - BUILD + PUSH GHCR
+  # =========================================================
+  backend-build-push:
+    name: Backend Docker Build & Push
+    needs: backend-test
     runs-on: ubuntu-latest
 
-    env:
-      VITE_API_BASE_URL: http://localhost:5000
-
     steps:
-      - name: Checkout repository
+      - name: Checkout source
         uses: actions/checkout@v4
 
-      - name: Setup Node.js 22
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Backend image metadata
+        id: backend-meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/dorentme-backend
+          tags: |
+            type=sha,format=long
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=build-{{date 'YYYYMMDDHHmmss'}}
+
+      - name: Build and push backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend/DoRentMe.Api
+          push: true
+          tags: ${{ steps.backend-meta.outputs.tags }}
+          labels: ${{ steps.backend-meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+
+  # =========================================================
+  # FRONTEND - LINT + BUILD
+  # =========================================================
+  frontend-test:
+    name: Frontend Lint & Build
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: frontend
+
+    env:
+      VITE_API_BASE_URL: https://api.dorentme.com
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -71,35 +134,55 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
 
       - name: Install dependencies
-        working-directory: frontend
         run: npm ci
 
+      - name: Lint frontend
+        run: npm run lint
+
       - name: Build frontend
-        working-directory: frontend
         run: npm run build
 
 
-  docker:
-    name: Docker Build Validation
+  # =========================================================
+  # FRONTEND - BUILD + PUSH GHCR
+  # =========================================================
+  frontend-build-push:
+    name: Frontend Docker Build & Push
+    needs: frontend-test
     runs-on: ubuntu-latest
 
-    needs:
-      - backend
-      - frontend
-
     steps:
-      - name: Checkout repository
+      - name: Checkout source
         uses: actions/checkout@v4
 
-      - name: Build backend image
-        run: |
-          docker build \
-            -t dorentme-backend:ci \
-            ./backend/DoRentMe.Api
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-      - name: Build frontend image
-        run: |
-          docker build \
-            --build-arg VITE_API_BASE_URL=http://localhost:5000 \
-            -t dorentme-frontend:ci \
-            ./frontend
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Frontend image metadata
+        id: frontend-meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/dorentme-frontend
+          tags: |
+            type=sha,format=long
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=build-{{date 'YYYYMMDDHHmmss'}}
+
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend
+          push: true
+          build-args: |
+            VITE_API_BASE_URL=https://api.dorentme.com
+          tags: ${{ steps.frontend-meta.outputs.tags }}
+          labels: ${{ steps.frontend-meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
