@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "lint": "npm run check:asset-url && npm run check:production-asset-base && npm run check:chatbot && npm run check:tryon && npm run validate:catalog && npm run validate:legacy-cart && npm run check:cutover-readiness",
     "check": "npm run check:asset-url && npm run check:production-asset-base && npm run check:chatbot && npm run check:tryon && npm run validate:catalog && npm run validate:legacy-cart && npm run check:cutover-readiness && npm run build",
     "check:asset-url": "node scripts/check-asset-url.js",
     "check:production-asset-base": "node scripts/check-production-asset-base.js",
