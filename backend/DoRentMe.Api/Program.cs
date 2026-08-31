@@ -10,7 +10,7 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<DoRentMeDbContext>(options =>
     options.UseMySql(
         connectionString,
-        ServerVersion.AutoDetect(connectionString)));
+        new MySqlServerVersion(new Version(8, 0, 0))));
 builder.Services.AddScoped<ContactService>();
 builder.Services.AddControllers();
 builder.Services.AddOpenApiDocumentation();
