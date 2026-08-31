@@ -120,7 +120,7 @@ jobs:
         working-directory: frontend
 
     env:
-      VITE_API_BASE_URL: https://api.dorentme.com
+      VITE_API_BASE_URL: https://api-dorentme.wdchocopie.id.vn
 
     steps:
       - name: Checkout source
@@ -181,7 +181,7 @@ jobs:
           context: ./frontend
           push: true
           build-args: |
-            VITE_API_BASE_URL=https://api.dorentme.com
+            VITE_API_BASE_URL= https://api-dorentme.wdchocopie.id.vn
           tags: ${{ steps.frontend-meta.outputs.tags }}
           labels: ${{ steps.frontend-meta.outputs.labels }}
           cache-from: type=gha
