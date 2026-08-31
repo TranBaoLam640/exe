@@ -20,7 +20,7 @@ spec:
 
       containers:
         - name: migration
-          image: ghcr.io/tranbaolam640/dorentme-backend:sha-836262682f454bb5856e5d135974e68cb717d0d7
+          image: BACKEND_IMAGE_PLACEHOLDER
           imagePullPolicy: IfNotPresent
 
           envFrom:

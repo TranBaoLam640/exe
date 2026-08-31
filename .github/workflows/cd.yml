@@ -1,0 +1,229 @@
+name: CD
+
+on:
+  workflow_run:
+    workflows:
+      - CI
+    types:
+      - completed
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dorentme-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy to Production
+
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'main'
+
+    runs-on:
+      - self-hosted
+      - dorentme
+
+    timeout-minutes: 15
+
+    steps:
+      # =====================================================
+      # CHECKOUT EXACT COMMIT THAT PASSED CI
+      # =====================================================
+      - name: Checkout deployment commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+
+      # =====================================================
+      # PREPARE IMAGE-SPECIFIC MANIFESTS
+      # =====================================================
+      - name: Prepare deployment manifests
+        shell: bash
+        env:
+          DEPLOY_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          set -euo pipefail
+
+          OWNER="${GITHUB_REPOSITORY_OWNER,,}"
+          IMAGE_TAG="sha-${DEPLOY_SHA}"
+
+          BACKEND_IMAGE="ghcr.io/${OWNER}/dorentme-backend:${IMAGE_TAG}"
+          FRONTEND_IMAGE="ghcr.io/${OWNER}/dorentme-frontend:${IMAGE_TAG}"
+
+          echo "Deploy SHA: ${DEPLOY_SHA}"
+          echo "Backend image: ${BACKEND_IMAGE}"
+          echo "Frontend image: ${FRONTEND_IMAGE}"
+
+          rm -rf /tmp/dorentme-deploy
+          mkdir -p /tmp/dorentme-deploy
+
+          cp k8s/migration-job.yaml \
+            /tmp/dorentme-deploy/migration-job.yaml
+
+          cp k8s/backend.yaml \
+            /tmp/dorentme-deploy/backend.yaml
+
+          cp k8s/frontend.yaml \
+            /tmp/dorentme-deploy/frontend.yaml
+
+          sed -i \
+            "s|BACKEND_IMAGE_PLACEHOLDER|${BACKEND_IMAGE}|g" \
+            /tmp/dorentme-deploy/migration-job.yaml
+
+          sed -i \
+            "s|BACKEND_IMAGE_PLACEHOLDER|${BACKEND_IMAGE}|g" \
+            /tmp/dorentme-deploy/backend.yaml
+
+          sed -i \
+            "s|FRONTEND_IMAGE_PLACEHOLDER|${FRONTEND_IMAGE}|g" \
+            /tmp/dorentme-deploy/frontend.yaml
+
+
+      # =====================================================
+      # APPLY SHARED KUBERNETES RESOURCES
+      # =====================================================
+      - name: Apply Kubernetes resources
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          sudo -n /usr/local/bin/k3s kubectl apply \
+            -f k8s/mysql.yaml
+
+          sudo -n /usr/local/bin/k3s kubectl apply \
+            -f k8s/backend-service.yaml
+
+          sudo -n /usr/local/bin/k3s kubectl apply \
+            -f k8s/backend-hpa.yaml
+
+          sudo -n /usr/local/bin/k3s kubectl apply \
+            -f k8s/frontend-service.yaml
+
+          sudo -n /usr/local/bin/k3s kubectl apply \
+            -f k8s/ingress.yaml
+
+          sudo -n /usr/local/bin/k3s kubectl apply \
+            -f k8s/api-ingress.yaml
+
+
+      # =====================================================
+      # DATABASE MIGRATION
+      # =====================================================
+      - name: Run database migration
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          echo "Removing previous migration Job..."
+
+          sudo -n /usr/local/bin/k3s kubectl \
+            -n dorentme \
+            delete job backend-migration \
+            --ignore-not-found=true \
+            --wait=true
+
+          echo "Starting EF Core migration..."
+
+          sudo -n /usr/local/bin/k3s kubectl apply \
+            -f /tmp/dorentme-deploy/migration-job.yaml
+
+          if ! sudo -n /usr/local/bin/k3s kubectl \
+            -n dorentme \
+            wait \
+            --for=condition=complete \
+            job/backend-migration \
+            --timeout=300s
+          then
+            echo "Database migration failed."
+
+            sudo -n /usr/local/bin/k3s kubectl \
+              -n dorentme \
+              logs job/backend-migration \
+              --all-containers=true || true
+
+            sudo -n /usr/local/bin/k3s kubectl \
+              -n dorentme \
+              describe job backend-migration || true
+
+            exit 1
+          fi
+
+          echo "Database migration completed."
+
+          sudo -n /usr/local/bin/k3s kubectl \
+            -n dorentme \
+            logs job/backend-migration
+
+
+      # =====================================================
+      # BACKEND ROLLOUT
+      # =====================================================
+      - name: Deploy backend
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          sudo -n /usr/local/bin/k3s kubectl apply \
+            -f /tmp/dorentme-deploy/backend.yaml
+
+          sudo -n /usr/local/bin/k3s kubectl \
+            -n dorentme \
+            rollout status deployment/backend \
+            --timeout=300s
+
+
+      # =====================================================
+      # FRONTEND ROLLOUT
+      # =====================================================
+      - name: Deploy frontend
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          sudo -n /usr/local/bin/k3s kubectl apply \
+            -f /tmp/dorentme-deploy/frontend.yaml
+
+          sudo -n /usr/local/bin/k3s kubectl \
+            -n dorentme \
+            rollout status deployment/frontend \
+            --timeout=300s
+
+
+      # =====================================================
+      # VERIFY PRODUCTION
+      # =====================================================
+      - name: Verify production
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          echo "=== Deployments ==="
+          sudo -n /usr/local/bin/k3s kubectl \
+            -n dorentme \
+            get deployment backend frontend
+
+          echo "=== Pods ==="
+          sudo -n /usr/local/bin/k3s kubectl \
+            -n dorentme \
+            get pods
+
+          echo "=== Services ==="
+          sudo -n /usr/local/bin/k3s kubectl \
+            -n dorentme \
+            get svc
+
+          echo "=== HPA ==="
+          sudo -n /usr/local/bin/k3s kubectl \
+            -n dorentme \
+            get hpa
+
+          echo "=== Ingress ==="
+          sudo -n /usr/local/bin/k3s kubectl \
+            -n dorentme \
+            get ingress
+
+          echo "Production deployment completed successfully."

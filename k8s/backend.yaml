@@ -5,8 +5,6 @@ metadata:
   namespace: dorentme
 
 spec:
-  replicas: 2
-
   strategy:
     type: RollingUpdate
     rollingUpdate:
