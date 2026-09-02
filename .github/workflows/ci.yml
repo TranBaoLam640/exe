@@ -121,6 +121,7 @@ jobs:
 
     env:
       VITE_API_BASE_URL: https://api-dorentme.wdchocopie.id.vn
+      VITE_ASSET_BASE_URL: https://pub-6ea0ae14ead64cf8bcaaea62c246f5d9.r2.dev
 
     steps:
       - name: Checkout source
@@ -182,6 +183,7 @@ jobs:
           push: true
           build-args: |
             VITE_API_BASE_URL=https://api-dorentme.wdchocopie.id.vn
+            VITE_ASSET_BASE_URL=https://pub-6ea0ae14ead64cf8bcaaea62c246f5d9.r2.dev
           tags: ${{ steps.frontend-meta.outputs.tags }}
           labels: ${{ steps.frontend-meta.outputs.labels }}
           cache-from: type=gha
