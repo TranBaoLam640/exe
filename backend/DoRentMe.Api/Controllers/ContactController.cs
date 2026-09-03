@@ -1,12 +1,12 @@
 using DoRentMe.Api.Contracts.Contact;
 using DoRentMe.Api.Services;
 using Microsoft.AspNetCore.Mvc;
+using DoRentMe.Api.Common.Responses;
 
 namespace DoRentMe.Api.Controllers;
 
-[ApiController]
 [Route("api/contact")]
-public class ContactController : ControllerBase
+public class ContactController : ApiControllerBase
 {
     private readonly ContactService _contactService;
 
@@ -16,6 +16,15 @@ public class ContactController : ControllerBase
     }
 
     [HttpPost]
+    [ProducesResponseType(
+        typeof(ApiResponse<CreateContactResponse>),
+        StatusCodes.Status201Created)]
+    [ProducesResponseType(
+        typeof(ApiErrorResponse),
+        StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(
+        typeof(ApiErrorResponse),
+        StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Create(
         CreateContactRequest request,
         CancellationToken cancellationToken)
@@ -30,8 +39,6 @@ public class ContactController : ControllerBase
             Message = "Contact message submitted successfully."
         };
 
-        return StatusCode(
-    StatusCodes.Status201Created,
-    response);
+        return CreatedSuccess(response);
     }
 }

@@ -12,7 +12,7 @@ builder.Services.AddDbContext<DoRentMeDbContext>(options =>
         connectionString,
         new MySqlServerVersion(new Version(8, 0, 0))));
 builder.Services.AddScoped<ContactService>();
-builder.Services.AddControllers();
+builder.Services.AddApiControllers();
 builder.Services.AddOpenApiDocumentation();
 builder.Services.AddFrontendCors(builder.Configuration);
 

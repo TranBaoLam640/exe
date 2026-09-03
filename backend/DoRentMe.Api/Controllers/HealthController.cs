@@ -1,15 +1,22 @@
 using Microsoft.AspNetCore.Mvc;
+using DoRentMe.Api.Common.Responses;
 
 namespace DoRentMe.Api.Controllers;
 
-[ApiController]
 [Route("api/health")]
-public sealed class HealthController : ControllerBase
+public sealed class HealthController : ApiControllerBase
 {
     [HttpGet]
+    [ProducesResponseType(
+        typeof(ApiResponse<HealthResponse>),
+        StatusCodes.Status200OK)]
     public IActionResult Get()
     {
-        return Ok(new HealthResponse("ok", DateTimeOffset.UtcNow));
+        var response = new HealthResponse(
+            "ok",
+            DateTimeOffset.UtcNow);
+
+        return Success(response);
     }
 }
 
