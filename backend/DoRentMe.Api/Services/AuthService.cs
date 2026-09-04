@@ -80,6 +80,7 @@ public class AuthService : IAuthService
         // Generate token
         var token = GenerateJwtToken(user);
 
+        _logger.LogInformation("STEP 3 - JWT generated");
         return new AuthResponse
         {
             UserId = user.Id,
