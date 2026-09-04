@@ -143,12 +143,12 @@ export async function login(email, password, options = {}) {
 }
 
 export async function logout(options = {}) {
+  clearSession(options);
+
   try {
     await api.post('/api/auth/logout');
   } catch (error) {
     console.error('LOGOUT ERROR:', error);
-  } finally {
-    clearSession(options);
   }
 }
 

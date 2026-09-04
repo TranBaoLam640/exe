@@ -157,14 +157,31 @@ public class AuthService : IAuthService
         var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
         var claims = new[]
-        {
-            new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-            new Claim(JwtRegisteredClaimNames.Email, user.Email),
-            new Claim(JwtRegisteredClaimNames.Name, user.Name),
-            new Claim(ClaimTypes.Role, user.Role.Code),
-            new Claim("role_id", user.RoleId.ToString()),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-        };
+ {
+    new Claim(
+        ClaimTypes.NameIdentifier,
+        user.Id.ToString()),
+
+    new Claim(
+        ClaimTypes.Email,
+        user.Email),
+
+    new Claim(
+        ClaimTypes.Name,
+        user.Name),
+
+    new Claim(
+        ClaimTypes.Role,
+        user.Role.Code),
+
+    new Claim(
+        "role_id",
+        user.RoleId.ToString()),
+
+    new Claim(
+        JwtRegisteredClaimNames.Jti,
+        Guid.NewGuid().ToString())
+};
 
         var token = new JwtSecurityToken(
             issuer: issuer,

@@ -3,7 +3,7 @@ using DoRentMe.Api.Contracts.Auth;
 using DoRentMe.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-
+using System.Security.Claims;
 namespace DoRentMe.Api.Controllers;
 
 [Route("api/[controller]")]
@@ -43,10 +43,17 @@ public class AuthController : ApiControllerBase
     [Authorize]
     public ActionResult<ApiResponse<object>> GetCurrentUser()
     {
-        var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-        var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
-        var name = User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value;
-        var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+        var userId =
+            User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        var email =
+            User.FindFirst(ClaimTypes.Email)?.Value;
+
+        var name =
+            User.FindFirst(ClaimTypes.Name)?.Value;
+
+        var role =
+            User.FindFirst(ClaimTypes.Role)?.Value;
 
         var userInfo = new
         {
