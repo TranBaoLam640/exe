@@ -1,5 +1,5 @@
 import { dispatchAppEvent, getBrowserStorage, readArrayValue, readJsonValue, writeJsonValue } from '../../utils/browserStorage.js';
-
+import api from "../../config/api";
 export const USERS_KEY = 'dorentme_users';
 export const SESSION_KEY = 'dorentme_session';
 export const AUTH_CHANGED_EVENT = 'auth:changed';
@@ -44,53 +44,119 @@ export function clearSession(options = {}) {
 }
 
 export async function register({ name, email, phone, password }, options = {}) {
-  const storage = options.storage || getBrowserStorage();
-  const eventTarget = options.eventTarget || (typeof document !== 'undefined' ? document : null);
   const cleanName = (name || '').trim();
   const cleanEmail = normalizeEmail(email);
   const cleanPhone = (phone || '').trim();
 
-  if (cleanName.length < 2) return { ok: false, error: 'Vui lòng nhập họ tên.' };
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) return { ok: false, error: 'Email không hợp lệ.' };
-  if (!/^[0-9]{9,11}$/.test(cleanPhone.replace(/[\s.\-]/g, ''))) return { ok: false, error: 'Số điện thoại không hợp lệ.' };
-  if (!password || password.length < 6) return { ok: false, error: 'Mật khẩu cần tối thiểu 6 ký tự.' };
-
-  const users = getUsers(storage);
-  if (users.some((user) => user.email === cleanEmail)) {
-    return { ok: false, error: 'Email này đã được đăng ký. Vui lòng đăng nhập.' };
+  // Validation frontend vẫn giữ
+  if (cleanName.length < 2) {
+    return { ok: false, error: 'Vui lòng nhập họ tên.' };
   }
 
-  const passwordHash = await sha256(password);
-  const user = {
-    name: cleanName,
-    email: cleanEmail,
-    phone: cleanPhone,
-    passwordHash,
-    createdAt: new Date().toISOString(),
-  };
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+    return { ok: false, error: 'Email không hợp lệ.' };
+  }
 
-  users.push(user);
-  saveUsers(users, storage);
-  const session = setSession(user, { storage, eventTarget });
-  return { ok: true, user: session };
+  if (!/^[0-9]{9,11}$/.test(cleanPhone.replace(/[\s.\-]/g, ''))) {
+    return { ok: false, error: 'Số điện thoại không hợp lệ.' };
+  }
+
+  if (!password || password.length < 6) {
+    return { ok: false, error: 'Mật khẩu cần tối thiểu 6 ký tự.' };
+  }
+
+  try {
+    const response = await api.post('/api/auth/register', {
+      name: cleanName,
+      email: cleanEmail,
+      phone: cleanPhone || null,
+      password,
+      role: 'CUSTOMER',
+    });
+
+    const authData = response.data?.data;
+
+    // Tạm thời vẫn lưu session local để code frontend cũ tiếp tục chạy
+    const user = authData?.user ?? authData;
+
+    const session = setSession(user, options);
+
+    return {
+      ok: true,
+      user: session,
+      auth: authData,
+    };
+  } catch (error) {
+    console.error('REGISTER ERROR:', error);
+
+    return {
+      ok: false,
+      error: getApiErrorMessage(
+        error,
+        'Email hoặc mật khẩu không đúng.'
+      ),
+    };
+  }
 }
 
 export async function login(email, password, options = {}) {
-  const storage = options.storage || getBrowserStorage();
-  const eventTarget = options.eventTarget || (typeof document !== 'undefined' ? document : null);
   const cleanEmail = normalizeEmail(email);
-  const users = getUsers(storage);
-  const user = users.find((candidate) => candidate.email === cleanEmail);
 
-  if (!user) return { ok: false, error: 'Email hoặc mật khẩu không đúng.' };
+  if (!cleanEmail) {
+    return { ok: false, error: 'Vui lòng nhập email.' };
+  }
 
-  const passwordHash = await sha256(password || '');
-  if (passwordHash !== user.passwordHash) return { ok: false, error: 'Email hoặc mật khẩu không đúng.' };
+  if (!password) {
+    return { ok: false, error: 'Vui lòng nhập mật khẩu.' };
+  }
 
-  const session = setSession(user, { storage, eventTarget });
-  return { ok: true, user: session };
+  try {
+    const response = await api.post('/api/auth/login', {
+      email: cleanEmail,
+      password,
+    });
+
+    const authData = response.data?.data;
+
+    // Tạm thời giữ session local cho frontend hiện tại
+    const user = authData?.user ?? authData;
+
+    const session = setSession(user, options);
+
+    return {
+      ok: true,
+      user: session,
+      auth: authData,
+    };
+  } catch (error) {
+    console.error('LOGIN ERROR:', error);
+
+    return {
+      ok: false,
+      error:
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        'Email hoặc mật khẩu không đúng.',
+    };
+  }
 }
 
-export function logout(options = {}) {
-  clearSession(options);
+export async function logout(options = {}) {
+  try {
+    await api.post('/api/auth/logout');
+  } catch (error) {
+    console.error('LOGOUT ERROR:', error);
+  } finally {
+    clearSession(options);
+  }
+}
+
+function getApiErrorMessage(error, fallback = 'Có lỗi xảy ra.') {
+  return (
+    error.response?.data?.error?.message ||
+    error.response?.data?.message ||
+    error.message ||
+    fallback
+  );
 }
