@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useDocumentTitle } from '../hooks/useDocumentTitle.js';
 import { useFadeIn } from '../hooks/useFadeIn.js';
+import { getApiErrorMessage } from '../utils/apiError.js';
 import api from "../config/api";
 const faqs = [
   {
@@ -75,10 +76,7 @@ export default function ContactPage() {
         message: "",
       });
     } catch (error) {
-      setError(
-        error.response?.data?.title ||
-        "Không thể gửi tin nhắn."
-      );
+      setError(getApiErrorMessage(error, "Không thể gửi tin nhắn."));
     } finally {
       setIsSubmitting(false);
     }

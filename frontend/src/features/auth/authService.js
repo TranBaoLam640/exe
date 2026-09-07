@@ -1,4 +1,5 @@
 import { dispatchAppEvent, getBrowserStorage, readArrayValue, readJsonValue, writeJsonValue } from '../../utils/browserStorage.js';
+import { getApiErrorMessage as getSharedApiErrorMessage } from '../../utils/apiError.js';
 import api from "../../config/api";
 export const USERS_KEY = 'dorentme_users';
 export const SESSION_KEY = 'dorentme_session';
@@ -133,11 +134,10 @@ export async function login(email, password, options = {}) {
 
     return {
       ok: false,
-      error:
-        error.response?.data?.message ||
-        error.response?.data?.error ||
-        error.message ||
-        'Email hoặc mật khẩu không đúng.',
+      error: getSharedApiErrorMessage(
+        error,
+        'Email hoặc mật khẩu không đúng.'
+      ),
     };
   }
 }
