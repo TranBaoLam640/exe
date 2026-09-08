@@ -64,6 +64,7 @@ builder.Services
 builder.Services.AddAuthorization();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ContactService>();
+builder.Services.AddScoped<IBrandService, BrandService>();
 builder.Services.AddApiControllers();
 builder.Services.AddOpenApiDocumentation();
 builder.Services.AddFrontendCors(builder.Configuration);
