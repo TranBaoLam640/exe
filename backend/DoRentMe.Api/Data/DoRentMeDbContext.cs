@@ -180,7 +180,6 @@ public class DoRentMeDbContext : DbContext
             entity.HasIndex(x => x.Slug).IsUnique();
 
             entity.HasOne(x => x.Shop).WithMany(x => x.Products).HasForeignKey(x => x.ShopId).OnDelete(DeleteBehavior.Restrict);
-            entity.HasOne(x => x.OwnerUser).WithMany(x => x.OwnedProducts).HasForeignKey(x => x.OwnerUserId).OnDelete(DeleteBehavior.Restrict);
             entity.HasOne(x => x.Category).WithMany(x => x.Products).HasForeignKey(x => x.CategoryId).OnDelete(DeleteBehavior.Restrict);
             entity.HasOne(x => x.Brand).WithMany(x => x.Products).HasForeignKey(x => x.BrandId).OnDelete(DeleteBehavior.Restrict);
         });
@@ -631,7 +630,6 @@ public class DoRentMeDbContext : DbContext
     private static void ConfigureIndexes(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Product>().HasIndex(x => x.ShopId);
-        modelBuilder.Entity<Product>().HasIndex(x => x.OwnerUserId);
         modelBuilder.Entity<Product>().HasIndex(x => x.CategoryId);
         modelBuilder.Entity<Product>().HasIndex(x => x.BrandId);
         modelBuilder.Entity<Product>().HasIndex(x => x.IsActive);

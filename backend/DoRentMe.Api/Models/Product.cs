@@ -4,7 +4,6 @@ public class Product
 {
     public int Id { get; set; }
     public int? ShopId { get; set; }
-    public int OwnerUserId { get; set; }
     public int CategoryId { get; set; }
     public int? BrandId { get; set; }
     public string Name { get; set; } = null!;
@@ -23,7 +22,6 @@ public class Product
     public DateTime? UpdatedAt { get; set; }
 
     public Shop? Shop { get; set; }
-    public User OwnerUser { get; set; } = null!;
     public Category Category { get; set; } = null!;
     public Brand? Brand { get; set; }
     public ICollection<ProductImage> Images { get; set; } = new List<ProductImage>();
