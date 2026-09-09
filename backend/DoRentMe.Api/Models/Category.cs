@@ -10,4 +10,6 @@ public class Category
     public DateTime? UpdatedAt { get; set; }
 
     public ICollection<Product> Products { get; set; } = new List<Product>();
+    public ICollection<ProductCategory> ProductCategories { get; set; }
+    = new List<ProductCategory>();
 }

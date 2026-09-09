@@ -147,10 +147,10 @@ public class CategoryService : ICategoryService
             return false;
         }
 
-        var hasProducts = await _dbContext.Products
-            .AnyAsync(
-                p => p.CategoryId == id,
-                cancellationToken);
+        var hasProducts = await _dbContext.ProductCategories
+    .AnyAsync(
+        pc => pc.CategoryId == id,
+        cancellationToken);
 
         if (hasProducts)
         {

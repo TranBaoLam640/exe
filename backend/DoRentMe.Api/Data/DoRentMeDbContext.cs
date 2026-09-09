@@ -20,6 +20,7 @@ public class DoRentMeDbContext : DbContext
     public DbSet<ProductImage> ProductImages => Set<ProductImage>();
     public DbSet<ProductVariant> ProductVariants => Set<ProductVariant>();
     public DbSet<ProductInventoryItem> ProductInventoryItems => Set<ProductInventoryItem>();
+    public DbSet<ProductCategory> ProductCategories { get; set; }
     public DbSet<Cart> Carts => Set<Cart>();
     public DbSet<CartItem> CartItems => Set<CartItem>();
     public DbSet<Order> Orders => Set<Order>();
@@ -180,10 +181,26 @@ public class DoRentMeDbContext : DbContext
             entity.HasIndex(x => x.Slug).IsUnique();
 
             entity.HasOne(x => x.Shop).WithMany(x => x.Products).HasForeignKey(x => x.ShopId).OnDelete(DeleteBehavior.Restrict);
-            entity.HasOne(x => x.Category).WithMany(x => x.Products).HasForeignKey(x => x.CategoryId).OnDelete(DeleteBehavior.Restrict);
             entity.HasOne(x => x.Brand).WithMany(x => x.Products).HasForeignKey(x => x.BrandId).OnDelete(DeleteBehavior.Restrict);
         });
 
+        modelBuilder.Entity<ProductCategory>(entity =>
+        {
+            entity.HasKey(pc => new
+            {
+                pc.ProductId,
+                pc.CategoryId
+            });
+
+            entity.HasOne(pc => pc.Product)
+                .WithMany(p => p.ProductCategories)
+                .HasForeignKey(pc => pc.ProductId);
+
+            entity.HasOne(pc => pc.Category)
+                .WithMany(c => c.ProductCategories)
+                .HasForeignKey(pc => pc.CategoryId);
+        });
+        
         modelBuilder.Entity<ProductImage>(entity =>
         {
             entity.ToTable("ProductImages", table =>
@@ -630,7 +647,6 @@ public class DoRentMeDbContext : DbContext
     private static void ConfigureIndexes(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Product>().HasIndex(x => x.ShopId);
-        modelBuilder.Entity<Product>().HasIndex(x => x.CategoryId);
         modelBuilder.Entity<Product>().HasIndex(x => x.BrandId);
         modelBuilder.Entity<Product>().HasIndex(x => x.IsActive);
 
