@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using DoRentMe.Api.Models;
+using Microsoft.Extensions.Logging;
+
 namespace DoRentMe.Api.Tests.Infrastructure;
 
 public class CustomWebApplicationFactory
@@ -13,6 +15,11 @@ public class CustomWebApplicationFactory
     private readonly string _databaseName = Guid.NewGuid().ToString();
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        builder.ConfigureLogging(logging =>
+        {
+            logging.ClearProviders();
+        });
+
         builder.ConfigureServices(services =>
         {
             services.RemoveAll<DbContextOptions<DoRentMeDbContext>>();
