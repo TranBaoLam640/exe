@@ -4,7 +4,7 @@ import { imageUrl } from '../assets/imageUrl.js';
 import { CHAT_GENERATION_CONFIG, buildSystemPrompt } from '../features/ai/chat/chatPrompt.js';
 import { extractGeminiCandidateText, getApiErrorMessage, parseAssistantPayload, resolveRecommendedProducts } from '../features/ai/chat/chatResponse.js';
 import { sendChatMessage } from '../features/ai/chat/chatService.js';
-import { getProducts } from '../features/catalog/services/catalogService.js';
+import { fetchProducts } from '../features/catalog/services/catalogService.js';
 import { useDocumentTitle } from '../hooks/useDocumentTitle.js';
 
 const quickPrompts = [
@@ -105,7 +105,7 @@ function TypingIndicator() {
 
 export default function ChatbotPage() {
   useDocumentTitle('AI Phối Đồ | DoRentMe');
-  const catalog = useMemo(() => getProducts(), []);
+  const [catalog, setCatalog] = useState([]);
   const systemPrompt = useMemo(() => buildSystemPrompt(catalog), [catalog]);
   const [messages, setMessages] = useState([]);
   const [conversationHistory, setConversationHistory] = useState([]);
@@ -122,6 +122,22 @@ export default function ChatbotPage() {
   }, [messages, isSending]);
 
   useEffect(() => () => abortRef.current?.abort(), []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    fetchProducts({ page: 1, pageSize: 100 })
+      .then((catalogPage) => {
+        if (!cancelled) setCatalog(catalogPage.items || []);
+      })
+      .catch(() => {
+        if (!cancelled) setCatalog([]);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   function resetInputHeight() {
     if (!inputRef.current) return;

@@ -29,7 +29,14 @@ export function getSession(storage = getBrowserStorage()) {
 export function setSession(user, options = {}) {
   const storage = options.storage || getBrowserStorage();
   const eventTarget = options.eventTarget || (typeof document !== 'undefined' ? document : null);
-  const session = { name: user.name, email: user.email, phone: user.phone };
+  const session = {
+    userId: user.userId,
+    name: user.name,
+    email: user.email,
+    phone: user.phone,
+    role: user.role,
+    token: user.token,
+  };
 
   writeJsonValue(storage, SESSION_KEY, session);
   dispatchAppEvent(eventTarget, AUTH_CHANGED_EVENT, session);

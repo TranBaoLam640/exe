@@ -1,19 +1,11 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { imageUrl } from '../assets/imageUrl.js';
 import ProductCard from '../features/catalog/components/ProductCard.jsx';
-import { getProducts } from '../features/catalog/services/catalogService.js';
+import { fetchProducts } from '../features/catalog/services/catalogService.js';
 import { newsArticles } from '../data/newsArticles.js';
 import { useDocumentTitle } from '../hooks/useDocumentTitle.js';
 import { useFadeIn } from '../hooks/useFadeIn.js';
-
-const featuredImages = [
-  'image/vay_di_bien/jolie_loft_vay_luoi_molly_dress_nau.jpg',
-  'image/vay_di_bien/amelie_vanessa_dress_xanh_nhat.jpg',
-  'image/vay_di_bien/chou_chou_dam_ren_nude_dang_dai.jpg',
-  'image/vay_lua/jolie_loft_dam_lua_kem_hali_dress.jpg',
-  'image/vay_di_bien/tipblu_dam_voan_tim_lavender.jpg',
-  'image/vay_du_tiec/so_vintage_nathalia.jpg',
-];
 
 const steps = [
   ['👗', 'Chọn trang phục', 'Duyệt qua hàng nghìn thiết kế, lọc theo dịp, phong cách và kích cỡ phù hợp.'],
@@ -65,9 +57,24 @@ function SectionHeading({ tag, title, sub }) {
 export default function HomePage() {
   useDocumentTitle('DoRentMe - Trợ Lý Thời Trang AI');
   useFadeIn('.home-page');
-  const products = getProducts();
-  const featuredProducts = featuredImages.map((image) => products.find((product) => product.image === image)).filter(Boolean);
+  const [featuredProducts, setFeaturedProducts] = useState([]);
   const previewArticles = newsArticles.slice(0, 3);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    fetchProducts({ page: 1, pageSize: 6, sortBy: 'createdAt', sortDirection: 'desc' })
+      .then((catalog) => {
+        if (!cancelled) setFeaturedProducts(catalog.items || []);
+      })
+      .catch(() => {
+        if (!cancelled) setFeaturedProducts([]);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <div className="home-page">

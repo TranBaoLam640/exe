@@ -7,7 +7,7 @@ import { isSupportedImageFile, resizeImageFile } from '../features/ai/tryon/imag
 import { MAX_TRIES_PER_SESSION, bumpTryOnCount, canUseTryOn } from '../features/ai/tryon/tryOnSession.js';
 import { pollTryOnStatus } from '../features/ai/tryon/tryOnPolling.js';
 import { addProductToCart } from '../features/cart/cartService.js';
-import { getProducts } from '../features/catalog/services/catalogService.js';
+import { fetchProducts } from '../features/catalog/services/catalogService.js';
 import { useDocumentTitle } from '../hooks/useDocumentTitle.js';
 
 const initialStatus = { type: 'idle', message: '' };
@@ -100,7 +100,7 @@ function ResultPanel({ status, uploadedDataUrl, resultImageUrl, product, onRetry
 export default function TryOnPage() {
   useDocumentTitle('Thử Đồ AI | DoRentMe');
   const location = useLocation();
-  const catalog = useMemo(() => getProducts(), []);
+  const [catalog, setCatalog] = useState([]);
   const params = useMemo(() => new URLSearchParams(location.search), [location.search]);
   const { product } = useMemo(() => resolveTryOnProduct(params, catalog), [catalog, params]);
   const [uploadedDataUrl, setUploadedDataUrl] = useState('');
@@ -113,6 +113,22 @@ export default function TryOnPage() {
   const abortRef = useRef(null);
 
   useEffect(() => () => abortRef.current?.abort(), []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    fetchProducts({ page: 1, pageSize: 100 })
+      .then((catalogPage) => {
+        if (!cancelled) setCatalog(catalogPage.items || []);
+      })
+      .catch(() => {
+        if (!cancelled) setCatalog([]);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (status.type !== 'idle') {

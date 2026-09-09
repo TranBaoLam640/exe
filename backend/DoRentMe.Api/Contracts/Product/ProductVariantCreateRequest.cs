@@ -1,4 +1,7 @@
 using System.ComponentModel.DataAnnotations;
+
+namespace DoRentMe.Api.Contracts.Product;
+
 public class ProductVariantCreateRequest
 {
     [Required]

@@ -1,11 +1,18 @@
-import { brandOptions, categoryOptions } from '../services/catalogService.js';
+import { brandOptions as fallbackBrandOptions, categoryOptions as fallbackCategoryOptions } from '../services/catalogService.js';
 
-export default function ProductFilters({ currentCategory, currentBrand, onCategoryChange, onBrandChange }) {
+export default function ProductFilters({
+  currentCategory,
+  currentBrand,
+  onCategoryChange,
+  onBrandChange,
+  categories = fallbackCategoryOptions,
+  brands = fallbackBrandOptions,
+}) {
   return (
     <aside className="catalog-sidebar">
       <div className="catalog-sidebar-section">
         <div className="catalog-sidebar-title">Danh mục sản phẩm</div>
-        {categoryOptions.map((option) => (
+        {categories.map((option) => (
           <button
             className={`catalog-sidebar-link ${currentCategory === option.value ? 'active' : ''}`}
             type="button"
@@ -18,7 +25,7 @@ export default function ProductFilters({ currentCategory, currentBrand, onCatego
       </div>
       <div className="catalog-sidebar-section">
         <div className="catalog-sidebar-title">Thương hiệu</div>
-        {brandOptions.map((option) => (
+        {brands.map((option) => (
           <button
             className={`catalog-brand-link ${currentBrand === option.value ? 'active' : ''}`}
             type="button"

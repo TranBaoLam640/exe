@@ -8,6 +8,12 @@ public class ProductResponse
 
     public int? BrandId { get; set; }
 
+    public string? BrandName { get; set; }
+
+    public string? BrandSlug { get; set; }
+
+    public string? ShopName { get; set; }
+
     public string Name { get; set; } = null!;
 
     public string Slug { get; set; } = null!;
@@ -39,4 +45,18 @@ public class ProductResponse
     public List<ProductCategoryResponse> Categories { get; set; } = new();
 
     public List<ProductVariantResponse> Variants { get; set; } = new();
+
+    public List<ProductImageResponse> Images { get; set; } = new();
+
+    public ProductImageResponse? PrimaryImage { get; set; }
+
+    public int TotalStock { get; set; }
+
+    public int AvailableStock { get; set; }
+
+    public List<string> Conditions { get; set; } = new();
+
+    public int LikeCount { get; set; }
+
+    public bool IsFavorited { get; set; }
 }

@@ -55,6 +55,8 @@ public class BrandService : IBrandService
     {
         return await _dbContext.Brands
             .AsNoTracking()
+            .Where(b => b.IsActive)
+            .OrderBy(b => b.Name)
             .ToListAsync(cancellationToken);
     }
 

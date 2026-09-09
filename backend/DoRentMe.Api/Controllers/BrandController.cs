@@ -104,6 +104,36 @@ public class BrandController : ApiControllerBase
         return Success(response);
     }
 
+    [HttpPut("{id:int}")]
+    [ProducesResponseType(
+    typeof(ApiResponse<BrandReadResponses>),
+    StatusCodes.Status200OK)]
+    [ProducesResponseType(
+    typeof(ApiErrorResponse),
+    StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Update(
+    int id,
+    UpdateBrandRequest request,
+    CancellationToken cancellationToken)
+    {
+        var brand = await _brandService.UpdateAsync(
+            id,
+            request,
+            cancellationToken);
+
+        var response = new BrandReadResponses
+        {
+            Id = brand.Id,
+            Name = brand.Name,
+            Slug = brand.Slug,
+            IsActive = brand.IsActive,
+            CreatedAt = brand.CreatedAt,
+            UpdatedAt = brand.UpdatedAt
+        };
+
+        return Success(response);
+    }
+
     [HttpDelete("{id:int}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(

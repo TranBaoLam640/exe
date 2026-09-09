@@ -21,6 +21,7 @@ public class CategoryService : ICategoryService
     {
         return await _dbContext.Categories
             .AsNoTracking()
+            .Where(c => c.IsActive)
             .OrderBy(c => c.Id)
             .Select(c => new CategoryReadResponse
             {
