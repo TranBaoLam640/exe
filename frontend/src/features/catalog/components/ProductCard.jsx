@@ -5,7 +5,7 @@ import ProductPrice from './ProductPrice.jsx';
 export default function ProductCard({ product, variant = 'shop', onAdd }) {
   if (variant === 'home') {
     return (
-      <article className="catalog-product-card catalog-product-card--home fade-in">
+      <article className="catalog-product-card catalog-product-card--home">
         <span className="catalog-card-badge">new</span>
         <img className="catalog-product-img" src={imageUrl(product.image)} alt={product.name} />
         <div className="catalog-product-info">
