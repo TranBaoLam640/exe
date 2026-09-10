@@ -380,8 +380,8 @@ public class CartService : ICartService
         foreach (var item in cart.Items.OrderBy(i => i.CreatedAt).ThenBy(i => i.Id))
         {
             var product = item.ProductVariant.Product;
-            var rentalDays = CalculateRentalDays(item.RentalStartDate, item.RentalEndDate);
-            var rentalPrice = CalculateRentalPrice(product, rentalDays);
+            var rentalDays = RentalPricingCalculator.CalculateRentalDays(item.RentalStartDate, item.RentalEndDate);
+            var rentalPrice = RentalPricingCalculator.CalculateRentalPrice(product, rentalDays);
             var lineSubtotal = rentalPrice * item.Quantity;
             var deposit = product.PriceDeposit * item.Quantity;
             var availableStock = await CountAvailableStockAsync(
@@ -427,32 +427,12 @@ public class CartService : ICartService
         return response;
     }
 
-    private static int CalculateRentalDays(DateOnly rentalStartDate, DateOnly rentalEndDate)
-    {
-        return rentalEndDate.DayNumber - rentalStartDate.DayNumber;
-    }
-
     private static void ValidateRentalPeriod(DateOnly rentalStartDate, DateOnly rentalEndDate)
     {
         if (rentalStartDate == default || rentalEndDate == default || rentalStartDate >= rentalEndDate)
         {
             throw BusinessError("INVALID_RENTAL_PERIOD", "RentalEndDate must be after RentalStartDate.");
         }
-    }
-
-    private static decimal CalculateRentalPrice(Product product, int rentalDays)
-    {
-        if (rentalDays <= 1)
-        {
-            return product.Price1Day;
-        }
-
-        if (rentalDays <= 3)
-        {
-            return product.Price3Day;
-        }
-
-        return product.Price3Day + (product.ExtraDayPrice * (rentalDays - 3));
     }
 
     private static decimal CalculateDiscount(Voucher voucher, decimal subtotal)

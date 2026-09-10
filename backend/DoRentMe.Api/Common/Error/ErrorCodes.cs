@@ -34,4 +34,12 @@ public static class ErrorCodes
     public const string InvalidRentalPeriod = "INVALID_RENTAL_PERIOD";
     public const string VoucherNotFound = "VOUCHER_NOT_FOUND";
     public const string VoucherNotApplicable = "VOUCHER_NOT_APPLICABLE";
+
+    // Order specific
+    public const string EmptyCart = "EMPTY_CART";
+    public const string OrderNotFound = "ORDER_NOT_FOUND";
+    public const string OrderCannotBeCancelled = "ORDER_CANNOT_BE_CANCELLED";
+    public const string InvalidOrderStatus = "INVALID_ORDER_STATUS";
+    public const string InvalidOrderStatusTransition = "INVALID_ORDER_STATUS_TRANSITION";
+    public const string RentalInventoryConflict = "RENTAL_INVENTORY_CONFLICT";
 }

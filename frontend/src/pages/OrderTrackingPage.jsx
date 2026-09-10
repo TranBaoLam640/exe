@@ -1,5 +1,6 @@
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { imageUrl } from '../assets/imageUrl.js';
+import { getSession } from '../features/auth/authService.js';
 import { formatVnd, parsePrice } from '../features/cart/cartService.js';
 import {
   confirmDelivery,
@@ -8,7 +9,7 @@ import {
   requestReturn,
   STATUS_LABELS,
 } from '../features/orders/orderCreation.js';
-import { useOrders } from '../features/orders/useOrders.js';
+import { useOrderById, useOrders } from '../features/orders/useOrders.js';
 import { useDocumentTitle } from '../hooks/useDocumentTitle.js';
 
 const steps = [
@@ -92,10 +93,24 @@ function TrackingActions({ order }) {
 export default function OrderTrackingPage() {
   const { orderId } = useParams();
   const [searchParams] = useSearchParams();
-  useOrders();
   const effectiveOrderId = orderId ? decodeURIComponent(orderId) : searchParams.get('id');
-  const order = effectiveOrderId ? getOrderById(effectiveOrderId) : null;
+  const session = getSession();
+  const backendOrder = useOrderById(effectiveOrderId);
+  useOrders();
+  const order = session ? backendOrder.order : effectiveOrderId ? getOrderById(effectiveOrderId) : null;
   useDocumentTitle(order ? `Theo Dõi Đơn ${order.id} | DoRentMe` : 'Theo Dõi Đơn Hàng | DoRentMe');
+
+  if (backendOrder.loading) {
+    return (
+      <div className="order-tracking-page">
+        <div className="tracking-head">
+          <div className="stateful-breadcrumb"><Link to="/">Trang chủ</Link> › <Link to="/orders">Đơn hàng</Link> › <span>Theo dõi</span></div>
+          <h1>📦 Theo dõi đơn hàng</h1>
+        </div>
+        <div className="tracking-card">Đang tải đơn hàng...</div>
+      </div>
+    );
+  }
 
   if (!order) {
     return (

@@ -26,4 +26,5 @@ public class Order
     public Shop? Shop { get; set; }
     public User? User { get; set; }
     public ICollection<OrderItem> Items { get; set; } = new List<OrderItem>();
+    public ICollection<OrderStatusHistory> StatusHistory { get; set; } = new List<OrderStatusHistory>();
 }

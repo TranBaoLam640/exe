@@ -3,8 +3,10 @@ import { Link } from 'react-router-dom';
 import { imageUrl } from '../assets/imageUrl.js';
 import { getSession } from '../features/auth/authService.js';
 import { CART_CHANGED_EVENT, CART_KEY, clearActiveCart, formatVnd, getActiveCartState, parsePrice } from '../features/cart/cartService.js';
+import { checkoutServerCart } from '../features/orders/orderApi.js';
 import { createCheckoutOrder, genOrderId } from '../features/orders/orderCreation.js';
 import { useDocumentTitle } from '../hooks/useDocumentTitle.js';
+import { getApiErrorMessage } from '../utils/apiError.js';
 
 const BANK_CODE = 'TCB';
 const BANK_NAME = 'Techcombank';
@@ -28,6 +30,7 @@ export default function CheckoutPage() {
   });
   const [invalid, setInvalid] = useState({});
   const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -82,24 +85,43 @@ export default function CheckoutPage() {
     if (!cleanCustomer) return;
 
     setSubmitting(true);
-    const latestState = await getActiveCartState();
-    const latestItems = latestState.items;
-    if (latestItems.length === 0) {
-      setCartState(latestState);
-      setSubmitting(false);
-      return;
-    }
+    setSubmitError('');
+    try {
+      const latestState = await getActiveCartState();
+      const latestItems = latestState.items;
+      if (latestItems.length === 0) {
+        setCartState(latestState);
+        setSubmitting(false);
+        return;
+      }
 
-    const currentSession = getSession();
-    createCheckoutOrder({
-      id: draftIdRef.current,
-      items: latestItems,
-      customer: cleanCustomer,
-      totals: latestState.totals,
-      customerEmail: currentSession ? currentSession.email : null,
-    });
-    await clearActiveCart();
-    window.location.href = `/orders/${encodeURIComponent(draftIdRef.current)}`;
+      const currentSession = getSession();
+      if (latestState.source === 'server' && currentSession?.token) {
+        const checkout = await checkoutServerCart({
+          customer: {
+            ...cleanCustomer,
+            email: currentSession.email,
+          },
+        });
+        document.dispatchEvent(new CustomEvent(CART_CHANGED_EVENT));
+        const firstOrder = checkout.orders?.[0];
+        window.location.href = `/orders/${encodeURIComponent(firstOrder?.id || '')}`;
+        return;
+      }
+
+      createCheckoutOrder({
+        id: draftIdRef.current,
+        items: latestItems,
+        customer: cleanCustomer,
+        totals: latestState.totals,
+        customerEmail: currentSession ? currentSession.email : null,
+      });
+      await clearActiveCart();
+      window.location.href = `/orders/${encodeURIComponent(draftIdRef.current)}`;
+    } catch (error) {
+      setSubmitError(getApiErrorMessage(error, 'Không thể tạo đơn thuê. Vui lòng kiểm tra lại giỏ hàng.'));
+      setSubmitting(false);
+    }
   }
 
   function copyAccount() {
@@ -216,6 +238,7 @@ export default function CheckoutPage() {
             <button className="btn-confirm-pay" disabled={submitting} onClick={confirmPayment} type="button">
               {submitting ? 'Đang xử lý...' : '✅ Tôi đã thanh toán, xác nhận đặt thuê'}
             </button>
+            {submitError ? <div className="checkout-error" style={{ display: 'block' }}>{submitError}</div> : null}
             <p className="pay-note">Sau khi bấm xác nhận, đơn của bạn sẽ ở trạng thái "Chờ xác nhận" cho đến khi shop kiểm tra giao dịch. Bạn có thể theo dõi đơn trong mục 📦 Đơn hàng.</p>
           </section>
         </div>
