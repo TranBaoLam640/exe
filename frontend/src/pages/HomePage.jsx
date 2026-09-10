@@ -2,10 +2,14 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { imageUrl } from '../assets/imageUrl.js';
 import ProductCard from '../features/catalog/components/ProductCard.jsx';
+import { products } from '../features/catalog/data/products.js';
 import { fetchProducts } from '../features/catalog/services/catalogService.js';
 import { newsArticles } from '../data/newsArticles.js';
 import { useDocumentTitle } from '../hooks/useDocumentTitle.js';
 import { useFadeIn } from '../hooks/useFadeIn.js';
+
+const HOME_FEATURED_LIMIT = 6;
+const fallbackFeaturedProducts = products.slice(0, HOME_FEATURED_LIMIT);
 
 const steps = [
   ['👗', 'Chọn trang phục', 'Duyệt qua hàng nghìn thiết kế, lọc theo dịp, phong cách và kích cỡ phù hợp.'],
@@ -65,10 +69,11 @@ export default function HomePage() {
 
     fetchProducts({ page: 1, pageSize: 6, sortBy: 'createdAt', sortDirection: 'desc' })
       .then((catalog) => {
-        if (!cancelled) setFeaturedProducts(catalog.items || []);
+        const items = catalog.items || [];
+        if (!cancelled) setFeaturedProducts(items.length > 0 ? items : fallbackFeaturedProducts);
       })
       .catch(() => {
-        if (!cancelled) setFeaturedProducts([]);
+        if (!cancelled) setFeaturedProducts(fallbackFeaturedProducts);
       });
 
     return () => {

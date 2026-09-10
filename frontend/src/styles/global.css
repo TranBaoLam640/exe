@@ -100,9 +100,15 @@
 }
 
 .home-stat-item .num {
+  display: block;
+  width: auto;
+  height: auto;
+  margin-right: 0;
   color: #8de9be;
   font-size: 2rem;
   font-weight: 700;
+  background: transparent;
+  border-radius: 0;
 }
 
 .home-stat-item .label {
