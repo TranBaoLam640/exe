@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { imageUrl } from '../assets/imageUrl.js';
-import { addProductToCart } from '../features/cart/cartService.js';
+import { addProductToActiveCart } from '../features/cart/cartService.js';
 import { buildTryOnProductUrl, legacyProductFromParams } from '../features/ai/tryon/tryOnProduct.js';
 import ProductPrice from '../features/catalog/components/ProductPrice.jsx';
 import QuantitySelector from '../features/catalog/components/QuantitySelector.jsx';
@@ -65,12 +65,12 @@ export default function ProductDetailPage() {
     return '*'.repeat(count) + '-'.repeat(5 - count);
   }, [product.rating]);
 
-  function addToCart() {
-    addProductToCart(product, quantity);
+  async function addToCart() {
+    await addProductToActiveCart(product, quantity);
   }
 
-  function rentNow() {
-    addToCart();
+  async function rentNow() {
+    await addToCart();
     window.location.href = '/cart';
   }
 

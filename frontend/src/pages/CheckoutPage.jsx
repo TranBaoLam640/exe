@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { imageUrl } from '../assets/imageUrl.js';
 import { getSession } from '../features/auth/authService.js';
-import { CART_CHANGED_EVENT, CART_KEY, clearCart, formatVnd, getCart, getCartTotals, parsePrice } from '../features/cart/cartService.js';
+import { CART_CHANGED_EVENT, CART_KEY, clearActiveCart, formatVnd, getActiveCartState, parsePrice } from '../features/cart/cartService.js';
 import { createCheckoutOrder, genOrderId } from '../features/orders/orderCreation.js';
 import { useDocumentTitle } from '../hooks/useDocumentTitle.js';
 
@@ -11,16 +11,15 @@ const BANK_NAME = 'Techcombank';
 const ACCOUNT_NO = '19071688314017';
 const ACCOUNT_NAME = 'TRAN BAO LAM';
 
-function readCheckoutCart() {
-  const items = getCart();
-  return { items, totals: getCartTotals(items) };
-}
-
 export default function CheckoutPage() {
   useDocumentTitle('Thanh Toán | DoRentMe');
   const session = getSession();
   const draftIdRef = useRef(genOrderId());
-  const [cartState, setCartState] = useState(readCheckoutCart);
+  const [cartState, setCartState] = useState({
+    items: [],
+    totals: { qty: 0, rent: 0, deposit: 0, total: 0 },
+    source: 'guest',
+  });
   const [customer, setCustomer] = useState({
     name: session?.name || '',
     phone: session?.phone || '',
@@ -32,16 +31,21 @@ export default function CheckoutPage() {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    const update = () => setCartState(readCheckoutCart());
+    const update = () => {
+      getActiveCartState().then(setCartState);
+    };
     const onStorage = (event) => {
       if (event.key === CART_KEY) update();
     };
 
+    update();
     document.addEventListener(CART_CHANGED_EVENT, update);
+    document.addEventListener('auth:changed', update);
     window.addEventListener('storage', onStorage);
 
     return () => {
       document.removeEventListener(CART_CHANGED_EVENT, update);
+      document.removeEventListener('auth:changed', update);
       window.removeEventListener('storage', onStorage);
     };
   }, []);
@@ -73,28 +77,28 @@ export default function CheckoutPage() {
     return Object.values(nextInvalid).some(Boolean) ? null : cleanCustomer;
   }
 
-  function confirmPayment() {
+  async function confirmPayment() {
     const cleanCustomer = validate();
     if (!cleanCustomer) return;
 
     setSubmitting(true);
-    const latestItems = getCart();
+    const latestState = await getActiveCartState();
+    const latestItems = latestState.items;
     if (latestItems.length === 0) {
-      setCartState(readCheckoutCart());
+      setCartState(latestState);
       setSubmitting(false);
       return;
     }
 
-    const latestTotals = getCartTotals(latestItems);
     const currentSession = getSession();
     createCheckoutOrder({
       id: draftIdRef.current,
       items: latestItems,
       customer: cleanCustomer,
-      totals: latestTotals,
+      totals: latestState.totals,
       customerEmail: currentSession ? currentSession.email : null,
     });
-    clearCart();
+    await clearActiveCart();
     window.location.href = `/orders/${encodeURIComponent(draftIdRef.current)}`;
   }
 

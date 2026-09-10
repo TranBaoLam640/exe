@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { getActiveCartState } from '../features/cart/cartService.js';
 
 const SESSION_KEY = 'dorentme_session';
 const CART_KEY = 'dorentme_cart';
@@ -27,15 +28,30 @@ function readState() {
   };
 }
 
+async function readStateAsync() {
+  const state = readState();
+  if (!state.session?.token) return state;
+
+  try {
+    const cartState = await getActiveCartState();
+    return { ...state, cartQuantity: cartState.count };
+  } catch {
+    return state;
+  }
+}
+
 export function useLegacyHeaderState() {
   const [state, setState] = useState(readState);
 
   useEffect(() => {
-    const update = () => setState(readState());
+    const update = () => {
+      readStateAsync().then(setState);
+    };
     const onStorage = (event) => {
       if ([SESSION_KEY, CART_KEY, ORDERS_KEY].includes(event.key)) update();
     };
 
+    update();
     document.addEventListener('auth:changed', update);
     document.addEventListener('cart:changed', update);
     document.addEventListener('orders:changed', update);

@@ -4,7 +4,7 @@ import CatalogPagination from '../features/catalog/components/CatalogPagination.
 import ProductFilters from '../features/catalog/components/ProductFilters.jsx';
 import ProductGrid from '../features/catalog/components/ProductGrid.jsx';
 import ProductSearch from '../features/catalog/components/ProductSearch.jsx';
-import { addProductToCart } from '../features/cart/cartService.js';
+import { addProductToActiveCart } from '../features/cart/cartService.js';
 import {
   fetchBrands,
   fetchCategories,
@@ -173,7 +173,7 @@ export default function ShopPage() {
           {loading ? <div className="catalog-empty-state"><p>Dang tai san pham...</p></div> : null}
           {!loading && !error ? (
             <>
-              <ProductGrid products={catalog.items || []} onAdd={(product) => addProductToCart(product, 1)} />
+              <ProductGrid products={catalog.items || []} onAdd={(product) => addProductToActiveCart(product, 1)} />
               <CatalogPagination currentPage={page} totalPages={catalog.totalPages || 0} onPageChange={changePage} />
             </>
           ) : null}

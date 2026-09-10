@@ -6,7 +6,7 @@ import { getProviderGarmentUrl, resolveTryOnProduct } from '../features/ai/tryon
 import { isSupportedImageFile, resizeImageFile } from '../features/ai/tryon/imageProcessing.js';
 import { MAX_TRIES_PER_SESSION, bumpTryOnCount, canUseTryOn } from '../features/ai/tryon/tryOnSession.js';
 import { pollTryOnStatus } from '../features/ai/tryon/tryOnPolling.js';
-import { addProductToCart } from '../features/cart/cartService.js';
+import { addProductToActiveCart } from '../features/cart/cartService.js';
 import { fetchProducts } from '../features/catalog/services/catalogService.js';
 import { useDocumentTitle } from '../hooks/useDocumentTitle.js';
 
@@ -216,9 +216,9 @@ export default function TryOnPage() {
     }
   }
 
-  function addResultProductToCart() {
+  async function addResultProductToCart() {
     if (!product) return;
-    addProductToCart(product, 1);
+    await addProductToActiveCart(product, 1);
     setCartMessage('Đã thêm sản phẩm vào giỏ hàng.');
   }
 

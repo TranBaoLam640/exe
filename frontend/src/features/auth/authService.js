@@ -1,6 +1,7 @@
 import { dispatchAppEvent, getBrowserStorage, readArrayValue, readJsonValue, writeJsonValue } from '../../utils/browserStorage.js';
 import { getApiErrorMessage as getSharedApiErrorMessage } from '../../utils/apiError.js';
 import api from "../../config/api";
+import { syncGuestCartToServer } from '../cart/cartService.js';
 export const USERS_KEY = 'dorentme_users';
 export const SESSION_KEY = 'dorentme_session';
 export const AUTH_CHANGED_EVENT = 'auth:changed';
@@ -88,6 +89,9 @@ export async function register({ name, email, phone, password }, options = {}) {
     const user = authData?.user ?? authData;
 
     const session = setSession(user, options);
+    syncGuestCartToServer(options).catch((error) => {
+      console.warn('CART SYNC ERROR:', error);
+    });
 
     return {
       ok: true,
@@ -130,6 +134,9 @@ export async function login(email, password, options = {}) {
     const user = authData?.user ?? authData;
 
     const session = setSession(user, options);
+    syncGuestCartToServer(options).catch((error) => {
+      console.warn('CART SYNC ERROR:', error);
+    });
 
     return {
       ok: true,

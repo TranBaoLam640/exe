@@ -24,4 +24,14 @@ public static class ErrorCodes
     public const string BrandNotFound = "BRAND_NOT_FOUND";
     public const string CategoryNotFound = "CATEGORY_NOT_FOUND";
     public const string ProductNotFound = "PRODUCT_NOT_FOUND";
+
+    // Cart specific
+    public const string CartItemNotFound = "CART_ITEM_NOT_FOUND";
+    public const string ProductUnavailable = "PRODUCT_UNAVAILABLE";
+    public const string VariantNotFound = "VARIANT_NOT_FOUND";
+    public const string VariantUnavailable = "VARIANT_UNAVAILABLE";
+    public const string InsufficientStock = "INSUFFICIENT_STOCK";
+    public const string InvalidRentalPeriod = "INVALID_RENTAL_PERIOD";
+    public const string VoucherNotFound = "VOUCHER_NOT_FOUND";
+    public const string VoucherNotApplicable = "VOUCHER_NOT_APPLICABLE";
 }

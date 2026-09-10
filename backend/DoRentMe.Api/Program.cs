@@ -68,6 +68,7 @@ builder.Services.AddScoped<IBrandService, BrandService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IShopService, ShopService>();
+builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddApiControllers();
 builder.Services.AddOpenApiDocumentation();
 builder.Services.AddFrontendCors(builder.Configuration);

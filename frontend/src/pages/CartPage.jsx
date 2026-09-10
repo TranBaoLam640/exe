@@ -4,46 +4,82 @@ import { imageUrl } from '../assets/imageUrl.js';
 import {
   CART_CHANGED_EVENT,
   CART_KEY,
-  clearCart,
-  countCartItems,
-  decrementCartItem,
   formatVnd,
-  getCart,
-  getCartTotals,
+  clearActiveCart,
+  decrementActiveCartItem,
+  getActiveCartState,
   parsePrice,
-  removeCartItem,
-  setCartItemQty,
+  removeActiveCartItem,
+  setActiveCartItemQty,
 } from '../features/cart/cartService.js';
 import { useDocumentTitle } from '../hooks/useDocumentTitle.js';
 
-function readCartState() {
-  const items = getCart();
-  return { items, totals: getCartTotals(items), count: countCartItems(items) };
-}
-
 export default function CartPage() {
   useDocumentTitle('Giỏ Hàng | DoRentMe');
-  const [state, setState] = useState(readCartState);
+  const [state, setState] = useState({ items: [], totals: { qty: 0, rent: 0, deposit: 0, total: 0 }, count: 0 });
+  const [loading, setLoading] = useState(true);
+
+  async function refreshCart() {
+    try {
+      const nextState = await getActiveCartState();
+      setState(nextState);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   useEffect(() => {
-    const update = () => setState(readCartState());
+    const update = () => {
+      refreshCart();
+    };
     const onStorage = (event) => {
       if (event.key === CART_KEY) update();
     };
 
+    refreshCart();
     document.addEventListener(CART_CHANGED_EVENT, update);
+    document.addEventListener('auth:changed', update);
     window.addEventListener('storage', onStorage);
 
     return () => {
       document.removeEventListener(CART_CHANGED_EVENT, update);
+      document.removeEventListener('auth:changed', update);
       window.removeEventListener('storage', onStorage);
     };
   }, []);
 
-  function clearAll() {
+  async function clearAll() {
     if (window.confirm('Xóa toàn bộ sản phẩm trong giỏ?')) {
-      clearCart();
+      await clearActiveCart();
+      await refreshCart();
     }
+  }
+
+  async function updateQuantity(item, quantity) {
+    await setActiveCartItemQty(item, quantity);
+    await refreshCart();
+  }
+
+  async function decrementItem(item) {
+    await decrementActiveCartItem(item);
+    await refreshCart();
+  }
+
+  async function removeItem(item) {
+    await removeActiveCartItem(item);
+    await refreshCart();
+  }
+
+  if (loading) {
+    return (
+      <div className="cart-page">
+        <div className="cart-head">
+          <div className="stateful-breadcrumb"><Link to="/">Trang chủ</Link> › <Link to="/shop">Shop</Link> › <span>Giỏ hàng</span></div>
+          <h1>🛒 Giỏ hàng của bạn</h1>
+          <p>Đang tải giỏ hàng...</p>
+        </div>
+      </div>
+    );
   }
 
   if (state.items.length === 0) {
@@ -93,11 +129,11 @@ export default function CartPage() {
                 </div>
                 <div className="ci-right">
                   <div className="cart-qty-selector" aria-label={`Số lượng ${item.name}`}>
-                    <button type="button" onClick={() => decrementCartItem(item.name)}>−</button>
+                    <button type="button" onClick={() => decrementItem(item)}>−</button>
                     <span>{qty}</span>
-                    <button type="button" onClick={() => setCartItemQty(item.name, qty + 1)}>+</button>
+                    <button type="button" onClick={() => updateQuantity(item, qty + 1)}>+</button>
                   </div>
-                  <button className="ci-remove" type="button" onClick={() => removeCartItem(item.name)}>🗑 Xóa</button>
+                  <button className="ci-remove" type="button" onClick={() => removeItem(item)}>🗑 Xóa</button>
                 </div>
               </article>
             );
