@@ -148,16 +148,24 @@ export default function ShopPage() {
           <div className="shop-toolbar">
             <div className="catalog-result-count">{resultLabel}</div>
             <ProductSearch query={query} onQueryChange={changeQuery} />
-            <select value={sortBy} onChange={(event) => { setSortBy(event.target.value); setPage(1); }}>
-              <option value="createdAt">Moi nhat</option>
-              <option value="name">Ten</option>
-              <option value="price1Day">Gia 1 ngay</option>
-            </select>
-            <select value={sortDirection} onChange={(event) => { setSortDirection(event.target.value); setPage(1); }}>
-              <option value="desc">Giam dan</option>
-              <option value="asc">Tang dan</option>
-            </select>
-            <label>
+            <div className="catalog-sort-controls" aria-label="Sap xep san pham">
+              <label className="catalog-sort-control">
+                <span>Sap xep</span>
+                <select value={sortBy} onChange={(event) => { setSortBy(event.target.value); setPage(1); }}>
+                  <option value="createdAt">Moi nhat</option>
+                  <option value="name">Ten</option>
+                  <option value="price1Day">Gia 1 ngay</option>
+                </select>
+              </label>
+              <label className="catalog-sort-control">
+                <span>Thu tu</span>
+                <select value={sortDirection} onChange={(event) => { setSortDirection(event.target.value); setPage(1); }}>
+                  <option value="desc">Giam dan</option>
+                  <option value="asc">Tang dan</option>
+                </select>
+              </label>
+            </div>
+            <label className="catalog-stock-toggle">
               <input
                 type="checkbox"
                 checked={inStock}
@@ -166,7 +174,8 @@ export default function ShopPage() {
                   setPage(1);
                 }}
               />
-              Con hang
+              <span className="catalog-stock-switch" aria-hidden="true"></span>
+              <span>Con hang</span>
             </label>
           </div>
           {error ? <div className="catalog-empty-state"><p>{error}</p></div> : null}
