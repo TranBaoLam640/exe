@@ -18,10 +18,21 @@ export default function RegisterPage() {
   const [message, setMessage] = useState(null);
   const [invalidConfirm, setInvalidConfirm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [visiblePasswords, setVisiblePasswords] = useState({
+    password: false,
+    confirm: false,
+  });
   const redirectTo = searchParams.get('redirect') || '/';
 
   function updateField(field, value) {
     setForm((current) => ({ ...current, [field]: value }));
+  }
+
+  function togglePasswordVisibility(field) {
+    setVisiblePasswords((current) => ({
+      ...current,
+      [field]: !current[field],
+    }));
   }
 
   async function submit(event) {
@@ -94,25 +105,47 @@ export default function RegisterPage() {
           </div>
           <div className="auth-form-row">
             <label htmlFor="registerPassword">Mật khẩu</label>
-            <input
-              autoComplete="new-password"
-              id="registerPassword"
-              onChange={(event) => updateField('password', event.target.value)}
-              placeholder="Tối thiểu 6 ký tự"
-              type="password"
-              value={form.password}
-            />
+            <div className="auth-password-field">
+              <input
+                autoComplete="new-password"
+                id="registerPassword"
+                onChange={(event) => updateField('password', event.target.value)}
+                placeholder="Tối thiểu 6 ký tự"
+                type={visiblePasswords.password ? 'text' : 'password'}
+                value={form.password}
+              />
+              <button
+                aria-label={visiblePasswords.password ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+                aria-pressed={visiblePasswords.password}
+                className={`auth-password-toggle ${visiblePasswords.password ? 'visible' : ''}`}
+                onClick={() => togglePasswordVisibility('password')}
+                type="button"
+              >
+                <span aria-hidden="true"></span>
+              </button>
+            </div>
           </div>
           <div className={`auth-form-row ${invalidConfirm ? 'invalid' : ''}`}>
             <label htmlFor="registerConfirm">Nhập lại mật khẩu</label>
-            <input
-              autoComplete="new-password"
-              id="registerConfirm"
-              onChange={(event) => updateField('confirm', event.target.value)}
-              placeholder="Nhập lại mật khẩu"
-              type="password"
-              value={form.confirm}
-            />
+            <div className="auth-password-field">
+              <input
+                autoComplete="new-password"
+                id="registerConfirm"
+                onChange={(event) => updateField('confirm', event.target.value)}
+                placeholder="Nhập lại mật khẩu"
+                type={visiblePasswords.confirm ? 'text' : 'password'}
+                value={form.confirm}
+              />
+              <button
+                aria-label={visiblePasswords.confirm ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+                aria-pressed={visiblePasswords.confirm}
+                className={`auth-password-toggle ${visiblePasswords.confirm ? 'visible' : ''}`}
+                onClick={() => togglePasswordVisibility('confirm')}
+                type="button"
+              >
+                <span aria-hidden="true"></span>
+              </button>
+            </div>
           </div>
           <button className="auth-submit" disabled={submitting} type="submit">
             {submitting ? 'Đang xử lý...' : 'Đăng ký'}

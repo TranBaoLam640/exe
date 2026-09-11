@@ -11,6 +11,7 @@ export default function LoginPage() {
   const [message, setMessage] = useState(null);
   const [invalid, setInvalid] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const redirectTo = searchParams.get('redirect') || '/';
 
   async function submit(event) {
@@ -56,14 +57,25 @@ export default function LoginPage() {
           </div>
           <div className={`auth-form-row ${invalid ? 'invalid' : ''}`}>
             <label htmlFor="loginPassword">Mật khẩu</label>
-            <input
-              autoComplete="current-password"
-              id="loginPassword"
-              onChange={(event) => setPassword(event.target.value)}
-              placeholder="Mật khẩu"
-              type="password"
-              value={password}
-            />
+            <div className="auth-password-field">
+              <input
+                autoComplete="current-password"
+                id="loginPassword"
+                onChange={(event) => setPassword(event.target.value)}
+                placeholder="Mật khẩu"
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+              />
+              <button
+                aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+                aria-pressed={showPassword}
+                className={`auth-password-toggle ${showPassword ? 'visible' : ''}`}
+                onClick={() => setShowPassword((current) => !current)}
+                type="button"
+              >
+                <span aria-hidden="true"></span>
+              </button>
+            </div>
           </div>
           <button className="auth-submit" disabled={submitting} type="submit">
             {submitting ? 'Đang xử lý...' : 'Đăng nhập'}
