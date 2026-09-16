@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { imageUrl } from '../assets/imageUrl.js';
 import { fetchAdminSession } from '../features/admin/adminService.js';
 import { clearSession } from '../features/auth/authService.js';
@@ -77,7 +77,10 @@ export default function AdminPage() {
           <img alt="DoRentMe" src={imageUrl('Logo.png')} />
           <h1>DoRentMe Admin Orders</h1>
         </div>
-        <span>JWT Admin</span>
+        <div className="inventory-admin-links">
+          <Link to="/admin/inventory">Inventory</Link>
+          <span>JWT Admin</span>
+        </div>
       </header>
 
       <div className="admin-warn-banner">

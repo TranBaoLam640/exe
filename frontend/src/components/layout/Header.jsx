@@ -32,6 +32,8 @@ export default function Header() {
   const { session, cartQuantity, hasOrders } = useLegacyHeaderState();
   const transparent = location.pathname === '/' || location.pathname === '/shop' || location.pathname === '/about' || location.pathname === '/contact';
   const activeLabel = location.pathname.startsWith('/product/') ? 'Dịch vụ' : reactNav.get(location.pathname);
+  const role = String(session?.role || '').toUpperCase();
+  const canManageInventory = role === 'ADMIN' || role === 'LENDER';
 
   useEffect(() => {
     const update = () => setScrolled(window.scrollY > 60);
@@ -73,6 +75,11 @@ export default function Header() {
         <Link className="orders-link" to="/orders" title="Đơn hàng của tôi" aria-label="Đơn hàng của tôi">
           {hasOrders ? '🚚' : '📦'}
         </Link>
+        {canManageInventory ? (
+          <Link className="inventory-nav-link" to="/admin/inventory" title="Inventory management" aria-label="Inventory management">
+            Inventory
+          </Link>
+        ) : null}
         {session ? (
           <>
             <span className="auth-greeting">👋 {session.name}</span>

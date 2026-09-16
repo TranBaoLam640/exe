@@ -9,6 +9,7 @@ import HomePage from '../pages/HomePage.jsx';
 import LegacyRedirect from '../pages/LegacyRedirect.jsx';
 import LoginPage from '../pages/LoginPage.jsx';
 import LoyaltyPage from '../pages/LoyaltyPage.jsx';
+import InventoryPage from '../pages/InventoryPage.jsx';
 import { PolicyPage, TermsPage } from '../pages/LegalPages.jsx';
 import AdminPage from '../pages/AdminPage.jsx';
 import NewsDetailPage from '../pages/NewsDetailPage.jsx';
@@ -201,6 +202,15 @@ export const router = createBrowserRouter([
     element: (
       <RequireRole allowedRoles={['ADMIN']}>
         <AdminPage />
+      </RequireRole>
+    ),
+    errorElement: <RouteErrorPage />,
+  },
+  {
+    path: '/admin/inventory',
+    element: (
+      <RequireRole allowedRoles={['ADMIN', 'LENDER']}>
+        <InventoryPage />
       </RequireRole>
     ),
     errorElement: <RouteErrorPage />,
