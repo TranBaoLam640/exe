@@ -42,4 +42,12 @@ public static class ErrorCodes
     public const string InvalidOrderStatus = "INVALID_ORDER_STATUS";
     public const string InvalidOrderStatusTransition = "INVALID_ORDER_STATUS_TRANSITION";
     public const string RentalInventoryConflict = "RENTAL_INVENTORY_CONFLICT";
+
+    // Inventory specific
+    public const string InventoryItemNotFound = "INVENTORY_ITEM_NOT_FOUND";
+    public const string DuplicateAssetCode = "DUPLICATE_ASSET_CODE";
+    public const string InvalidInventoryStatus = "INVALID_INVENTORY_STATUS";
+    public const string InvalidInventoryCondition = "INVALID_INVENTORY_CONDITION";
+    public const string ProductVariantMismatch = "PRODUCT_VARIANT_MISMATCH";
+    public const string InventoryHasRentalHistory = "INVENTORY_HAS_RENTAL_HISTORY";
 }
