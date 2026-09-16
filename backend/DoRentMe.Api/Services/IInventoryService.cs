@@ -22,6 +22,12 @@ public interface IInventoryService
         string currentUserRole,
         CancellationToken cancellationToken = default);
 
+    Task<ProductAvailabilityResponse> GetProductAvailabilityAsync(
+        int productId,
+        DateOnly? startDate,
+        DateOnly? endDate,
+        CancellationToken cancellationToken = default);
+
     Task<InventoryResponse> CreateAsync(
         int productId,
         int variantId,

@@ -10,8 +10,6 @@ namespace DoRentMe.Api.Services;
 public class CartService : ICartService
 {
     private const string ActiveCartStatus = "active";
-    private const string AvailableInventoryStatus = "AVAILABLE";
-    private static readonly string[] BlockingReservationStatuses = ["RESERVED", "ACTIVE"];
 
     private readonly DoRentMeDbContext _dbContext;
 
@@ -33,7 +31,7 @@ public class CartService : ICartService
         CartItemRequest request,
         CancellationToken cancellationToken = default)
     {
-        ValidateRentalPeriod(request.RentalStartDate, request.RentalEndDate);
+        RentalAvailabilityRules.ValidateRentalPeriod(request.RentalStartDate, request.RentalEndDate);
         var variant = await GetValidVariantAsync(request.ProductVariantId, cancellationToken);
         var cart = await GetOrCreateCurrentCartAsync(userId, cancellationToken);
 
@@ -85,7 +83,7 @@ public class CartService : ICartService
         CartItemUpdateRequest request,
         CancellationToken cancellationToken = default)
     {
-        ValidateRentalPeriod(request.RentalStartDate, request.RentalEndDate);
+        RentalAvailabilityRules.ValidateRentalPeriod(request.RentalStartDate, request.RentalEndDate);
         var cart = await GetOrCreateCurrentCartAsync(userId, cancellationToken);
         var item = await _dbContext.CartItems
             .Include(i => i.ProductVariant)
@@ -325,8 +323,11 @@ public class CartService : ICartService
             .Where(item => item.CartId == cartId
                 && item.ProductVariantId == productVariantId
                 && !excludedCartItemIds.Contains(item.Id)
-                && item.RentalStartDate < rentalEndDate
-                && item.RentalEndDate > rentalStartDate)
+                && RentalAvailabilityRules.DateRangesOverlap(
+                    item.RentalStartDate,
+                    item.RentalEndDate,
+                    rentalStartDate,
+                    rentalEndDate))
             .SumAsync(item => item.Quantity, cancellationToken);
 
         if (requestedQuantity + overlappingCartQuantity > availableStock)
@@ -344,12 +345,10 @@ public class CartService : ICartService
         return await _dbContext.ProductInventoryItems
             .AsNoTracking()
             .Where(item => item.ProductVariantId == productVariantId
-                && item.Status == AvailableInventoryStatus
-                && !_dbContext.RentalReservations.Any(reservation =>
+                && RentalAvailabilityRules.RentableInventoryStatuses.Contains(item.Status)
+                && !_dbContext.RentalReservations.WhereBlocking().WhereOverlaps(rentalStartDate, rentalEndDate).Any(reservation =>
                     reservation.ProductInventoryItemId == item.Id
-                    && BlockingReservationStatuses.Contains(reservation.Status)
-                    && reservation.StartDate < rentalEndDate
-                    && reservation.EndDate > rentalStartDate))
+                ))
             .CountAsync(cancellationToken);
     }
 
@@ -425,14 +424,6 @@ public class CartService : ICartService
         response.GrandTotalPreview = response.Subtotal + response.DepositTotal - discountAmount;
 
         return response;
-    }
-
-    private static void ValidateRentalPeriod(DateOnly rentalStartDate, DateOnly rentalEndDate)
-    {
-        if (rentalStartDate == default || rentalEndDate == default || rentalStartDate >= rentalEndDate)
-        {
-            throw BusinessError("INVALID_RENTAL_PERIOD", "RentalEndDate must be after RentalStartDate.");
-        }
     }
 
     private static decimal CalculateDiscount(Voucher voucher, decimal subtotal)

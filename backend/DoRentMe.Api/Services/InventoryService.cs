@@ -119,6 +119,84 @@ public class InventoryService : IInventoryService
         return items.Select(MapInventory).ToList();
     }
 
+    public async Task<ProductAvailabilityResponse> GetProductAvailabilityAsync(
+        int productId,
+        DateOnly? startDate,
+        DateOnly? endDate,
+        CancellationToken cancellationToken = default)
+    {
+        if (!startDate.HasValue || !endDate.HasValue)
+        {
+            throw new ApiException(
+                ErrorCodes.InvalidRentalPeriod,
+                "StartDate and EndDate are required.",
+                StatusCodes.Status400BadRequest);
+        }
+
+        RentalAvailabilityRules.ValidateRentalPeriod(startDate.Value, endDate.Value);
+
+        var product = await _dbContext.Products
+            .AsNoTracking()
+            .Include(p => p.Shop)
+            .Include(p => p.Variants.Where(variant => variant.IsActive))
+                .ThenInclude(variant => variant.InventoryItems)
+            .AsSplitQuery()
+            .FirstOrDefaultAsync(
+                p => p.Id == productId && p.IsActive && p.Shop != null && p.Shop.IsActive,
+                cancellationToken);
+
+        if (product == null)
+        {
+            throw ProductNotFound();
+        }
+
+        var rentableInventoryIds = product.Variants
+            .SelectMany(variant => variant.InventoryItems)
+            .Where(item => RentalAvailabilityRules.RentableInventoryStatuses.Contains(item.Status))
+            .Select(item => item.Id)
+            .ToArray();
+
+        var blockedInventoryIds = rentableInventoryIds.Length == 0
+            ? new HashSet<int>()
+            : (await _dbContext.RentalReservations
+                .AsNoTracking()
+                .Where(reservation => rentableInventoryIds.Contains(reservation.ProductInventoryItemId))
+                .WhereBlocking()
+                .WhereOverlaps(startDate.Value, endDate.Value)
+                .Select(reservation => reservation.ProductInventoryItemId)
+                .ToListAsync(cancellationToken))
+                .ToHashSet();
+
+        return new ProductAvailabilityResponse
+        {
+            ProductId = product.Id,
+            StartDate = startDate.Value,
+            EndDate = endDate.Value,
+            Variants = product.Variants
+                .OrderBy(variant => variant.Size)
+                .ThenBy(variant => variant.Color)
+                .Select(variant =>
+                {
+                    var rentableItems = variant.InventoryItems
+                        .Where(item => RentalAvailabilityRules.RentableInventoryStatuses.Contains(item.Status))
+                        .ToList();
+                    var availableInventory = rentableItems.Count(item => !blockedInventoryIds.Contains(item.Id));
+
+                    return new ProductVariantAvailabilityResponse
+                    {
+                        VariantId = variant.Id,
+                        Size = variant.Size,
+                        Color = variant.Color,
+                        VariantCode = variant.VariantCode,
+                        TotalInventory = variant.InventoryItems.Count,
+                        AvailableInventory = availableInventory,
+                        IsAvailable = availableInventory > 0
+                    };
+                })
+                .ToList()
+        };
+    }
+
     public async Task<InventoryResponse> CreateAsync(
         int productId,
         int variantId,

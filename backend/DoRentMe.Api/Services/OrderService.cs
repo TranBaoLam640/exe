@@ -13,16 +13,13 @@ public class OrderService : IOrderService
 {
     private const string ActiveCartStatus = "active";
     private const string OrderedCartStatus = "ordered";
-    private const string AvailableInventoryStatus = "AVAILABLE";
     private const string InitialOrderStatus = "pending_confirmation";
     private const string CancelledOrderStatus = "cancelled";
     private const string ReservedReservationStatus = "RESERVED";
-    private const string ActiveReservationStatus = "ACTIVE";
     private const string CancelledReservationStatus = "CANCELLED";
     private const string AdminRole = "ADMIN";
     private const string LenderRole = "LENDER";
 
-    private static readonly string[] BlockingReservationStatuses = [ReservedReservationStatus, ActiveReservationStatus];
     private static readonly SemaphoreSlim NonRelationalCheckoutLock = new(1, 1);
     private static readonly IReadOnlyDictionary<string, string[]> StatusTransitions =
         new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase)
@@ -402,16 +399,19 @@ public class OrderService : IOrderService
         var blockedIds = await _dbContext.RentalReservations
             .AsNoTracking()
             .Where(reservation => candidateIds.Contains(reservation.ProductInventoryItemId)
-                && BlockingReservationStatuses.Contains(reservation.Status)
-                && reservation.StartDate < rentalEndDate
-                && reservation.EndDate > rentalStartDate)
+                && RentalAvailabilityRules.BlockingReservationStatuses.Contains(reservation.Status))
+            .WhereOverlaps(rentalStartDate, rentalEndDate)
             .Select(reservation => reservation.ProductInventoryItemId)
             .ToListAsync(cancellationToken);
 
         var blocked = blockedIds.ToHashSet();
         foreach (var pending in pendingAssignments)
         {
-            if (pending.StartDate < rentalEndDate && pending.EndDate > rentalStartDate)
+            if (RentalAvailabilityRules.DateRangesOverlap(
+                pending.StartDate,
+                pending.EndDate,
+                rentalStartDate,
+                rentalEndDate))
             {
                 blocked.Add(pending.InventoryItemId);
             }
@@ -443,7 +443,7 @@ public class OrderService : IOrderService
                     SELECT *
                     FROM ProductInventoryItems
                     WHERE ProductVariantId = {productVariantId}
-                      AND Status = {AvailableInventoryStatus}
+                      AND Status = {RentalAvailabilityRules.AvailableInventoryStatus}
                     ORDER BY Id
                     FOR UPDATE
                     """)
@@ -452,7 +452,7 @@ public class OrderService : IOrderService
 
         return await _dbContext.ProductInventoryItems
             .Where(item => item.ProductVariantId == productVariantId
-                && item.Status == AvailableInventoryStatus)
+                && item.Status == RentalAvailabilityRules.AvailableInventoryStatus)
             .OrderBy(item => item.Id)
             .ToListAsync(cancellationToken);
     }
@@ -553,10 +553,12 @@ public class OrderService : IOrderService
 
     private static void ValidateCartItem(CartItem item)
     {
-        if (item.Quantity <= 0 || item.RentalStartDate == default || item.RentalEndDate == default || item.RentalStartDate >= item.RentalEndDate)
+        if (item.Quantity <= 0)
         {
             throw BusinessError(ErrorCodes.InvalidRentalPeriod, "RentalEndDate must be after RentalStartDate.");
         }
+
+        RentalAvailabilityRules.ValidateRentalPeriod(item.RentalStartDate, item.RentalEndDate);
 
         var variant = item.ProductVariant;
         var product = variant.Product;

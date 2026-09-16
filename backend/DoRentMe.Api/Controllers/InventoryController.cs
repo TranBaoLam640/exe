@@ -65,6 +65,22 @@ public class InventoryController : ApiControllerBase
         return Success(inventory);
     }
 
+    [HttpGet("api/products/{productId:int}/availability")]
+    public async Task<IActionResult> GetProductAvailability(
+        int productId,
+        [FromQuery] DateOnly? startDate,
+        [FromQuery] DateOnly? endDate,
+        CancellationToken cancellationToken)
+    {
+        var availability = await _inventoryService.GetProductAvailabilityAsync(
+            productId,
+            startDate,
+            endDate,
+            cancellationToken);
+
+        return Success(availability);
+    }
+
     [HttpPost("api/products/{productId:int}/variants/{variantId:int}/inventory")]
     [Authorize(Roles = "ADMIN,LENDER")]
     public async Task<IActionResult> Create(
