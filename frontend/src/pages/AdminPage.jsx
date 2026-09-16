@@ -1,5 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { imageUrl } from '../assets/imageUrl.js';
+import { fetchAdminSession } from '../features/admin/adminService.js';
+import { clearSession } from '../features/auth/authService.js';
 import { formatVnd } from '../features/cart/cartService.js';
 import {
   formatOrderDate,
@@ -13,51 +16,56 @@ import {
 import { useOrders } from '../features/orders/useOrders.js';
 import { useDocumentTitle } from '../hooks/useDocumentTitle.js';
 
-const ADMIN_PASSWORD = 'dorentme2026';
-const ADMIN_SESSION_KEY = 'dorentme_admin_ok';
-
-function hasAdminSession() {
-  return sessionStorage.getItem(ADMIN_SESSION_KEY) === '1';
-}
-
 function orderItemsText(order) {
   return Array.isArray(order.items)
-    ? order.items.map((item) => `${item.name} × ${Number(item.qty) || 1}`).join(', ')
+    ? order.items.map((item) => `${item.name} x ${Number(item.qty) || 1}`).join(', ')
     : '';
 }
 
 export default function AdminPage() {
-  useDocumentTitle('Quản Lý Đơn Hàng | DoRentMe');
+  useDocumentTitle('Admin Orders | DoRentMe');
+  const navigate = useNavigate();
   const orders = useOrders();
-  const [password, setPassword] = useState('');
-  const [denied, setDenied] = useState(false);
-  const [unlocked, setUnlocked] = useState(hasAdminSession);
+  const [accessState, setAccessState] = useState('checking');
 
-  function tryLogin(event) {
-    event.preventDefault();
-    if (password === ADMIN_PASSWORD) {
-      sessionStorage.setItem(ADMIN_SESSION_KEY, '1');
-      setUnlocked(true);
-      setDenied(false);
-      return;
-    }
-    setDenied(true);
-  }
+  useEffect(() => {
+    let cancelled = false;
+
+    fetchAdminSession()
+      .then(() => {
+        if (!cancelled) setAccessState('allowed');
+      })
+      .catch((error) => {
+        if (cancelled) return;
+
+        if (error?.response?.status === 401) {
+          clearSession();
+          navigate('/login?redirect=%2Fadmin', { replace: true });
+          return;
+        }
+
+        setAccessState('denied');
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [navigate]);
 
   function confirmOrder(id) {
-    const name = window.prompt('Tên shipper (bỏ trống nếu chưa có):', '') || '';
-    const phone = name ? window.prompt('SĐT shipper (tuỳ chọn):', '') || '' : '';
+    const name = window.prompt('Shipper name (optional):', '') || '';
+    const phone = name ? window.prompt('Shipper phone (optional):', '') || '' : '';
     shopConfirm(id, name ? { name, phone } : null);
   }
 
   function forceReturn(id) {
-    if (window.confirm('Đánh dấu đơn này đã trả hàng xong (xử lý ngoài app)?')) {
+    if (window.confirm('Mark this order as returned?')) {
       markReturned(id);
     }
   }
 
   function deleteOrder(id) {
-    if (window.confirm('Xoá đơn này? Không thể hoàn tác.')) {
+    if (window.confirm('Delete this order? This cannot be undone.')) {
       removeOrder(id);
     }
   }
@@ -67,39 +75,28 @@ export default function AdminPage() {
       <header className="admin-header">
         <div className="admin-brand">
           <img alt="DoRentMe" src={imageUrl('Logo.png')} />
-          <h1>DoRentMe · Quản lý đơn hàng</h1>
+          <h1>DoRentMe Admin Orders</h1>
         </div>
-        <span>Nội bộ · Prototype</span>
+        <span>JWT Admin</span>
       </header>
 
       <div className="admin-warn-banner">
-        Trang nội bộ demo: đơn hàng được lưu bằng localStorage của trình duyệt, nên chỉ hiển thị các đơn được tạo ra trên cùng trình duyệt này. Đây chưa phải hệ thống nhiều người dùng thật.
+        This order screen still displays prototype browser-local orders. Access is now protected by the real backend JWT ADMIN role.
       </div>
 
       <main className="admin-body">
-        {!unlocked ? (
-          <form className="admin-gate" onSubmit={tryLogin}>
-            <h2>🔐 Đăng nhập quản trị</h2>
-            <p>Nhập mật khẩu nội bộ để xem & xử lý đơn hàng.</p>
-            <label htmlFor="adminPassword">Mật khẩu</label>
-            <input
-              id="adminPassword"
-              onChange={(event) => setPassword(event.target.value)}
-              placeholder="Mật khẩu"
-              type="password"
-              value={password}
-            />
-            <button type="submit">Vào trang quản lý</button>
-            {denied ? <div className="admin-error">Sai mật khẩu, vui lòng thử lại.</div> : null}
-          </form>
+        {accessState === 'checking' ? (
+          <div className="admin-empty">Checking admin access...</div>
+        ) : accessState === 'denied' ? (
+          <div className="admin-empty">Your authenticated account does not have permission to access this page.</div>
         ) : orders.length === 0 ? (
-          <div className="admin-empty">Chưa có đơn hàng nào trên trình duyệt này.</div>
+          <div className="admin-empty">No orders are stored in this browser.</div>
         ) : (
           orders.map((order) => (
             <article className="admin-order-row" key={order.id}>
               <div className="admin-order-top">
                 <div>
-                  <div className="admin-order-id">Mã: {order.id}</div>
+                  <div className="admin-order-id">Code: {order.id}</div>
                   <div className="admin-order-date">{formatOrderDate(order.createdAt)}</div>
                 </div>
                 <div className="admin-order-status">
@@ -108,7 +105,7 @@ export default function AdminPage() {
                 </div>
               </div>
               <div className="admin-order-detail">
-                <b>{order.customer?.name}</b> · {order.customer?.phone}<br />
+                <b>{order.customer?.name}</b> - {order.customer?.phone}<br />
                 {order.customer?.address}
                 {order.shipper ? (
                   <>
@@ -120,23 +117,23 @@ export default function AdminPage() {
               <div className="admin-actions">
                 {order.status === 'pending_confirmation' ? (
                   <>
-                    <button className="btn-confirm" onClick={() => confirmOrder(order.id)} type="button">✅ Đã nhận tiền · Bắt đầu giao</button>
-                    <button className="btn-del" onClick={() => deleteOrder(order.id)} type="button">🗑 Xoá đơn</button>
+                    <button className="btn-confirm" onClick={() => confirmOrder(order.id)} type="button">Confirm and start shipping</button>
+                    <button className="btn-del" onClick={() => deleteOrder(order.id)} type="button">Delete order</button>
                   </>
                 ) : null}
                 {order.status === 'shipping' ? (
-                  <button className="btn-deliver" onClick={() => markDelivered(order.id)} type="button">✅ Đánh dấu đã giao</button>
+                  <button className="btn-deliver" onClick={() => markDelivered(order.id)} type="button">Mark delivered</button>
                 ) : null}
                 {order.status === 'delivered' ? (
-                  <button className="btn-force-return" onClick={() => forceReturn(order.id)} type="button">↩ Đánh dấu đã trả hàng (xử lý ngoài app)</button>
+                  <button className="btn-force-return" onClick={() => forceReturn(order.id)} type="button">Mark returned manually</button>
                 ) : null}
                 {order.status === 'return_requested' ? (
-                  <button className="btn-return-ok" onClick={() => shopConfirmReturn(order.id)} type="button">📦 Xác nhận, đang xử lý lấy đồ</button>
+                  <button className="btn-return-ok" onClick={() => shopConfirmReturn(order.id)} type="button">Confirm return processing</button>
                 ) : null}
                 {order.status === 'return_processing' ? (
-                  <button className="btn-return-done" onClick={() => markReturned(order.id)} type="button">✅ Đã nhận lại đồ · Hoàn tất</button>
+                  <button className="btn-return-done" onClick={() => markReturned(order.id)} type="button">Complete return</button>
                 ) : null}
-                {order.status === 'returned' ? <span className="admin-complete">✅ Đơn đã hoàn tất</span> : null}
+                {order.status === 'returned' ? <span className="admin-complete">Order completed</span> : null}
               </div>
             </article>
           ))

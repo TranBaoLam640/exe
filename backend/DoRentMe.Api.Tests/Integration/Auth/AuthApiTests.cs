@@ -5,6 +5,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using DoRentMe.Api.Common.Errors;
 using DoRentMe.Api.Data;
+using DoRentMe.Api.Models;
 using DoRentMe.Api.Tests.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -634,6 +635,45 @@ public class AuthApiTests : IDisposable
     }
 
     [Fact]
+    public async Task Login_WithValidAdminCredentials_ReturnsAdminRoleAndToken()
+    {
+        const string email = "adminlogin@gmail.com";
+
+        await EnsureUserWithRoleAsync(
+            "Admin Login User",
+            email,
+            "Password123!",
+            "ADMIN");
+
+        var response = await _client.PostAsJsonAsync(
+            "/api/auth/login",
+            new
+            {
+                email,
+                password = "Password123!"
+            });
+
+        Assert.Equal(
+            HttpStatusCode.OK,
+            response.StatusCode);
+
+        using var json = await ReadJsonAsync(response);
+        var data = json.RootElement.GetProperty("data");
+
+        Assert.Equal(
+            "ADMIN",
+            data.GetProperty("role").GetString());
+
+        var token = data.GetProperty("token").GetString();
+        Assert.False(string.IsNullOrWhiteSpace(token));
+
+        var jwt = new JwtSecurityTokenHandler().ReadJwtToken(token);
+        Assert.Equal(
+            "ADMIN",
+            jwt.Claims.Single(c => c.Type == ClaimTypes.Role).Value);
+    }
+
+    [Fact]
     public async Task Login_WithUnknownEmail_ReturnsUnauthorized()
     {
         var request = new
@@ -687,6 +727,35 @@ public class AuthApiTests : IDisposable
     }
 
     [Fact]
+    public async Task Login_WithWrongAdminPassword_ReturnsUnauthorized()
+    {
+        const string email = "adminwrongpassword@gmail.com";
+
+        await EnsureUserWithRoleAsync(
+            "Admin Wrong Password",
+            email,
+            "CorrectPassword123!",
+            "ADMIN");
+
+        var response = await _client.PostAsJsonAsync(
+            "/api/auth/login",
+            new
+            {
+                email,
+                password = "WrongPassword123!"
+            });
+
+        Assert.Equal(
+            HttpStatusCode.Unauthorized,
+            response.StatusCode);
+
+        await AssertApiErrorAsync(
+            response,
+            ErrorCodes.InvalidCredentials,
+            "Invalid email or password");
+    }
+
+    [Fact]
     public async Task Login_WithDisabledAccount_ReturnsForbidden()
     {
         const string email = "disabled@gmail.com";
@@ -719,6 +788,36 @@ public class AuthApiTests : IDisposable
         var response = await _client.PostAsJsonAsync(
             "/api/auth/login",
             request);
+
+        Assert.Equal(
+            HttpStatusCode.Forbidden,
+            response.StatusCode);
+
+        await AssertApiErrorAsync(
+            response,
+            ErrorCodes.AccountDisabled,
+            "Account has been disabled");
+    }
+
+    [Fact]
+    public async Task Login_WithInactiveAdmin_ReturnsForbidden()
+    {
+        const string email = "inactiveadmin@gmail.com";
+
+        await EnsureUserWithRoleAsync(
+            "Inactive Admin",
+            email,
+            "Password123!",
+            "ADMIN",
+            isActive: false);
+
+        var response = await _client.PostAsJsonAsync(
+            "/api/auth/login",
+            new
+            {
+                email,
+                password = "Password123!"
+            });
 
         Assert.Equal(
             HttpStatusCode.Forbidden,
@@ -1007,6 +1106,44 @@ public class AuthApiTests : IDisposable
         Assert.Equal(
             HttpStatusCode.OK,
             response.StatusCode);
+    }
+
+    private async Task EnsureUserWithRoleAsync(
+        string name,
+        string email,
+        string password,
+        string roleCode,
+        bool isActive = true)
+    {
+        using var scope = _factory.Services.CreateScope();
+        var dbContext =
+            scope.ServiceProvider.GetRequiredService<DoRentMeDbContext>();
+
+        var role = await dbContext.Roles.FirstOrDefaultAsync(r => r.Code == roleCode);
+        if (role == null)
+        {
+            role = new Role
+            {
+                Code = roleCode,
+                Name = roleCode,
+                Description = $"{roleCode} role"
+            };
+            dbContext.Roles.Add(role);
+            await dbContext.SaveChangesAsync();
+        }
+
+        dbContext.Users.Add(new User
+        {
+            Name = name,
+            Email = email,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
+            RoleId = role.Id,
+            LoyaltyPoints = 0,
+            IsActive = isActive,
+            CreatedAt = DateTime.UtcNow
+        });
+
+        await dbContext.SaveChangesAsync();
     }
 
     private async Task<string> RegisterUserAndGetTokenAsync(

@@ -22,6 +22,7 @@ import RouteErrorPage from '../pages/RouteErrorPage.jsx';
 import ShopPage from '../pages/ShopPage.jsx';
 import TutorialPage from '../pages/TutorialPage.jsx';
 import TryOnPage from '../pages/TryOnPage.jsx';
+import RequireRole from '../features/auth/RequireRole.jsx';
 
 export const router = createBrowserRouter([
   {
@@ -197,7 +198,11 @@ export const router = createBrowserRouter([
   },
   {
     path: '/admin',
-    element: <AdminPage />,
+    element: (
+      <RequireRole allowedRoles={['ADMIN']}>
+        <AdminPage />
+      </RequireRole>
+    ),
     errorElement: <RouteErrorPage />,
   },
   {
