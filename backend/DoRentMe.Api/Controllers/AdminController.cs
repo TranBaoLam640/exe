@@ -2,6 +2,7 @@ using System.Security.Claims;
 using DoRentMe.Api.Common.Responses;
 using DoRentMe.Api.Contracts.Payment;
 using DoRentMe.Api.Contracts.Order;
+using DoRentMe.Api.Contracts.Refund;
 using DoRentMe.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -14,11 +15,13 @@ public class AdminController : ApiControllerBase
 {
     private readonly IOrderService _orderService;
     private readonly IPaymentService _paymentService;
+    private readonly IRefundService _refundService;
 
-    public AdminController(IOrderService orderService, IPaymentService paymentService)
+    public AdminController(IOrderService orderService, IPaymentService paymentService, IRefundService refundService)
     {
         _orderService = orderService;
         _paymentService = paymentService;
+        _refundService = refundService;
     }
 
     [HttpGet("session")]
@@ -70,5 +73,31 @@ public class AdminController : ApiControllerBase
         var adminUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
         var payment = await _paymentService.UpdateStatusAsync(adminUserId, paymentId, request, cancellationToken);
         return Success(payment);
+    }
+
+    [HttpGet("refunds")]
+    public async Task<IActionResult> GetRefunds([FromQuery] RefundFilters filters, CancellationToken cancellationToken)
+    {
+        return Success(await _refundService.GetAdminRefundsAsync(filters, cancellationToken));
+    }
+
+    [HttpGet("refunds/{refundId:int}")]
+    public async Task<IActionResult> GetRefund(int refundId, CancellationToken cancellationToken)
+    {
+        return Success(await _refundService.GetAdminRefundAsync(refundId, cancellationToken));
+    }
+
+    [HttpPut("refunds/{refundId:int}/status")]
+    public async Task<IActionResult> UpdateRefundStatus(int refundId, [FromBody] RefundStatusUpdateRequest request, CancellationToken cancellationToken)
+    {
+        var adminUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        return Success(await _refundService.UpdateStatusAsync(adminUserId, refundId, request, cancellationToken));
+    }
+
+    [HttpPost("orders/{orderId:int}/deposit-settlement")]
+    public async Task<IActionResult> CreateDepositSettlement(int orderId, [FromBody] DepositSettlementRequest request, CancellationToken cancellationToken)
+    {
+        var adminUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        return CreatedSuccess(await _refundService.CreateDepositSettlementAsync(adminUserId, orderId, request, cancellationToken));
     }
 }

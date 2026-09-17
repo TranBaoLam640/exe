@@ -49,6 +49,16 @@ public static class ErrorCodes
     public const string InvalidPaymentStatus = "INVALID_PAYMENT_STATUS";
     public const string InvalidPaymentTransition = "INVALID_PAYMENT_TRANSITION";
 
+    // Refund specific
+    public const string RefundNotFound = "REFUND_NOT_FOUND";
+    public const string RefundAlreadyExists = "REFUND_ALREADY_EXISTS";
+    public const string InvalidRefundStatus = "INVALID_REFUND_STATUS";
+    public const string InvalidRefundTransition = "INVALID_REFUND_TRANSITION";
+    public const string OrderNotEligibleForDepositSettlement = "ORDER_NOT_ELIGIBLE_FOR_DEPOSIT_SETTLEMENT";
+    public const string InvalidRefundAmount = "INVALID_REFUND_AMOUNT";
+    public const string DepositSettlementAlreadyExists = "DEPOSIT_SETTLEMENT_ALREADY_EXISTS";
+    public const string PaymentNotPaid = "PAYMENT_NOT_PAID";
+
     // Inventory specific
     public const string InventoryItemNotFound = "INVENTORY_ITEM_NOT_FOUND";
     public const string DuplicateAssetCode = "DUPLICATE_ASSET_CODE";

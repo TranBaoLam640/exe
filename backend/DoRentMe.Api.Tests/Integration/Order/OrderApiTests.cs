@@ -323,7 +323,97 @@ public class OrderApiTests : IDisposable
         Assert.Equal(HttpStatusCode.OK, (await _client.PostAsync($"/api/orders/{paidOrderId}/cancel", null)).StatusCode);
 
         Assert.Equal("paid", (await dbContext.Payments.AsNoTracking().SingleAsync(payment => payment.OrderId == paidOrderId)).Status);
-        Assert.Equal(0, await dbContext.Refunds.CountAsync());
+        Assert.Equal(1, await dbContext.Refunds.CountAsync(item => item.OrderId == paidOrderId && item.Type == "order_cancel" && item.Status == "pending"));
+    }
+
+    [Fact]
+    public async Task PaidCancellation_CreatesOnePendingRefundAndCompletingItRefundsPayment()
+    {
+        var seed = await SeedCatalogAsync(ownerEmail: LenderEmail, stock: 1);
+        await LoginAsync(_client, CustomerEmail);
+        await AddCartItemAsync(_client, seed.VariantId);
+        var checkout = await _client.PostAsJsonAsync("/api/orders/checkout", CheckoutPayload());
+        var orderId = await FirstOrderIdAsync(checkout);
+
+        using var scope = _factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<DoRentMeDbContext>();
+        var payment = await dbContext.Payments.SingleAsync(item => item.OrderId == orderId);
+
+        await LoginAsync(_client, AdminEmail);
+        Assert.Equal(HttpStatusCode.OK, (await _client.PutAsJsonAsync($"/api/admin/payments/{payment.Id}/status", new { status = "paid" })).StatusCode);
+        await LoginAsync(_client, CustomerEmail);
+        Assert.Equal(HttpStatusCode.OK, (await _client.PostAsync($"/api/orders/{orderId}/cancel", null)).StatusCode);
+
+        var refund = await dbContext.Refunds.SingleAsync(item => item.OrderId == orderId);
+        Assert.Equal("order_cancel", refund.Type);
+        Assert.Equal("pending", refund.Status);
+        Assert.Equal(payment.Amount, refund.Amount);
+        Assert.Equal("paid", (await dbContext.Payments.AsNoTracking().SingleAsync(item => item.Id == payment.Id)).Status);
+
+        await LoginAsync(_client, AdminEmail);
+        var complete = await _client.PutAsJsonAsync($"/api/admin/refunds/{refund.Id}/status", new { status = "completed", transactionCode = "REF-001" });
+        Assert.Equal(HttpStatusCode.OK, complete.StatusCode);
+        Assert.Equal("refunded", (await dbContext.Payments.AsNoTracking().SingleAsync(item => item.Id == payment.Id)).Status);
+        Assert.Equal("completed", (await dbContext.Refunds.AsNoTracking().SingleAsync(item => item.Id == refund.Id)).Status);
+        Assert.Equal(1, await dbContext.Refunds.CountAsync(item => item.OrderId == orderId && item.Type == "order_cancel"));
+    }
+
+    [Fact]
+    public async Task DepositSettlement_RequiresReturnedPaidOrderAndKeepsPaymentPaid()
+    {
+        var seed = await SeedCatalogAsync(ownerEmail: LenderEmail, stock: 1);
+        await LoginAsync(_client, CustomerEmail);
+        await AddCartItemAsync(_client, seed.VariantId);
+        var checkout = await _client.PostAsJsonAsync("/api/orders/checkout", CheckoutPayload());
+        var orderId = await FirstOrderIdAsync(checkout);
+
+        using var scope = _factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<DoRentMeDbContext>();
+        var payment = await dbContext.Payments.SingleAsync(item => item.OrderId == orderId);
+        var deposit = (await dbContext.Orders.SingleAsync(item => item.Id == orderId)).TotalDeposit;
+
+        await LoginAsync(_client, AdminEmail);
+        Assert.Equal(HttpStatusCode.BadRequest, (await _client.PostAsJsonAsync($"/api/admin/orders/{orderId}/deposit-settlement", new { refundAmount = deposit })).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await _client.PutAsJsonAsync($"/api/admin/payments/{payment.Id}/status", new { status = "paid" })).StatusCode);
+        foreach (var status in new[] { "shipping", "delivered", "return_requested", "return_processing", "returned" })
+        {
+            Assert.Equal(HttpStatusCode.OK, (await _client.PutAsJsonAsync($"/api/orders/{orderId}/status", new { status })).StatusCode);
+        }
+
+        var partialWithoutReason = await _client.PostAsJsonAsync($"/api/admin/orders/{orderId}/deposit-settlement", new { refundAmount = deposit - 1 });
+        var tooLarge = await _client.PostAsJsonAsync($"/api/admin/orders/{orderId}/deposit-settlement", new { refundAmount = deposit + 1, reason = "Invalid" });
+        Assert.Equal(HttpStatusCode.BadRequest, partialWithoutReason.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, tooLarge.StatusCode);
+
+        var created = await _client.PostAsJsonAsync($"/api/admin/orders/{orderId}/deposit-settlement", new { refundAmount = deposit - 20000, reason = "Minor damage deduction" });
+        Assert.Equal(HttpStatusCode.Created, created.StatusCode);
+        using var createdJson = await ReadJsonAsync(created);
+        var refundId = createdJson.RootElement.GetProperty("data").GetProperty("id").GetInt32();
+        Assert.Equal("pending", createdJson.RootElement.GetProperty("data").GetProperty("status").GetString());
+
+        var duplicate = await _client.PostAsJsonAsync($"/api/admin/orders/{orderId}/deposit-settlement", new { refundAmount = deposit, reason = "Second attempt" });
+        Assert.Equal(HttpStatusCode.Conflict, duplicate.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await _client.PutAsJsonAsync($"/api/admin/refunds/{refundId}/status", new { status = "completed", transactionCode = "DEP-001" })).StatusCode);
+        Assert.Equal("paid", (await dbContext.Payments.AsNoTracking().SingleAsync(item => item.Id == payment.Id)).Status);
+        Assert.Equal(1, await dbContext.Refunds.CountAsync(item => item.OrderId == orderId && item.Type == "deposit"));
+    }
+
+    [Fact]
+    public async Task RefundAccess_IsScopedForCustomersAndAdminOnlyForMutations()
+    {
+        var seed = await SeedCatalogAsync(ownerEmail: LenderEmail, stock: 1);
+        await LoginAsync(_client, CustomerEmail);
+        await AddCartItemAsync(_client, seed.VariantId);
+        var checkout = await _client.PostAsJsonAsync("/api/orders/checkout", CheckoutPayload());
+        var orderId = await FirstOrderIdAsync(checkout);
+
+        var own = await _client.GetAsync($"/api/orders/{orderId}/refunds");
+        Assert.Equal(HttpStatusCode.OK, own.StatusCode);
+        var otherClient = _factory.CreateClient();
+        await LoginAsync(otherClient, OtherCustomerEmail);
+        Assert.Equal(HttpStatusCode.NotFound, (await otherClient.GetAsync($"/api/orders/{orderId}/refunds")).StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, (await _client.PostAsJsonAsync($"/api/admin/orders/{orderId}/deposit-settlement", new { refundAmount = 0, reason = "Attempt" })).StatusCode);
+        otherClient.Dispose();
     }
 
     [Fact]

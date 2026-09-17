@@ -31,3 +31,19 @@ export async function updateAdminPaymentStatus(paymentId, status, transactionCod
   });
   return response.data?.data;
 }
+
+export async function fetchAdminRefunds(filters = {}) {
+  const params = Object.fromEntries(Object.entries(filters).filter(([, value]) => value !== undefined && value !== null && value !== ''));
+  const response = await api.get('/api/admin/refunds', { params });
+  return response.data?.data || [];
+}
+
+export async function createDepositSettlement(orderId, refundAmount, reason) {
+  const response = await api.post(`/api/admin/orders/${encodeURIComponent(orderId)}/deposit-settlement`, { refundAmount, reason: reason?.trim() || null });
+  return response.data?.data;
+}
+
+export async function updateAdminRefundStatus(refundId, status, transactionCode) {
+  const response = await api.put(`/api/admin/refunds/${encodeURIComponent(refundId)}/status`, { status, transactionCode: transactionCode?.trim() || null });
+  return response.data?.data;
+}
