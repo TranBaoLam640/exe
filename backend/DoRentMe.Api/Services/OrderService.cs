@@ -34,10 +34,12 @@ public class OrderService : IOrderService
         };
 
     private readonly DoRentMeDbContext _dbContext;
+    private readonly IPaymentService _paymentService;
 
-    public OrderService(DoRentMeDbContext dbContext)
+    public OrderService(DoRentMeDbContext dbContext, IPaymentService paymentService)
     {
         _dbContext = dbContext;
+        _paymentService = paymentService;
     }
 
     public async Task<CheckoutResponse> CheckoutAsync(
@@ -409,6 +411,8 @@ public class OrderService : IOrderService
 
         foreach (var order in createdOrders)
         {
+            await _paymentService.CreatePendingPaymentAsync(order, cancellationToken);
+
             _dbContext.OrderStatusHistory.Add(new OrderStatusHistory
             {
                 OrderId = order.Id,
@@ -685,6 +689,8 @@ public class OrderService : IOrderService
 
         if (newStatus == CancelledOrderStatus)
         {
+            await _paymentService.CancelPendingPaymentAsync(order.Id, cancellationToken);
+
             var orderItemIds = await _dbContext.OrderItems
                 .Where(item => item.OrderId == order.Id)
                 .Select(item => item.Id)

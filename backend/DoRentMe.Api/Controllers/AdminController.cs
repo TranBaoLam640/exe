@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using DoRentMe.Api.Common.Responses;
+using DoRentMe.Api.Contracts.Payment;
 using DoRentMe.Api.Contracts.Order;
 using DoRentMe.Api.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -12,10 +13,12 @@ namespace DoRentMe.Api.Controllers;
 public class AdminController : ApiControllerBase
 {
     private readonly IOrderService _orderService;
+    private readonly IPaymentService _paymentService;
 
-    public AdminController(IOrderService orderService)
+    public AdminController(IOrderService orderService, IPaymentService paymentService)
     {
         _orderService = orderService;
+        _paymentService = paymentService;
     }
 
     [HttpGet("session")]
@@ -49,5 +52,23 @@ public class AdminController : ApiControllerBase
     {
         var order = await _orderService.GetAdminOrderAsync(id, cancellationToken);
         return Success(order);
+    }
+
+    [HttpGet("orders/{orderId:int}/payment")]
+    public async Task<IActionResult> GetOrderPayment(int orderId, CancellationToken cancellationToken)
+    {
+        var payment = await _paymentService.GetAdminPaymentAsync(orderId, cancellationToken);
+        return Success(payment);
+    }
+
+    [HttpPut("payments/{paymentId:int}/status")]
+    public async Task<IActionResult> UpdatePaymentStatus(
+        int paymentId,
+        [FromBody] PaymentStatusUpdateRequest request,
+        CancellationToken cancellationToken)
+    {
+        var adminUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        var payment = await _paymentService.UpdateStatusAsync(adminUserId, paymentId, request, cancellationToken);
+        return Success(payment);
     }
 }

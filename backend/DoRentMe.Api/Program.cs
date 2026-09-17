@@ -71,6 +71,7 @@ builder.Services.AddScoped<IInventoryService, InventoryService>();
 builder.Services.AddScoped<IShopService, ShopService>();
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddApiControllers();
 builder.Services.AddOpenApiDocumentation();
 builder.Services.AddFrontendCors(builder.Configuration);

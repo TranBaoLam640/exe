@@ -43,6 +43,12 @@ public static class ErrorCodes
     public const string InvalidOrderStatusTransition = "INVALID_ORDER_STATUS_TRANSITION";
     public const string RentalInventoryConflict = "RENTAL_INVENTORY_CONFLICT";
 
+    // Payment specific
+    public const string PaymentNotFound = "PAYMENT_NOT_FOUND";
+    public const string PaymentAlreadyExists = "PAYMENT_ALREADY_EXISTS";
+    public const string InvalidPaymentStatus = "INVALID_PAYMENT_STATUS";
+    public const string InvalidPaymentTransition = "INVALID_PAYMENT_TRANSITION";
+
     // Inventory specific
     public const string InventoryItemNotFound = "INVENTORY_ITEM_NOT_FOUND";
     public const string DuplicateAssetCode = "DUPLICATE_ASSET_CODE";

@@ -18,3 +18,16 @@ export async function fetchAdminOrder(id) {
   const response = await api.get(`/api/admin/orders/${encodeURIComponent(id)}`);
   return mapBackendOrder(response.data?.data);
 }
+
+export async function fetchAdminPayment(orderId) {
+  const response = await api.get(`/api/admin/orders/${encodeURIComponent(orderId)}/payment`);
+  return response.data?.data;
+}
+
+export async function updateAdminPaymentStatus(paymentId, status, transactionCode) {
+  const response = await api.put(`/api/admin/payments/${encodeURIComponent(paymentId)}/status`, {
+    status,
+    transactionCode: transactionCode?.trim() || null,
+  });
+  return response.data?.data;
+}

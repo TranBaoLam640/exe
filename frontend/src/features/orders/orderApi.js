@@ -39,6 +39,11 @@ export async function updateBackendOrderStatus(id, status, note) {
   return mapBackendOrder(response.data?.data);
 }
 
+export async function fetchCustomerPayment(orderId) {
+  const response = await api.get(`/api/orders/${encodeURIComponent(orderId)}/payment`);
+  return response.data?.data;
+}
+
 export function mapBackendOrder(order) {
   if (!order) return null;
 

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { imageUrl } from '../assets/imageUrl.js';
-import { fetchAdminOrder, fetchAdminOrders, fetchAdminSession } from '../features/admin/adminService.js';
+import { fetchAdminOrder, fetchAdminOrders, fetchAdminPayment, fetchAdminSession, updateAdminPaymentStatus } from '../features/admin/adminService.js';
 import { clearSession } from '../features/auth/authService.js';
 import { formatVnd } from '../features/cart/cartService.js';
 import { formatOrderDate, STATUS_LABELS } from '../features/orders/orderCreation.js';
@@ -22,12 +22,17 @@ const NEXT_STATUSES = {
 
 function statusLabel(status) { return STATUS_LABELS[status] || status; }
 
-function OrderDetail({ order, onClose, onUpdated }) {
+function OrderDetail({ order, payment, onClose, onUpdated, onPaymentUpdated }) {
   const [status, setStatus] = useState(order.status);
   const [note, setNote] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [paymentStatus, setPaymentStatus] = useState(payment?.status || 'pending');
+  const [transactionCode, setTransactionCode] = useState(payment?.transactionCode || '');
+  const [paymentSaving, setPaymentSaving] = useState(false);
+  const [paymentError, setPaymentError] = useState('');
   const nextStatuses = NEXT_STATUSES[order.status] || [];
+  const paymentTransitions = payment?.status === 'pending' ? ['paid', 'failed', 'cancelled'] : [];
 
   async function saveStatus(event) {
     event.preventDefault();
@@ -43,6 +48,22 @@ function OrderDetail({ order, onClose, onUpdated }) {
     }
   }
 
+  async function savePaymentStatus(event) {
+    event.preventDefault();
+    if (!payment || paymentStatus === payment.status) return;
+    if (paymentStatus === 'paid' && !window.confirm('Xac nhan da nhan duoc chuyen khoan cho don hang nay?')) return;
+    setPaymentSaving(true);
+    setPaymentError('');
+    try {
+      const updated = await updateAdminPaymentStatus(payment.id, paymentStatus, transactionCode);
+      onPaymentUpdated(updated);
+    } catch (requestError) {
+      setPaymentError(getApiErrorMessage(requestError, 'Unable to update payment status.'));
+    } finally {
+      setPaymentSaving(false);
+    }
+  }
+
   return (
     <div className="admin-modal-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
       <section aria-labelledby="admin-order-detail-title" className="admin-modal" role="dialog">
@@ -53,6 +74,16 @@ function OrderDetail({ order, onClose, onUpdated }) {
           <div><span>Rental period</span><strong>{order.startDate || '-'} - {order.endDate || '-'}</strong><small>Created {formatOrderDate(order.createdAt)}</small></div>
           <div><span>Totals</span><strong>{formatVnd(order.totals?.total)}</strong><small>Deposit {formatVnd(order.totals?.deposit)}</small></div>
         </div>
+        {payment ? <>
+          <h3>Payment</h3>
+          <div className="admin-detail-grid">
+            <div><span>Status</span><strong>{payment.status}</strong><small>{payment.method}</small></div>
+            <div><span>Amounts</span><strong>{formatVnd(payment.amount)}</strong><small>Rent {formatVnd(payment.rentalAmount)} / Deposit {formatVnd(payment.depositAmount)} / Discount {formatVnd(payment.discountAmount)}</small></div>
+            <div><span>Bank transfer</span><strong>{payment.bankName || '-'}</strong><small>{payment.bankAccountNo || '-'} / {payment.bankAccountName || '-'}</small></div>
+            <div><span>Transfer content</span><strong>{payment.transferContent || '-'}</strong><small>{payment.paidAt ? `Paid ${formatOrderDate(payment.paidAt)}` : 'Not paid'}</small></div>
+          </div>
+          {paymentTransitions.length > 0 ? <form className="admin-detail-status" onSubmit={savePaymentStatus}><label htmlFor="admin-payment-status">Update payment</label><div className="admin-status-form"><select id="admin-payment-status" onChange={(event) => setPaymentStatus(event.target.value)} value={paymentStatus}><option value={payment.status}>{payment.status}</option>{paymentTransitions.map((next) => <option key={next} value={next}>{next}</option>)}</select><input maxLength={100} onChange={(event) => setTransactionCode(event.target.value)} placeholder="Transaction code (optional)" value={transactionCode} /><button className="admin-primary-button" disabled={paymentSaving || paymentStatus === payment.status} type="submit">{paymentSaving ? 'Saving...' : 'Save payment'}</button></div>{paymentError ? <div className="admin-error-message">{paymentError}</div> : null}</form> : <div className="admin-muted">Payment is final for V1. Refund workflow is not available.</div>}
+        </> : <div className="admin-muted">Payment record is not available for this order.</div>}
         <h3>Items</h3>
         <div className="admin-detail-items">{(order.items || []).map((item) => <div className="admin-detail-item" key={item.id}><img alt="" onError={(event) => event.currentTarget.removeAttribute('src')} src={imageUrl(item.image)} /><div><strong>{item.name}</strong><span>{item.size} / {item.color} · Qty {item.qty}</span><small>{item.rentalStartDate} - {item.rentalEndDate} · {item.rentalDays} days</small></div><b>{formatVnd(item.lineSubtotal)}</b></div>)}</div>
         <div className="admin-detail-status"><div><span>Current status</span><strong className={`admin-status-pill ${order.status}`}>{statusLabel(order.status)}</strong>{order.status === 'returned' ? <small className="admin-lifecycle-note">Return completed. Inventory items are awaiting cleaning.</small> : null}</div>{nextStatuses.length > 0 ? <form onSubmit={saveStatus}><label htmlFor="admin-next-status">Update status</label><div className="admin-status-form"><select id="admin-next-status" onChange={(event) => setStatus(event.target.value)} value={status}><option value={order.status}>{statusLabel(order.status)}</option>{nextStatuses.map((next) => <option key={next} value={next}>{statusLabel(next)}</option>)}</select><button className="admin-primary-button" disabled={saving || status === order.status} type="submit">{saving ? 'Saving...' : 'Save'}</button></div><textarea maxLength={500} onChange={(event) => setNote(event.target.value)} placeholder="Optional note" value={note} />{error ? <div className="admin-error-message">{error}</div> : null}</form> : <span className="admin-muted">No further status transition is available.</span>}</div>
@@ -71,6 +102,7 @@ export default function AdminPage() {
   const [error, setError] = useState('');
   const [selectedId, setSelectedId] = useState(null);
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [selectedPayment, setSelectedPayment] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
 
   async function loadOrders(nextFilters = filters) {
@@ -81,11 +113,12 @@ export default function AdminPage() {
   useEffect(() => { fetchAdminSession().catch((requestError) => { if (requestError?.response?.status === 401) clearSession(); }); loadOrders().catch(() => {}); }, []);
 
   async function openDetail(id) {
-    setSelectedId(id); setDetailLoading(true); setSelectedOrder(null);
-    try { setSelectedOrder(await fetchAdminOrder(id)); } catch (requestError) { setError(getApiErrorMessage(requestError, 'Unable to load order detail.')); setSelectedId(null); } finally { setDetailLoading(false); }
+    setSelectedId(id); setDetailLoading(true); setSelectedOrder(null); setSelectedPayment(null);
+    try { const [order, payment] = await Promise.all([fetchAdminOrder(id), fetchAdminPayment(id)]); setSelectedOrder(order); setSelectedPayment(payment); } catch (requestError) { setError(getApiErrorMessage(requestError, 'Unable to load order detail.')); setSelectedId(null); } finally { setDetailLoading(false); }
   }
 
   async function refreshAfterUpdate(updated) { setSelectedOrder(updated); await loadOrders(); }
+  function refreshPayment(updated) { setSelectedPayment(updated); }
 
   function changeFilter(name, value) { const next = { ...filters, [name]: value }; setFilters(next); loadOrders(next).catch(() => {}); }
 
@@ -98,7 +131,7 @@ export default function AdminPage() {
         {error ? <div className="admin-error-message">{error}</div> : null}
         {loading ? <div className="admin-empty">Loading orders...</div> : orders.length === 0 ? <div className="admin-empty">No database orders match these filters.</div> : <div className="admin-orders-table-wrap"><table className="admin-orders-table"><thead><tr><th>Order</th><th>Customer</th><th>Shop</th><th>Items</th><th>Rental period</th><th>Total</th><th>Status</th><th /></tr></thead><tbody>{orders.map((order) => <tr key={order.id}><td><strong>{order.orderCode}</strong><small>{formatOrderDate(order.createdAt)}</small></td><td><strong>{order.customerName}</strong><small>{order.customerEmail || '-'}</small></td><td>{order.shopName || '-'}</td><td>{order.itemCount}</td><td>{order.startDate} - {order.endDate}</td><td>{formatVnd(order.total)}</td><td><span className={`admin-status-pill ${order.status}`}>{statusLabel(order.status)}</span></td><td><button className="admin-secondary-button" onClick={() => openDetail(order.id)} type="button">View</button></td></tr>)}</tbody></table></div>}
       </main>
-      {selectedId ? (detailLoading ? <div className="admin-modal-backdrop"><section className="admin-modal admin-empty">Loading order detail...</section></div> : selectedOrder ? <OrderDetail onClose={() => { setSelectedId(null); setSelectedOrder(null); }} onUpdated={refreshAfterUpdate} order={selectedOrder} /> : null) : null}
+      {selectedId ? (detailLoading ? <div className="admin-modal-backdrop"><section className="admin-modal admin-empty">Loading order detail...</section></div> : selectedOrder ? <OrderDetail onClose={() => { setSelectedId(null); setSelectedOrder(null); setSelectedPayment(null); }} onPaymentUpdated={refreshPayment} onUpdated={refreshAfterUpdate} order={selectedOrder} payment={selectedPayment} /> : null) : null}
     </div>
   );
 }

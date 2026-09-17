@@ -675,7 +675,7 @@ public class DoRentMeDbContext : DbContext
         modelBuilder.Entity<OrderItem>().HasIndex(x => x.ProductVariantId);
         modelBuilder.Entity<OrderItem>().HasIndex(x => new { x.ProductVariantId, x.RentalStartDate, x.RentalEndDate });
 
-        modelBuilder.Entity<Payment>().HasIndex(x => x.OrderId);
+        modelBuilder.Entity<Payment>().HasIndex(x => x.OrderId).IsUnique();
         modelBuilder.Entity<Payment>().HasIndex(x => x.Status);
         modelBuilder.Entity<Payment>().HasIndex(x => x.TransactionCode);
 

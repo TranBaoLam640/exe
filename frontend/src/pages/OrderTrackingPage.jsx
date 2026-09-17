@@ -2,6 +2,7 @@ import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { imageUrl } from '../assets/imageUrl.js';
 import { getSession } from '../features/auth/authService.js';
 import { formatVnd, parsePrice } from '../features/cart/cartService.js';
+import { fetchCustomerPayment } from '../features/orders/orderApi.js';
 import {
   confirmDelivery,
   formatOrderDate,
@@ -96,8 +97,20 @@ export default function OrderTrackingPage() {
   const effectiveOrderId = orderId ? decodeURIComponent(orderId) : searchParams.get('id');
   const session = getSession();
   const backendOrder = useOrderById(effectiveOrderId);
+  const [payment, setPayment] = useState(null);
   useOrders();
   const order = session ? backendOrder.order : effectiveOrderId ? getOrderById(effectiveOrderId) : null;
+  useEffect(() => {
+    let active = true;
+    if (!session?.token || !effectiveOrderId) {
+      setPayment(null);
+      return () => { active = false; };
+    }
+    fetchCustomerPayment(effectiveOrderId)
+      .then((result) => { if (active) setPayment(result); })
+      .catch(() => { if (active) setPayment(null); });
+    return () => { active = false; };
+  }, [effectiveOrderId, session?.token]);
   useDocumentTitle(order ? `Theo Dõi Đơn ${order.id} | DoRentMe` : 'Theo Dõi Đơn Hàng | DoRentMe');
 
   if (backendOrder.loading) {
@@ -143,6 +156,28 @@ export default function OrderTrackingPage() {
       <section className="tracking-card">
         <div className="tracking-order-code">Mã đơn: {order.id} · Đặt lúc {formatOrderDate(order.createdAt)}</div>
       </section>
+
+      {payment ? (
+        <section className="tracking-card">
+          <h3>Thanh toan</h3>
+          <div className="tracking-info-line">Trang thai: <b>{payment.status}</b></div>
+          <div className="tracking-info-line">Tien thue: <b>{formatVnd(payment.rentalAmount)}</b></div>
+          <div className="tracking-info-line">Tien coc: <b>{formatVnd(payment.depositAmount)}</b></div>
+          <div className="tracking-info-line total">Tong thanh toan: <b>{formatVnd(payment.amount)}</b></div>
+          {payment.status === 'pending' && payment.bankAccountNo ? (
+            <div className="tracking-payment-instructions">
+              <div>Phuong thuc: <b>{payment.method}</b></div>
+              <div>Ngan hang: <b>{payment.bankName || '-'}</b></div>
+              <div>So tai khoan: <b>{payment.bankAccountNo}</b></div>
+              <div>Chu tai khoan: <b>{payment.bankAccountName || '-'}</b></div>
+              <div>Noi dung chuyen khoan: <b>{payment.transferContent || '-'}</b></div>
+              <small>Payment chi duoc cap nhat thanh da thanh toan sau khi Admin xac nhan giao dich.</small>
+            </div>
+          ) : null}
+          {payment.transactionCode ? <div className="tracking-info-line">Ma giao dich: <b>{payment.transactionCode}</b></div> : null}
+          {payment.paidAt ? <div className="tracking-info-line">Da thanh toan luc: <b>{formatOrderDate(payment.paidAt)}</b></div> : null}
+        </section>
+      ) : null}
 
       <section className="tracking-card">
         <h3>Trạng thái đơn hàng</h3>
