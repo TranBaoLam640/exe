@@ -4579,6 +4579,7 @@ a {
 .admin-primary-button:disabled { cursor: not-allowed; opacity: 0.5; }
 .admin-error-message { padding: 11px 13px; margin: 12px 0; color: #ffb1c7; font-size: 0.8rem; background: #351a25; border: 1px solid rgba(255, 130, 166, 0.25); }
 .admin-muted { color: #829188; font-size: 0.78rem; }
+.admin-lifecycle-note { display: block; margin-top: 6px; color: #e8c840; font-size: 0.72rem; }
 
 .admin-modal-backdrop {
   position: fixed;

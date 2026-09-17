@@ -681,6 +681,8 @@ public class OrderService : IOrderService
             CreatedAt = DateTime.UtcNow
         });
 
+        await SynchronizeRentalLifecycleAsync(order.Id, newStatus, cancellationToken);
+
         if (newStatus == CancelledOrderStatus)
         {
             var orderItemIds = await _dbContext.OrderItems
@@ -795,6 +797,57 @@ public class OrderService : IOrderService
     {
         return StatusTransitions.TryGetValue(currentStatus, out var nextStatuses)
             && nextStatuses.Contains(nextStatus, StringComparer.OrdinalIgnoreCase);
+    }
+
+    private async Task SynchronizeRentalLifecycleAsync(
+        int orderId,
+        string newOrderStatus,
+        CancellationToken cancellationToken)
+    {
+        var reservations = await _dbContext.RentalReservations
+            .Include(reservation => reservation.ProductInventoryItem)
+            .Where(reservation => reservation.OrderItem.OrderId == orderId)
+            .ToListAsync(cancellationToken);
+
+        if (newOrderStatus == "delivered")
+        {
+            foreach (var reservation in reservations)
+            {
+                if (reservation.Status == ReservedReservationStatus)
+                {
+                    reservation.Status = "ACTIVE";
+                    reservation.UpdatedAt = DateTime.UtcNow;
+                }
+
+                if (CanUpdateOperationalStatus(reservation.ProductInventoryItem.Status))
+                {
+                    reservation.ProductInventoryItem.Status = "RENTED";
+                    reservation.ProductInventoryItem.UpdatedAt = DateTime.UtcNow;
+                }
+            }
+        }
+        else if (newOrderStatus == "returned")
+        {
+            foreach (var reservation in reservations)
+            {
+                if (reservation.Status == "ACTIVE" || reservation.Status == ReservedReservationStatus)
+                {
+                    reservation.Status = "COMPLETED";
+                    reservation.UpdatedAt = DateTime.UtcNow;
+                }
+
+                if (CanUpdateOperationalStatus(reservation.ProductInventoryItem.Status))
+                {
+                    reservation.ProductInventoryItem.Status = "CLEANING";
+                    reservation.ProductInventoryItem.UpdatedAt = DateTime.UtcNow;
+                }
+            }
+        }
+    }
+
+    private static bool CanUpdateOperationalStatus(string status)
+    {
+        return status is "AVAILABLE" or "RESERVED" or "RENTED" or "CLEANING";
     }
 
     private static string NormalizeStatus(string status)

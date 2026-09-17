@@ -235,6 +235,101 @@ public class OrderApiTests : IDisposable
     }
 
     [Fact]
+    public async Task RentalLifecycle_SynchronizesReservationAndInventoryThroughCleaning()
+    {
+        var seed = await SeedCatalogAsync(ownerEmail: LenderEmail, stock: 2);
+        await LoginAsync(_client, CustomerEmail);
+        await AddCartItemAsync(_client, seed.VariantId, quantity: 2);
+        var checkout = await _client.PostAsJsonAsync("/api/orders/checkout", CheckoutPayload());
+        var orderId = await FirstOrderIdAsync(checkout);
+
+        await LoginAsync(_client, AdminEmail);
+        Assert.Equal(HttpStatusCode.OK, (await _client.PutAsJsonAsync($"/api/orders/{orderId}/status", new { status = "shipping" })).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await _client.PutAsJsonAsync($"/api/orders/{orderId}/status", new { status = "delivered" })).StatusCode);
+
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<DoRentMeDbContext>();
+            Assert.All(await dbContext.RentalReservations.ToListAsync(), reservation => Assert.Equal("ACTIVE", reservation.Status));
+            Assert.All(await dbContext.ProductInventoryItems.ToListAsync(), item => Assert.Equal("RENTED", item.Status));
+        }
+
+        var unavailable = await _client.GetAsync($"/api/products/{seed.ProductId}/availability?startDate=2026-09-10&endDate=2026-09-11");
+        using (var unavailableJson = await ReadJsonAsync(unavailable))
+        {
+            Assert.Equal(0, unavailableJson.RootElement.GetProperty("data").GetProperty("variants")[0].GetProperty("availableInventory").GetInt32());
+        }
+
+        Assert.Equal(HttpStatusCode.OK, (await _client.PutAsJsonAsync($"/api/orders/{orderId}/status", new { status = "return_requested" })).StatusCode);
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<DoRentMeDbContext>();
+            Assert.All(await dbContext.RentalReservations.ToListAsync(), reservation => Assert.Equal("ACTIVE", reservation.Status));
+            Assert.All(await dbContext.ProductInventoryItems.ToListAsync(), item => Assert.Equal("RENTED", item.Status));
+        }
+
+        Assert.Equal(HttpStatusCode.OK, (await _client.PutAsJsonAsync($"/api/orders/{orderId}/status", new { status = "return_processing" })).StatusCode);
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<DoRentMeDbContext>();
+            Assert.All(await dbContext.RentalReservations.ToListAsync(), reservation => Assert.Equal("ACTIVE", reservation.Status));
+            Assert.All(await dbContext.ProductInventoryItems.ToListAsync(), item => Assert.Equal("RENTED", item.Status));
+        }
+
+        Assert.Equal(HttpStatusCode.OK, (await _client.PutAsJsonAsync($"/api/orders/{orderId}/status", new { status = "returned" })).StatusCode);
+
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<DoRentMeDbContext>();
+            Assert.All(await dbContext.RentalReservations.ToListAsync(), reservation => Assert.Equal("COMPLETED", reservation.Status));
+            Assert.All(await dbContext.ProductInventoryItems.ToListAsync(), item => Assert.Equal("CLEANING", item.Status));
+            Assert.Equal(6, await dbContext.OrderStatusHistory.CountAsync(h => h.OrderId == orderId));
+        }
+
+        var stillUnavailable = await _client.GetAsync($"/api/products/{seed.ProductId}/availability?startDate=2026-09-10&endDate=2026-09-11");
+        using (var stillUnavailableJson = await ReadJsonAsync(stillUnavailable))
+        {
+            Assert.Equal(0, stillUnavailableJson.RootElement.GetProperty("data").GetProperty("variants")[0].GetProperty("availableInventory").GetInt32());
+        }
+
+        foreach (var inventoryItemId in seed.InventoryItemIds)
+        {
+            var available = await _client.PutAsJsonAsync($"/api/inventory/{inventoryItemId}/status", new { status = "AVAILABLE" });
+            Assert.Equal(HttpStatusCode.OK, available.StatusCode);
+        }
+        var availableAgain = await _client.GetAsync($"/api/products/{seed.ProductId}/availability?startDate=2026-09-10&endDate=2026-09-11");
+        using var availableJson = await ReadJsonAsync(availableAgain);
+        Assert.Equal(2, availableJson.RootElement.GetProperty("data").GetProperty("variants")[0].GetProperty("availableInventory").GetInt32());
+    }
+
+    [Fact]
+    public async Task RentalLifecycle_DoesNotOverwriteProtectedInventoryStates()
+    {
+        var seed = await SeedCatalogAsync(ownerEmail: LenderEmail, stock: 1);
+        await LoginAsync(_client, CustomerEmail);
+        await AddCartItemAsync(_client, seed.VariantId);
+        var checkout = await _client.PostAsJsonAsync("/api/orders/checkout", CheckoutPayload());
+        var orderId = await FirstOrderIdAsync(checkout);
+
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<DoRentMeDbContext>();
+            var inventory = await dbContext.ProductInventoryItems.SingleAsync();
+            inventory.Status = "MAINTENANCE";
+            await dbContext.SaveChangesAsync();
+        }
+
+        await LoginAsync(_client, AdminEmail);
+        await _client.PutAsJsonAsync($"/api/orders/{orderId}/status", new { status = "shipping" });
+        var delivered = await _client.PutAsJsonAsync($"/api/orders/{orderId}/status", new { status = "delivered" });
+        Assert.Equal(HttpStatusCode.OK, delivered.StatusCode);
+
+        using var finalScope = _factory.Services.CreateScope();
+        var finalDbContext = finalScope.ServiceProvider.GetRequiredService<DoRentMeDbContext>();
+        Assert.Equal("MAINTENANCE", (await finalDbContext.ProductInventoryItems.SingleAsync()).Status);
+    }
+
+    [Fact]
     public async Task Checkout_ConsumesVoucherOnlyOnSuccess()
     {
         var seed = await SeedCatalogAsync(ownerEmail: LenderEmail, stock: 1);
