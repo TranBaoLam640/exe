@@ -197,6 +197,44 @@ public class OrderApiTests : IDisposable
     }
 
     [Fact]
+    public async Task AdminOrders_ListAndDetailAreAdminOnlyAndSupportFilters()
+    {
+        var seed = await SeedCatalogAsync(ownerEmail: LenderEmail, stock: 1);
+        await LoginAsync(_client, CustomerEmail);
+        await AddCartItemAsync(_client, seed.VariantId);
+        var checkout = await _client.PostAsJsonAsync("/api/orders/checkout", CheckoutPayload());
+        var orderId = await FirstOrderIdAsync(checkout);
+
+        var customerResponse = await _client.GetAsync("/api/admin/orders");
+        Assert.Equal(HttpStatusCode.Forbidden, customerResponse.StatusCode);
+
+        await LoginAsync(_client, AdminEmail);
+        var list = await _client.GetAsync("/api/admin/orders?status=pending_confirmation");
+        Assert.Equal(HttpStatusCode.OK, list.StatusCode);
+        using var listJson = await ReadJsonAsync(list);
+        var result = listJson.RootElement.GetProperty("data").EnumerateArray().Single();
+        Assert.Equal(orderId, result.GetProperty("id").GetInt32());
+        Assert.False(string.IsNullOrWhiteSpace(result.GetProperty("customerName").GetString()));
+        Assert.Equal(1, result.GetProperty("itemCount").GetInt32());
+
+        var detail = await _client.GetAsync($"/api/admin/orders/{orderId}");
+        Assert.Equal(HttpStatusCode.OK, detail.StatusCode);
+        using var detailJson = await ReadJsonAsync(detail);
+        Assert.Equal(orderId, detailJson.RootElement.GetProperty("data").GetProperty("id").GetInt32());
+        Assert.True(detailJson.RootElement.GetProperty("data").GetProperty("history").GetArrayLength() >= 1);
+    }
+
+    [Fact]
+    public async Task AdminOrders_MissingDetailReturnsNotFound()
+    {
+        await LoginAsync(_client, AdminEmail);
+
+        var response = await _client.GetAsync("/api/admin/orders/999999");
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
     public async Task Checkout_ConsumesVoucherOnlyOnSuccess()
     {
         var seed = await SeedCatalogAsync(ownerEmail: LenderEmail, stock: 1);

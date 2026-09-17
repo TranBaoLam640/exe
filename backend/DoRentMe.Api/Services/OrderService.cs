@@ -205,6 +205,84 @@ public class OrderService : IOrderService
         return MapOrder(await OrdersForResponse().FirstAsync(o => o.Id == order.Id, cancellationToken));
     }
 
+    public async Task<IReadOnlyList<AdminOrderListItemResponse>> GetAdminOrdersAsync(
+        AdminOrderFilters filters,
+        CancellationToken cancellationToken = default)
+    {
+        var query = _dbContext.Orders
+            .AsNoTracking()
+            .Include(order => order.Shop)
+            .Include(order => order.Items)
+            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(filters.Status))
+        {
+            var status = filters.Status.Trim().ToLowerInvariant();
+            query = query.Where(order => order.Status == status);
+        }
+
+        if (filters.ShopId.HasValue)
+        {
+            query = query.Where(order => order.ShopId == filters.ShopId.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(filters.Search))
+        {
+            var search = filters.Search.Trim();
+            query = query.Where(order => order.OrderCode.Contains(search)
+                || order.CustomerName.Contains(search)
+                || (order.CustomerEmail != null && order.CustomerEmail.Contains(search)));
+        }
+
+        if (filters.CreatedFrom.HasValue)
+        {
+            var from = filters.CreatedFrom.Value.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
+            query = query.Where(order => order.CreatedAt >= from);
+        }
+
+        if (filters.CreatedTo.HasValue)
+        {
+            var toExclusive = filters.CreatedTo.Value.AddDays(1).ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
+            query = query.Where(order => order.CreatedAt < toExclusive);
+        }
+
+        return await query
+            .OrderByDescending(order => order.CreatedAt)
+            .ThenByDescending(order => order.Id)
+            .Select(order => new AdminOrderListItemResponse
+            {
+                Id = order.Id,
+                OrderCode = order.OrderCode,
+                ShopId = order.ShopId,
+                ShopName = order.Shop == null ? null : order.Shop.Name,
+                Status = order.Status,
+                CustomerName = order.CustomerName,
+                CustomerEmail = order.CustomerEmail,
+                Total = order.TotalRent + order.TotalDeposit - order.TotalDiscount,
+                Deposit = order.TotalDeposit,
+                StartDate = order.StartDate,
+                EndDate = order.EndDate,
+                ItemCount = order.Items.Count,
+                CreatedAt = order.CreatedAt
+            })
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<OrderResponse> GetAdminOrderAsync(
+        int orderId,
+        CancellationToken cancellationToken = default)
+    {
+        var order = await OrdersForResponse()
+            .FirstOrDefaultAsync(order => order.Id == orderId, cancellationToken);
+
+        if (order == null)
+        {
+            throw NotFound(ErrorCodes.OrderNotFound, "Order not found.");
+        }
+
+        return MapOrder(order);
+    }
+
     private async Task<CheckoutResponse> CheckoutCoreAsync(
         int userId,
         CheckoutRequest request,

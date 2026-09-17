@@ -29,4 +29,12 @@ public interface IOrderService
         int orderId,
         OrderStatusUpdateRequest request,
         CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<AdminOrderListItemResponse>> GetAdminOrdersAsync(
+        AdminOrderFilters filters,
+        CancellationToken cancellationToken = default);
+
+    Task<OrderResponse> GetAdminOrderAsync(
+        int orderId,
+        CancellationToken cancellationToken = default);
 }
