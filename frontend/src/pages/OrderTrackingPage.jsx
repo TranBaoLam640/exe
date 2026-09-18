@@ -2,7 +2,7 @@ import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { imageUrl } from '../assets/imageUrl.js';
 import { getSession } from '../features/auth/authService.js';
 import { formatVnd, parsePrice } from '../features/cart/cartService.js';
-import { fetchCustomerInspections, fetchCustomerPayment, fetchCustomerRefunds } from '../features/orders/orderApi.js';
+import { createPayOsPayment, fetchCustomerInspections, fetchCustomerPayment, fetchCustomerPaymentTransactions, fetchCustomerRefunds } from '../features/orders/orderApi.js';
 import {
   confirmDelivery,
   formatOrderDate,
@@ -100,6 +100,9 @@ export default function OrderTrackingPage() {
   const [payment, setPayment] = useState(null);
   const [refunds, setRefunds] = useState([]);
   const [inspections, setInspections] = useState([]);
+  const [transactions, setTransactions] = useState([]);
+  const [payOsLoading, setPayOsLoading] = useState(false);
+  const [payOsError, setPayOsError] = useState('');
   useOrders();
   const order = session ? backendOrder.order : effectiveOrderId ? getOrderById(effectiveOrderId) : null;
   useEffect(() => {
@@ -108,13 +111,27 @@ export default function OrderTrackingPage() {
       setPayment(null);
       setRefunds([]);
       setInspections([]);
+      setTransactions([]);
       return () => { active = false; };
     }
-    Promise.all([fetchCustomerPayment(effectiveOrderId), fetchCustomerRefunds(effectiveOrderId), fetchCustomerInspections(effectiveOrderId)])
-      .then(([paymentResult, refundResult, inspectionResult]) => { if (active) { setPayment(paymentResult); setRefunds(refundResult); setInspections(inspectionResult); } })
-      .catch(() => { if (active) { setPayment(null); setRefunds([]); setInspections([]); } });
+    Promise.all([fetchCustomerPayment(effectiveOrderId), fetchCustomerRefunds(effectiveOrderId), fetchCustomerInspections(effectiveOrderId), fetchCustomerPaymentTransactions(effectiveOrderId)])
+      .then(([paymentResult, refundResult, inspectionResult, transactionResult]) => { if (active) { setPayment(paymentResult); setRefunds(refundResult); setInspections(inspectionResult); setTransactions(transactionResult); } })
+      .catch(() => { if (active) { setPayment(null); setRefunds([]); setInspections([]); setTransactions([]); } });
     return () => { active = false; };
   }, [effectiveOrderId, session?.token]);
+
+  async function startPayOsPayment() {
+    setPayOsLoading(true);
+    setPayOsError('');
+    try {
+      const result = await createPayOsPayment(effectiveOrderId);
+      if (!result?.checkoutUrl) throw new Error('Missing checkout URL');
+      window.location.assign(result.checkoutUrl);
+    } catch (requestError) {
+      setPayOsError(requestError?.response?.data?.message || 'Không thể tạo thanh toán PayOS.');
+      setPayOsLoading(false);
+    }
+  }
   useDocumentTitle(order ? `Theo Dõi Đơn ${order.id} | DoRentMe` : 'Theo Dõi Đơn Hàng | DoRentMe');
 
   if (backendOrder.loading) {
@@ -178,6 +195,10 @@ export default function OrderTrackingPage() {
               <small>Payment chi duoc cap nhat thanh da thanh toan sau khi Admin xac nhan giao dich.</small>
             </div>
           ) : null}
+          {payment.status === 'pending' && payment.method === 'payos' ? <button className="btn-confirm-pay" disabled={payOsLoading} onClick={startPayOsPayment} type="button">{payOsLoading ? 'Đang mở PayOS...' : 'Thanh toán bằng PayOS'}</button> : null}
+          {payment.status === 'pending' && payment.method === 'bank_transfer' ? <button className="btn-confirm-pay" disabled={payOsLoading} onClick={startPayOsPayment} type="button">{payOsLoading ? 'Đang mở PayOS...' : 'Thanh toán online bằng PayOS'}</button> : null}
+          {payOsError ? <div className="checkout-error" style={{ display: 'block' }}>{payOsError}</div> : null}
+          {transactions.length > 0 ? <div className="tracking-payment-instructions"><div>Giao dịch gần nhất: <b>{transactions[0].status}</b></div></div> : null}
           {payment.transactionCode ? <div className="tracking-info-line">Ma giao dich: <b>{payment.transactionCode}</b></div> : null}
           {payment.paidAt ? <div className="tracking-info-line">Da thanh toan luc: <b>{formatOrderDate(payment.paidAt)}</b></div> : null}
         </section>

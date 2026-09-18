@@ -48,6 +48,13 @@ public static class ErrorCodes
     public const string PaymentAlreadyExists = "PAYMENT_ALREADY_EXISTS";
     public const string InvalidPaymentStatus = "INVALID_PAYMENT_STATUS";
     public const string InvalidPaymentTransition = "INVALID_PAYMENT_TRANSITION";
+    public const string PaymentNotEligible = "PAYMENT_NOT_ELIGIBLE";
+    public const string ActivePaymentTransactionExists = "ACTIVE_PAYMENT_TRANSACTION_EXISTS";
+    public const string PaymentTransactionNotFound = "PAYMENT_TRANSACTION_NOT_FOUND";
+    public const string PayOsConfigurationMissing = "PAYOS_CONFIGURATION_MISSING";
+    public const string PayOsCreatePaymentFailed = "PAYOS_CREATE_PAYMENT_FAILED";
+    public const string PayOsInvalidWebhook = "PAYOS_INVALID_WEBHOOK";
+    public const string PaymentAmountMismatch = "PAYMENT_AMOUNT_MISMATCH";
 
     // Refund specific
     public const string RefundNotFound = "REFUND_NOT_FOUND";

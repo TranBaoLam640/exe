@@ -15,13 +15,15 @@ public class AdminController : ApiControllerBase
 {
     private readonly IOrderService _orderService;
     private readonly IPaymentService _paymentService;
+    private readonly IPaymentTransactionService _transactionService;
     private readonly IRefundService _refundService;
 
-    public AdminController(IOrderService orderService, IPaymentService paymentService, IRefundService refundService)
+    public AdminController(IOrderService orderService, IPaymentService paymentService, IRefundService refundService, IPaymentTransactionService transactionService)
     {
         _orderService = orderService;
         _paymentService = paymentService;
         _refundService = refundService;
+        _transactionService = transactionService;
     }
 
     [HttpGet("session")]
@@ -73,6 +75,18 @@ public class AdminController : ApiControllerBase
         var adminUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
         var payment = await _paymentService.UpdateStatusAsync(adminUserId, paymentId, request, cancellationToken);
         return Success(payment);
+    }
+
+    [HttpGet("payments/{paymentId:int}/transactions")]
+    public async Task<IActionResult> GetPaymentTransactions(int paymentId, CancellationToken cancellationToken)
+    {
+        return Success(await _transactionService.GetAdminTransactionsAsync(paymentId, cancellationToken));
+    }
+
+    [HttpGet("payment-transactions/{transactionId:int}")]
+    public async Task<IActionResult> GetPaymentTransaction(int transactionId, CancellationToken cancellationToken)
+    {
+        return Success(await _transactionService.GetAdminTransactionAsync(transactionId, cancellationToken));
     }
 
     [HttpGet("refunds")]

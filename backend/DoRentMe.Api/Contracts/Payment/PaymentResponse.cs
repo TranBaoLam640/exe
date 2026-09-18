@@ -19,4 +19,5 @@ public class PaymentResponse
     public DateTime? PaidAt { get; set; }
     public DateTime? ConfirmedAt { get; set; }
     public DateTime CreatedAt { get; set; }
+    public PaymentTransactionResponse? LatestTransaction { get; set; }
 }

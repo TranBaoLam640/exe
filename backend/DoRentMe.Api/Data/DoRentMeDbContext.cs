@@ -27,6 +27,7 @@ public class DoRentMeDbContext : DbContext
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
     public DbSet<RentalReservation> RentalReservations => Set<RentalReservation>();
     public DbSet<Payment> Payments => Set<Payment>();
+    public DbSet<PaymentTransaction> PaymentTransactions => Set<PaymentTransaction>();
     public DbSet<Shipment> Shipments => Set<Shipment>();
     public DbSet<ShipmentTrackingEvent> ShipmentTrackingEvents => Set<ShipmentTrackingEvent>();
     public DbSet<OrderStatusHistory> OrderStatusHistory => Set<OrderStatusHistory>();
@@ -445,6 +446,23 @@ public class DoRentMeDbContext : DbContext
             entity.HasOne(x => x.CreatedByUser).WithMany().HasForeignKey(x => x.CreatedByUserId).OnDelete(DeleteBehavior.Restrict);
         });
 
+        modelBuilder.Entity<PaymentTransaction>(entity =>
+        {
+            entity.ToTable("PaymentTransactions", table =>
+            {
+                table.HasCheckConstraint("CK_PaymentTransactions_Amount", "`Amount` >= 0");
+                table.HasCheckConstraint("CK_PaymentTransactions_Status", "`Status` IN ('pending','paid','failed','cancelled','expired')");
+            });
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Provider).HasMaxLength(50).IsRequired();
+            entity.Property(x => x.ProviderTransactionId).HasMaxLength(150);
+            entity.Property(x => x.Status).HasMaxLength(50).IsRequired();
+            entity.Property(x => x.Amount).HasPrecision(18, 2);
+            entity.Property(x => x.CheckoutUrl).HasMaxLength(1000);
+            entity.Property(x => x.QrCode).HasMaxLength(2000);
+            entity.HasOne(x => x.Payment).WithMany(x => x.Transactions).HasForeignKey(x => x.PaymentId).OnDelete(DeleteBehavior.Restrict);
+        });
+
         modelBuilder.Entity<Refund>(entity =>
         {
             entity.ToTable("Refunds", table =>
@@ -696,6 +714,10 @@ public class DoRentMeDbContext : DbContext
         modelBuilder.Entity<Payment>().HasIndex(x => x.OrderId).IsUnique();
         modelBuilder.Entity<Payment>().HasIndex(x => x.Status);
         modelBuilder.Entity<Payment>().HasIndex(x => x.TransactionCode);
+        modelBuilder.Entity<PaymentTransaction>().HasIndex(x => x.PaymentId);
+        modelBuilder.Entity<PaymentTransaction>().HasIndex(x => x.ProviderOrderCode).IsUnique();
+        modelBuilder.Entity<PaymentTransaction>().HasIndex(x => x.ProviderTransactionId).IsUnique();
+        modelBuilder.Entity<PaymentTransaction>().HasIndex(x => x.Status);
 
         modelBuilder.Entity<Shipment>().HasIndex(x => x.ShopId);
         modelBuilder.Entity<Shipment>().HasIndex(x => x.OrderId);

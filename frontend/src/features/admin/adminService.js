@@ -24,6 +24,11 @@ export async function fetchAdminPayment(orderId) {
   return response.data?.data;
 }
 
+export async function fetchAdminPaymentTransactions(paymentId) {
+  const response = await api.get(`/api/admin/payments/${encodeURIComponent(paymentId)}/transactions`);
+  return response.data?.data || [];
+}
+
 export async function updateAdminPaymentStatus(paymentId, status, transactionCode) {
   const response = await api.put(`/api/admin/payments/${encodeURIComponent(paymentId)}/status`, {
     status,

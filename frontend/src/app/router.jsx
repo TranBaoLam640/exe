@@ -17,6 +17,7 @@ import NewsPage from '../pages/NewsPage.jsx';
 import NotFoundPage from '../pages/NotFoundPage.jsx';
 import OrdersPage from '../pages/OrdersPage.jsx';
 import OrderTrackingPage from '../pages/OrderTrackingPage.jsx';
+import PayOsReturnPage from '../pages/PayOsReturnPage.jsx';
 import ProductDetailPage from '../pages/ProductDetailPage.jsx';
 import RegisterPage from '../pages/RegisterPage.jsx';
 import RouteErrorPage from '../pages/RouteErrorPage.jsx';
@@ -126,6 +127,14 @@ export const router = createBrowserRouter([
       {
         path: 'orders/:orderId',
         element: <OrderTrackingPage />,
+      },
+      {
+        path: 'payment/payos/return',
+        element: <PayOsReturnPage />,
+      },
+      {
+        path: 'payment/payos/cancel',
+        element: <PayOsReturnPage />,
       },
       {
         path: 'product',

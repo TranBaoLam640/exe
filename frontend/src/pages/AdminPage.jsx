@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { imageUrl } from '../assets/imageUrl.js';
-import { createDepositSettlement, createInspection, fetchAdminOrder, fetchAdminOrders, fetchAdminPayment, fetchAdminRefunds, fetchAdminSession, fetchInspectionAssets, fetchInspectionSummary, updateAdminPaymentStatus, updateAdminRefundStatus, updateInspection } from '../features/admin/adminService.js';
+import { createDepositSettlement, createInspection, fetchAdminOrder, fetchAdminOrders, fetchAdminPayment, fetchAdminPaymentTransactions, fetchAdminRefunds, fetchAdminSession, fetchInspectionAssets, fetchInspectionSummary, updateAdminPaymentStatus, updateAdminRefundStatus, updateInspection } from '../features/admin/adminService.js';
 import { clearSession } from '../features/auth/authService.js';
 import { formatVnd } from '../features/cart/cartService.js';
 import { formatOrderDate, STATUS_LABELS } from '../features/orders/orderCreation.js';
@@ -22,7 +22,7 @@ const NEXT_STATUSES = {
 
 function statusLabel(status) { return STATUS_LABELS[status] || status; }
 
-function OrderDetail({ order, payment, refunds, inspectionAssets, inspectionSummary, onClose, onUpdated, onPaymentUpdated, onRefundsUpdated, onInspectionUpdated }) {
+function OrderDetail({ order, payment, transactions, refunds, inspectionAssets, inspectionSummary, onClose, onUpdated, onPaymentUpdated, onRefundsUpdated, onInspectionUpdated }) {
   const [status, setStatus] = useState(order.status);
   const [note, setNote] = useState('');
   const [saving, setSaving] = useState(false);
@@ -43,7 +43,7 @@ function OrderDetail({ order, payment, refunds, inspectionAssets, inspectionSumm
   const [inspectionSaving, setInspectionSaving] = useState(false);
   const [inspectionError, setInspectionError] = useState('');
   const nextStatuses = NEXT_STATUSES[order.status] || [];
-  const paymentTransitions = payment?.status === 'pending' ? ['paid', 'failed', 'cancelled'] : [];
+  const paymentTransitions = payment?.status === 'pending' && payment?.method !== 'payos' ? ['paid', 'failed', 'cancelled'] : [];
 
   async function saveStatus(event) {
     event.preventDefault();
@@ -155,6 +155,7 @@ function OrderDetail({ order, payment, refunds, inspectionAssets, inspectionSumm
             <div><span>Transfer content</span><strong>{payment.transferContent || '-'}</strong><small>{payment.paidAt ? `Paid ${formatOrderDate(payment.paidAt)}` : 'Not paid'}</small></div>
           </div>
           {paymentTransitions.length > 0 ? <form className="admin-detail-status" onSubmit={savePaymentStatus}><label htmlFor="admin-payment-status">Update payment</label><div className="admin-status-form"><select id="admin-payment-status" onChange={(event) => setPaymentStatus(event.target.value)} value={paymentStatus}><option value={payment.status}>{payment.status}</option>{paymentTransitions.map((next) => <option key={next} value={next}>{next}</option>)}</select><input maxLength={100} onChange={(event) => setTransactionCode(event.target.value)} placeholder="Transaction code (optional)" value={transactionCode} /><button className="admin-primary-button" disabled={paymentSaving || paymentStatus === payment.status} type="submit">{paymentSaving ? 'Saving...' : 'Save payment'}</button></div>{paymentError ? <div className="admin-error-message">{paymentError}</div> : null}</form> : <div className="admin-muted">Payment is final for V1. Refund workflow is not available.</div>}
+          {transactions.length > 0 ? <div className="admin-history-list"><strong>PayOS transactions</strong>{transactions.map((transaction) => <div key={transaction.id}><span>#{transaction.id} {transaction.status} · {formatVnd(transaction.amount)}</span><small>{transaction.providerOrderCode} · {formatOrderDate(transaction.createdAt)}{transaction.paidAt ? ` · Paid ${formatOrderDate(transaction.paidAt)}` : ''}</small></div>)}</div> : null}
         </> : <div className="admin-muted">Payment record is not available for this order.</div>}
         <h3>Refunds</h3>
         {refunds.length > 0 ? refunds.map((refund) => <div className="admin-refund-row" key={refund.id}><div><strong>{refund.type}</strong><span>{formatVnd(refund.amount)} · {refund.status}</span>{refund.reason ? <small>{refund.reason}</small> : null}</div>{refund.status === 'pending' ? <div><button className="admin-secondary-button" onClick={() => processRefund(refund, 'processing')} type="button">Processing</button><button className="admin-primary-button" onClick={() => processRefund(refund, 'completed')} type="button">Mark completed</button><button className="admin-secondary-button" onClick={() => processRefund(refund, 'rejected')} type="button">Reject</button></div> : refund.status === 'processing' ? <div><button className="admin-primary-button" onClick={() => processRefund(refund, 'completed')} type="button">Mark completed</button><button className="admin-secondary-button" onClick={() => processRefund(refund, 'rejected')} type="button">Reject</button></div> : null}</div>) : <div className="admin-muted">No refunds recorded.</div>}
@@ -179,6 +180,7 @@ export default function AdminPage() {
   const [selectedId, setSelectedId] = useState(null);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [selectedPayment, setSelectedPayment] = useState(null);
+  const [selectedTransactions, setSelectedTransactions] = useState([]);
   const [selectedRefunds, setSelectedRefunds] = useState([]);
   const [selectedInspectionAssets, setSelectedInspectionAssets] = useState([]);
   const [selectedInspectionSummary, setSelectedInspectionSummary] = useState(null);
@@ -192,8 +194,8 @@ export default function AdminPage() {
   useEffect(() => { fetchAdminSession().catch((requestError) => { if (requestError?.response?.status === 401) clearSession(); }); loadOrders().catch(() => {}); }, []);
 
   async function openDetail(id) {
-    setSelectedId(id); setDetailLoading(true); setSelectedOrder(null); setSelectedPayment(null); setSelectedRefunds([]); setSelectedInspectionAssets([]); setSelectedInspectionSummary(null);
-    try { const [order, payment, refunds, inspectionAssets, inspectionSummary] = await Promise.all([fetchAdminOrder(id), fetchAdminPayment(id), fetchAdminRefunds({ orderId: id }), fetchInspectionAssets(id), fetchInspectionSummary(id)]); setSelectedOrder(order); setSelectedPayment(payment); setSelectedRefunds(refunds); setSelectedInspectionAssets(inspectionAssets); setSelectedInspectionSummary(inspectionSummary); } catch (requestError) { setError(getApiErrorMessage(requestError, 'Unable to load order detail.')); setSelectedId(null); } finally { setDetailLoading(false); }
+    setSelectedId(id); setDetailLoading(true); setSelectedOrder(null); setSelectedPayment(null); setSelectedTransactions([]); setSelectedRefunds([]); setSelectedInspectionAssets([]); setSelectedInspectionSummary(null);
+    try { const [order, payment, refunds, inspectionAssets, inspectionSummary] = await Promise.all([fetchAdminOrder(id), fetchAdminPayment(id), fetchAdminRefunds({ orderId: id }), fetchInspectionAssets(id), fetchInspectionSummary(id)]); const transactions = payment ? await fetchAdminPaymentTransactions(payment.id) : []; setSelectedOrder(order); setSelectedPayment(payment); setSelectedTransactions(transactions); setSelectedRefunds(refunds); setSelectedInspectionAssets(inspectionAssets); setSelectedInspectionSummary(inspectionSummary); } catch (requestError) { setError(getApiErrorMessage(requestError, 'Unable to load order detail.')); setSelectedId(null); } finally { setDetailLoading(false); }
   }
 
   async function refreshAfterUpdate(updated) {
@@ -201,13 +203,14 @@ export default function AdminPage() {
     if (selectedId) {
       const [payment, refunds, inspectionAssets, inspectionSummary] = await Promise.all([fetchAdminPayment(selectedId), fetchAdminRefunds({ orderId: selectedId }), fetchInspectionAssets(selectedId), fetchInspectionSummary(selectedId)]);
       setSelectedPayment(payment);
+      setSelectedTransactions(payment ? await fetchAdminPaymentTransactions(payment.id) : []);
       setSelectedRefunds(refunds);
       setSelectedInspectionAssets(inspectionAssets);
       setSelectedInspectionSummary(inspectionSummary);
     }
     await loadOrders();
   }
-  function refreshPayment(updated) { setSelectedPayment(updated); }
+  function refreshPayment(updated) { setSelectedPayment(updated); fetchAdminPaymentTransactions(updated.id).then(setSelectedTransactions).catch(() => {}); }
   async function refreshInspection(updated) { setSelectedInspectionAssets((assets) => assets.map((asset) => asset.productInventoryItemId === updated.productInventoryItemId ? { ...asset, inspection: updated, operationalStatus: asset.operationalStatus } : asset)); setSelectedInspectionSummary(await fetchInspectionSummary(selectedId)); }
 
   function changeFilter(name, value) { const next = { ...filters, [name]: value }; setFilters(next); loadOrders(next).catch(() => {}); }
@@ -221,7 +224,7 @@ export default function AdminPage() {
         {error ? <div className="admin-error-message">{error}</div> : null}
         {loading ? <div className="admin-empty">Loading orders...</div> : orders.length === 0 ? <div className="admin-empty">No database orders match these filters.</div> : <div className="admin-orders-table-wrap"><table className="admin-orders-table"><thead><tr><th>Order</th><th>Customer</th><th>Shop</th><th>Items</th><th>Rental period</th><th>Total</th><th>Status</th><th /></tr></thead><tbody>{orders.map((order) => <tr key={order.id}><td><strong>{order.orderCode}</strong><small>{formatOrderDate(order.createdAt)}</small></td><td><strong>{order.customerName}</strong><small>{order.customerEmail || '-'}</small></td><td>{order.shopName || '-'}</td><td>{order.itemCount}</td><td>{order.startDate} - {order.endDate}</td><td>{formatVnd(order.total)}</td><td><span className={`admin-status-pill ${order.status}`}>{statusLabel(order.status)}</span></td><td><button className="admin-secondary-button" onClick={() => openDetail(order.id)} type="button">View</button></td></tr>)}</tbody></table></div>}
       </main>
-      {selectedId ? (detailLoading ? <div className="admin-modal-backdrop"><section className="admin-modal admin-empty">Loading order detail...</section></div> : selectedOrder ? <OrderDetail inspectionAssets={selectedInspectionAssets} inspectionSummary={selectedInspectionSummary} onClose={() => { setSelectedId(null); setSelectedOrder(null); setSelectedPayment(null); setSelectedRefunds([]); setSelectedInspectionAssets([]); setSelectedInspectionSummary(null); }} onInspectionUpdated={refreshInspection} onPaymentUpdated={refreshPayment} onRefundsUpdated={setSelectedRefunds} onUpdated={refreshAfterUpdate} order={selectedOrder} payment={selectedPayment} refunds={selectedRefunds} /> : null) : null}
+      {selectedId ? (detailLoading ? <div className="admin-modal-backdrop"><section className="admin-modal admin-empty">Loading order detail...</section></div> : selectedOrder ? <OrderDetail inspectionAssets={selectedInspectionAssets} inspectionSummary={selectedInspectionSummary} onClose={() => { setSelectedId(null); setSelectedOrder(null); setSelectedPayment(null); setSelectedTransactions([]); setSelectedRefunds([]); setSelectedInspectionAssets([]); setSelectedInspectionSummary(null); }} onInspectionUpdated={refreshInspection} onPaymentUpdated={refreshPayment} onRefundsUpdated={setSelectedRefunds} onUpdated={refreshAfterUpdate} order={selectedOrder} payment={selectedPayment} refunds={selectedRefunds} transactions={selectedTransactions} /> : null) : null}
     </div>
   );
 }

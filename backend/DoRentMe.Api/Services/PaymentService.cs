@@ -92,7 +92,7 @@ public class PaymentService : IPaymentService
             throw NotFound(ErrorCodes.PaymentNotFound, "Payment not found.");
         }
 
-        if (payment.Status != "pending" || targetStatus == "pending")
+        if (payment.Status != "pending" || targetStatus == "pending" || (payment.Method == "payos" && targetStatus == "paid"))
         {
             throw Conflict(ErrorCodes.InvalidPaymentTransition, "Payment status transition is not allowed.");
         }
@@ -119,6 +119,14 @@ public class PaymentService : IPaymentService
         if (payment?.Status == "pending")
         {
             payment.Status = "cancelled";
+            var transactions = await _dbContext.PaymentTransactions
+                .Where(item => item.PaymentId == payment.Id && item.Status == "pending")
+                .ToListAsync(cancellationToken);
+            foreach (var transaction in transactions)
+            {
+                transaction.Status = "cancelled";
+                transaction.UpdatedAt = DateTime.UtcNow;
+            }
         }
     }
 
@@ -126,7 +134,8 @@ public class PaymentService : IPaymentService
     {
         return _dbContext.Payments
             .AsNoTracking()
-            .Include(payment => payment.Order);
+            .Include(payment => payment.Order)
+            .Include(payment => payment.Transactions);
     }
 
     private static PaymentResponse MapPayment(Payment payment)
@@ -150,6 +159,22 @@ public class PaymentService : IPaymentService
             PaidAt = payment.PaidAt,
             ConfirmedAt = payment.ConfirmedAt,
             CreatedAt = payment.CreatedAt
+            ,LatestTransaction = payment.Transactions.OrderByDescending(item => item.CreatedAt).Select(item => new PaymentTransactionResponse
+            {
+                Id = item.Id,
+                PaymentId = item.PaymentId,
+                Provider = item.Provider,
+                ProviderOrderCode = item.ProviderOrderCode,
+                ProviderTransactionId = item.ProviderTransactionId,
+                Amount = item.Amount,
+                Status = item.Status,
+                CheckoutUrl = item.CheckoutUrl,
+                QrCode = item.QrCode,
+                CreatedAt = item.CreatedAt,
+                UpdatedAt = item.UpdatedAt,
+                PaidAt = item.PaidAt,
+                ExpiredAt = item.ExpiredAt
+            }).FirstOrDefault()
         };
     }
 

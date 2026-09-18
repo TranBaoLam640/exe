@@ -44,6 +44,16 @@ export async function fetchCustomerPayment(orderId) {
   return response.data?.data;
 }
 
+export async function createPayOsPayment(orderId) {
+  const response = await api.post(`/api/orders/${encodeURIComponent(orderId)}/payment/payos`, {});
+  return response.data?.data;
+}
+
+export async function fetchCustomerPaymentTransactions(orderId) {
+  const response = await api.get(`/api/orders/${encodeURIComponent(orderId)}/payment/transactions`);
+  return response.data?.data || [];
+}
+
 export async function fetchCustomerRefunds(orderId) {
   const response = await api.get(`/api/orders/${encodeURIComponent(orderId)}/refunds`);
   return response.data?.data || [];

@@ -3,6 +3,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using DoRentMe.Api.Data;
+using DoRentMe.Api.Contracts.Payment;
 using DoRentMe.Api.Models;
 using DoRentMe.Api.Tests.Infrastructure;
 using Microsoft.EntityFrameworkCore;
@@ -33,6 +34,47 @@ public class OrderApiTests : IDisposable
     {
         _client.Dispose();
         _factory.Dispose();
+    }
+
+    [Fact]
+    public async Task PayOsPayment_UsesServerAmountAndVerifiedWebhookMarksPaymentPaidIdempotently()
+    {
+        var seed = await SeedCatalogAsync(ownerEmail: LenderEmail, stock: 1);
+        await LoginAsync(_client, CustomerEmail);
+        await AddCartItemAsync(_client, seed.VariantId, quantity: 1, days: 1);
+        var checkout = await _client.PostAsJsonAsync("/api/orders/checkout", CheckoutPayload());
+        var orderId = await FirstOrderIdAsync(checkout);
+
+        var create = await _client.PostAsJsonAsync($"/api/orders/{orderId}/payment/payos", new { });
+        Assert.Equal(HttpStatusCode.Created, create.StatusCode);
+        using var createJson = await ReadJsonAsync(create);
+        var transaction = createJson.RootElement.GetProperty("data").GetProperty("transaction");
+        var providerOrderCode = transaction.GetProperty("providerOrderCode").GetInt64();
+        Assert.Equal("pending", transaction.GetProperty("status").GetString());
+        Assert.True(transaction.GetProperty("amount").GetDecimal() > 0);
+
+        var webhook = new PayOsWebhookRequest
+        {
+            Code = "00",
+            Description = "success",
+            Success = true,
+            Signature = "valid-test-signature",
+            Data = new PayOsWebhookData
+            {
+                OrderCode = providerOrderCode,
+                Amount = transaction.GetProperty("amount").GetDecimal(),
+                Reference = "reference-1",
+                PaymentLinkId = "link-1"
+            }
+        };
+        var firstWebhook = await _client.PostAsJsonAsync("/api/payments/payos/webhook", webhook);
+        var secondWebhook = await _client.PostAsJsonAsync("/api/payments/payos/webhook", webhook);
+        Assert.Equal(HttpStatusCode.OK, firstWebhook.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, secondWebhook.StatusCode);
+
+        var payment = await _client.GetAsync($"/api/orders/{orderId}/payment");
+        using var paymentJson = await ReadJsonAsync(payment);
+        Assert.Equal("paid", paymentJson.RootElement.GetProperty("data").GetProperty("status").GetString());
     }
 
     [Fact]

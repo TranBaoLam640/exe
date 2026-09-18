@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using DoRentMe.Api.Models;
 using Microsoft.Extensions.Logging;
+using DoRentMe.Api.Services;
 
 namespace DoRentMe.Api.Tests.Infrastructure;
 
@@ -24,11 +25,13 @@ public class CustomWebApplicationFactory
         {
             services.RemoveAll<DbContextOptions<DoRentMeDbContext>>();
             services.RemoveAll<DoRentMeDbContext>();
+            services.RemoveAll<IPaymentGateway>();
 
             services.AddDbContext<DoRentMeDbContext>(options =>
             {
                 options.UseInMemoryDatabase(_databaseName);
             });
+            services.AddSingleton<IPaymentGateway, FakePaymentGateway>();
 
             var serviceProvider = services.BuildServiceProvider();
 
