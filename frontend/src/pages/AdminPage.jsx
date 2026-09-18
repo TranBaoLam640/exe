@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { imageUrl } from '../assets/imageUrl.js';
-import { createAdminShipment, createDepositSettlement, createInspection, fetchAdminOrder, fetchAdminOrders, fetchAdminPayment, fetchAdminPaymentTransactions, fetchAdminRefunds, fetchAdminSession, fetchAdminShipment, fetchInspectionAssets, fetchInspectionSummary, updateAdminPaymentStatus, updateAdminRefundStatus, updateAdminShipmentStatus, updateInspection } from '../features/admin/adminService.js';
+import { createAdminReturnShipment, createAdminShipment, createDepositSettlement, createInspection, fetchAdminOrder, fetchAdminOrders, fetchAdminPayment, fetchAdminPaymentTransactions, fetchAdminRefunds, fetchAdminSession, fetchAdminShipments, fetchInspectionAssets, fetchInspectionSummary, updateAdminPaymentStatus, updateAdminRefundStatus, updateAdminShipmentStatus, updateInspection } from '../features/admin/adminService.js';
 import { clearSession } from '../features/auth/authService.js';
 import { formatVnd } from '../features/cart/cartService.js';
 import { formatOrderDate, STATUS_LABELS } from '../features/orders/orderCreation.js';
@@ -22,7 +22,7 @@ const NEXT_STATUSES = {
 
 function statusLabel(status) { return STATUS_LABELS[status] || status; }
 
-function OrderDetail({ order, payment, transactions, shipment, refunds, inspectionAssets, inspectionSummary, onClose, onUpdated, onPaymentUpdated, onShipmentUpdated, onRefundsUpdated, onInspectionUpdated }) {
+function OrderDetail({ order, payment, transactions, shipment, returnShipment, refunds, inspectionAssets, inspectionSummary, onClose, onUpdated, onPaymentUpdated, onShipmentUpdated, onReturnShipmentUpdated, onRefundsUpdated, onInspectionUpdated }) {
   const [status, setStatus] = useState(order.status);
   const [note, setNote] = useState('');
   const [saving, setSaving] = useState(false);
@@ -35,6 +35,12 @@ function OrderDetail({ order, payment, transactions, shipment, refunds, inspecti
   const [shipmentNote, setShipmentNote] = useState('');
   const [shipmentSaving, setShipmentSaving] = useState(false);
   const [shipmentError, setShipmentError] = useState('');
+  const [returnShipmentStatus, setReturnShipmentStatus] = useState(returnShipment?.status || 'pending');
+  const [returnShipmentProvider, setReturnShipmentProvider] = useState('manual');
+  const [returnShipmentTrackingCode, setReturnShipmentTrackingCode] = useState('');
+  const [returnShipmentNote, setReturnShipmentNote] = useState('');
+  const [returnShipmentSaving, setReturnShipmentSaving] = useState(false);
+  const [returnShipmentError, setReturnShipmentError] = useState('');
   const [shipmentProvider, setShipmentProvider] = useState('manual');
   const [shipmentTrackingCode, setShipmentTrackingCode] = useState('');
   const [refundAmount, setRefundAmount] = useState(String(payment?.depositAmount || order.totals?.deposit || 0));
@@ -51,6 +57,7 @@ function OrderDetail({ order, payment, transactions, shipment, refunds, inspecti
   const nextStatuses = NEXT_STATUSES[order.status] || [];
   const paymentTransitions = payment?.status === 'pending' && payment?.method !== 'payos' ? ['paid', 'failed', 'cancelled'] : [];
   const shipmentTransitions = { pending: ['created', 'cancelled'], created: ['assigned', 'picked_up', 'shipping', 'cancelled'], assigned: ['picked_up', 'shipping', 'cancelled'], picked_up: ['shipping', 'delivered'], shipping: ['delivered', 'failed'], failed: ['created', 'cancelled'] }[shipment?.status] || [];
+  const returnShipmentTransitions = { pending: ['picked_up', 'cancelled'], picked_up: ['returning', 'cancelled'], returning: ['returned', 'failed'], failed: ['picked_up', 'cancelled'] }[returnShipment?.status] || [];
 
   async function createShipment(event) {
     event.preventDefault(); setShipmentSaving(true); setShipmentError('');
@@ -61,6 +68,17 @@ function OrderDetail({ order, payment, transactions, shipment, refunds, inspecti
     event.preventDefault(); if (!shipment || shipmentStatus === shipment.status) return;
     setShipmentSaving(true); setShipmentError('');
     try { onShipmentUpdated(await updateAdminShipmentStatus(shipment.id, shipmentStatus, shipmentNote)); setShipmentNote(''); } catch (requestError) { setShipmentError(getApiErrorMessage(requestError, 'Unable to update shipment status.')); } finally { setShipmentSaving(false); }
+  }
+
+  async function createReturnShipment(event) {
+    event.preventDefault(); setReturnShipmentSaving(true); setReturnShipmentError('');
+    try { onReturnShipmentUpdated(await createAdminReturnShipment(order.id, { provider: returnShipmentProvider, trackingCode: returnShipmentTrackingCode })); } catch (requestError) { setReturnShipmentError(getApiErrorMessage(requestError, 'Unable to create return shipment.')); } finally { setReturnShipmentSaving(false); }
+  }
+
+  async function saveReturnShipmentStatus(event) {
+    event.preventDefault(); if (!returnShipment || returnShipmentStatus === returnShipment.status) return;
+    setReturnShipmentSaving(true); setReturnShipmentError('');
+    try { onReturnShipmentUpdated(await updateAdminShipmentStatus(returnShipment.id, returnShipmentStatus, returnShipmentNote)); setReturnShipmentNote(''); } catch (requestError) { setReturnShipmentError(getApiErrorMessage(requestError, 'Unable to update return shipment status.')); } finally { setReturnShipmentSaving(false); }
   }
 
   async function saveStatus(event) {
@@ -177,6 +195,8 @@ function OrderDetail({ order, payment, transactions, shipment, refunds, inspecti
         </> : <div className="admin-muted">Payment record is not available for this order.</div>}
         <h3>Shipment</h3>
         {shipment ? <div className="admin-detail-status"><div className="admin-detail-grid"><div><span>Status</span><strong>{shipment.status}</strong><small>{shipment.provider}</small></div><div><span>Tracking</span><strong>{shipment.trackingCode || '-'}</strong><small>{shipment.receiverName} · {shipment.receiverPhone}</small></div><div><span>Address</span><strong>{shipment.receiverAddress}</strong></div></div>{shipmentTransitions.length ? <form onSubmit={saveShipmentStatus}><label htmlFor="admin-shipment-status">Update shipment</label><div className="admin-status-form"><select id="admin-shipment-status" onChange={(event) => setShipmentStatus(event.target.value)} value={shipmentStatus}><option value={shipment.status}>{shipment.status}</option>{shipmentTransitions.map((next) => <option key={next} value={next}>{next}</option>)}</select><button className="admin-primary-button" disabled={shipmentSaving || shipmentStatus === shipment.status} type="submit">{shipmentSaving ? 'Saving...' : 'Save shipment'}</button></div><textarea maxLength={500} onChange={(event) => setShipmentNote(event.target.value)} placeholder="Tracking note" value={shipmentNote} />{shipmentError ? <div className="admin-error-message">{shipmentError}</div> : null}</form> : <div className="admin-muted">Shipment is terminal.</div>}{shipment.trackingEvents?.length ? <div className="admin-history-list">{shipment.trackingEvents.map((event) => <div key={event.id}><strong>{event.status}</strong><span>{event.message || 'Shipment update'}</span><small>{formatOrderDate(event.createdAt)}</small></div>)}</div> : null}</div> : order.status === 'pending_confirmation' ? <form className="admin-detail-status" onSubmit={createShipment}><div className="admin-status-form"><input maxLength={50} onChange={(event) => setShipmentProvider(event.target.value)} placeholder="Provider (manual)" value={shipmentProvider} /><input maxLength={100} onChange={(event) => setShipmentTrackingCode(event.target.value)} placeholder="Tracking code (optional)" value={shipmentTrackingCode} /><button className="admin-primary-button" disabled={shipmentSaving} type="submit">{shipmentSaving ? 'Creating...' : 'Create shipment'}</button></div>{shipmentError ? <div className="admin-error-message">{shipmentError}</div> : null}</form> : <div className="admin-muted">Shipment can be created before dispatch.</div>}
+        <h3>Return shipment</h3>
+        {returnShipment ? <div className="admin-detail-status"><div className="admin-detail-grid"><div><span>Status</span><strong>{returnShipment.status}</strong><small>{returnShipment.provider}</small></div><div><span>Tracking</span><strong>{returnShipment.trackingCode || '-'}</strong><small>{returnShipment.senderName} · {returnShipment.senderPhone}</small></div><div><span>Return address</span><strong>{returnShipment.receiverAddress}</strong></div></div>{returnShipmentTransitions.length ? <form onSubmit={saveReturnShipmentStatus}><label htmlFor="admin-return-shipment-status">Update return shipment</label><div className="admin-status-form"><select id="admin-return-shipment-status" onChange={(event) => setReturnShipmentStatus(event.target.value)} value={returnShipmentStatus}><option value={returnShipment.status}>{returnShipment.status}</option>{returnShipmentTransitions.map((next) => <option key={next} value={next}>{next}</option>)}</select><button className="admin-primary-button" disabled={returnShipmentSaving || returnShipmentStatus === returnShipment.status} type="submit">{returnShipmentSaving ? 'Saving...' : 'Save return shipment'}</button></div><textarea maxLength={500} onChange={(event) => setReturnShipmentNote(event.target.value)} placeholder="Return tracking note" value={returnShipmentNote} />{returnShipmentError ? <div className="admin-error-message">{returnShipmentError}</div> : null}</form> : <div className="admin-muted">Return shipment is terminal.</div>}{returnShipment.trackingEvents?.length ? <div className="admin-history-list">{returnShipment.trackingEvents.map((event) => <div key={event.id}><strong>{event.status}</strong><span>{event.message || 'Return shipment update'}</span><small>{formatOrderDate(event.createdAt)}</small></div>)}</div> : null}</div> : order.status === 'return_requested' ? <form className="admin-detail-status" onSubmit={createReturnShipment}><div className="admin-status-form"><input maxLength={50} onChange={(event) => setReturnShipmentProvider(event.target.value)} placeholder="Provider (manual)" value={returnShipmentProvider} /><input maxLength={100} onChange={(event) => setReturnShipmentTrackingCode(event.target.value)} placeholder="Tracking code (optional)" value={returnShipmentTrackingCode} /><button className="admin-primary-button" disabled={returnShipmentSaving} type="submit">{returnShipmentSaving ? 'Creating...' : 'Create return shipment'}</button></div>{returnShipmentError ? <div className="admin-error-message">{returnShipmentError}</div> : null}</form> : <div className="admin-muted">Return shipment is available after the customer requests a return.</div>}
         <h3>Refunds</h3>
         {refunds.length > 0 ? refunds.map((refund) => <div className="admin-refund-row" key={refund.id}><div><strong>{refund.type}</strong><span>{formatVnd(refund.amount)} · {refund.status}</span>{refund.reason ? <small>{refund.reason}</small> : null}</div>{refund.status === 'pending' ? <div><button className="admin-secondary-button" onClick={() => processRefund(refund, 'processing')} type="button">Processing</button><button className="admin-primary-button" onClick={() => processRefund(refund, 'completed')} type="button">Mark completed</button><button className="admin-secondary-button" onClick={() => processRefund(refund, 'rejected')} type="button">Reject</button></div> : refund.status === 'processing' ? <div><button className="admin-primary-button" onClick={() => processRefund(refund, 'completed')} type="button">Mark completed</button><button className="admin-secondary-button" onClick={() => processRefund(refund, 'rejected')} type="button">Reject</button></div> : null}</div>) : <div className="admin-muted">No refunds recorded.</div>}
         {order.status === 'returned' && payment?.status === 'paid' && !refunds.some((refund) => refund.type === 'deposit' && !['rejected', 'cancelled'].includes(refund.status)) ? <form className="admin-detail-status" onSubmit={settleDeposit}><label htmlFor="admin-refund-amount">Settle deposit</label><div className="admin-status-form"><input id="admin-refund-amount" min="0" onChange={(event) => setRefundAmount(event.target.value)} step="0.01" type="number" value={refundAmount} /><button className="admin-primary-button" disabled={refundSaving} type="submit">{refundSaving ? 'Saving...' : 'Create settlement'}</button></div><small>Original deposit: {formatVnd(payment.depositAmount)} · Deduction: {formatVnd(Math.max(0, Number(payment.depositAmount) - Number(refundAmount || 0)))}</small><textarea maxLength={500} onChange={(event) => setRefundReason(event.target.value)} placeholder="Reason required for a partial or zero refund" value={refundReason} />{refundError ? <div className="admin-error-message">{refundError}</div> : null}</form> : null}
@@ -201,6 +221,7 @@ export default function AdminPage() {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [selectedPayment, setSelectedPayment] = useState(null);
   const [selectedShipment, setSelectedShipment] = useState(null);
+  const [selectedReturnShipment, setSelectedReturnShipment] = useState(null);
   const [selectedTransactions, setSelectedTransactions] = useState([]);
   const [selectedRefunds, setSelectedRefunds] = useState([]);
   const [selectedInspectionAssets, setSelectedInspectionAssets] = useState([]);
@@ -215,8 +236,8 @@ export default function AdminPage() {
   useEffect(() => { fetchAdminSession().catch((requestError) => { if (requestError?.response?.status === 401) clearSession(); }); loadOrders().catch(() => {}); }, []);
 
   async function openDetail(id) {
-    setSelectedId(id); setDetailLoading(true); setSelectedOrder(null); setSelectedPayment(null); setSelectedShipment(null); setSelectedTransactions([]); setSelectedRefunds([]); setSelectedInspectionAssets([]); setSelectedInspectionSummary(null);
-    try { const [order, payment, refunds, inspectionAssets, inspectionSummary] = await Promise.all([fetchAdminOrder(id), fetchAdminPayment(id), fetchAdminRefunds({ orderId: id }), fetchInspectionAssets(id), fetchInspectionSummary(id)]); const transactions = payment ? await fetchAdminPaymentTransactions(payment.id) : []; const shipment = await fetchAdminShipment(id).catch(() => null); setSelectedOrder(order); setSelectedPayment(payment); setSelectedShipment(shipment); setSelectedTransactions(transactions); setSelectedRefunds(refunds); setSelectedInspectionAssets(inspectionAssets); setSelectedInspectionSummary(inspectionSummary); } catch (requestError) { setError(getApiErrorMessage(requestError, 'Unable to load order detail.')); setSelectedId(null); } finally { setDetailLoading(false); }
+    setSelectedId(id); setDetailLoading(true); setSelectedOrder(null); setSelectedPayment(null); setSelectedShipment(null); setSelectedReturnShipment(null); setSelectedTransactions([]); setSelectedRefunds([]); setSelectedInspectionAssets([]); setSelectedInspectionSummary(null);
+    try { const [order, payment, refunds, inspectionAssets, inspectionSummary] = await Promise.all([fetchAdminOrder(id), fetchAdminPayment(id), fetchAdminRefunds({ orderId: id }), fetchInspectionAssets(id), fetchInspectionSummary(id)]); const transactions = payment ? await fetchAdminPaymentTransactions(payment.id) : []; const shipments = await fetchAdminShipments(id).catch(() => []); setSelectedOrder(order); setSelectedPayment(payment); setSelectedShipment(shipments.find((item) => item.direction === 'outbound') || null); setSelectedReturnShipment(shipments.find((item) => item.direction === 'return') || null); setSelectedTransactions(transactions); setSelectedRefunds(refunds); setSelectedInspectionAssets(inspectionAssets); setSelectedInspectionSummary(inspectionSummary); } catch (requestError) { setError(getApiErrorMessage(requestError, 'Unable to load order detail.')); setSelectedId(null); } finally { setDetailLoading(false); }
   }
 
   async function refreshAfterUpdate(updated) {
@@ -224,7 +245,9 @@ export default function AdminPage() {
     if (selectedId) {
       const [payment, refunds, inspectionAssets, inspectionSummary] = await Promise.all([fetchAdminPayment(selectedId), fetchAdminRefunds({ orderId: selectedId }), fetchInspectionAssets(selectedId), fetchInspectionSummary(selectedId)]);
       setSelectedPayment(payment);
-      setSelectedShipment(await fetchAdminShipment(selectedId).catch(() => null));
+      const shipments = await fetchAdminShipments(selectedId).catch(() => []);
+      setSelectedShipment(shipments.find((item) => item.direction === 'outbound') || null);
+      setSelectedReturnShipment(shipments.find((item) => item.direction === 'return') || null);
       setSelectedTransactions(payment ? await fetchAdminPaymentTransactions(payment.id) : []);
       setSelectedRefunds(refunds);
       setSelectedInspectionAssets(inspectionAssets);
@@ -234,6 +257,7 @@ export default function AdminPage() {
   }
   function refreshPayment(updated) { setSelectedPayment(updated); fetchAdminPaymentTransactions(updated.id).then(setSelectedTransactions).catch(() => {}); }
   function refreshShipment(updated) { setSelectedShipment(updated); }
+  function refreshReturnShipment(updated) { setSelectedReturnShipment(updated); }
   async function refreshInspection(updated) { setSelectedInspectionAssets((assets) => assets.map((asset) => asset.productInventoryItemId === updated.productInventoryItemId ? { ...asset, inspection: updated, operationalStatus: asset.operationalStatus } : asset)); setSelectedInspectionSummary(await fetchInspectionSummary(selectedId)); }
 
   function changeFilter(name, value) { const next = { ...filters, [name]: value }; setFilters(next); loadOrders(next).catch(() => {}); }
@@ -247,7 +271,7 @@ export default function AdminPage() {
         {error ? <div className="admin-error-message">{error}</div> : null}
         {loading ? <div className="admin-empty">Loading orders...</div> : orders.length === 0 ? <div className="admin-empty">No database orders match these filters.</div> : <div className="admin-orders-table-wrap"><table className="admin-orders-table"><thead><tr><th>Order</th><th>Customer</th><th>Shop</th><th>Items</th><th>Rental period</th><th>Total</th><th>Status</th><th /></tr></thead><tbody>{orders.map((order) => <tr key={order.id}><td><strong>{order.orderCode}</strong><small>{formatOrderDate(order.createdAt)}</small></td><td><strong>{order.customerName}</strong><small>{order.customerEmail || '-'}</small></td><td>{order.shopName || '-'}</td><td>{order.itemCount}</td><td>{order.startDate} - {order.endDate}</td><td>{formatVnd(order.total)}</td><td><span className={`admin-status-pill ${order.status}`}>{statusLabel(order.status)}</span></td><td><button className="admin-secondary-button" onClick={() => openDetail(order.id)} type="button">View</button></td></tr>)}</tbody></table></div>}
       </main>
-      {selectedId ? (detailLoading ? <div className="admin-modal-backdrop"><section className="admin-modal admin-empty">Loading order detail...</section></div> : selectedOrder ? <OrderDetail inspectionAssets={selectedInspectionAssets} inspectionSummary={selectedInspectionSummary} onClose={() => { setSelectedId(null); setSelectedOrder(null); setSelectedPayment(null); setSelectedShipment(null); setSelectedTransactions([]); setSelectedRefunds([]); setSelectedInspectionAssets([]); setSelectedInspectionSummary(null); }} onInspectionUpdated={refreshInspection} onPaymentUpdated={refreshPayment} onShipmentUpdated={refreshShipment} onRefundsUpdated={setSelectedRefunds} onUpdated={refreshAfterUpdate} order={selectedOrder} payment={selectedPayment} refunds={selectedRefunds} shipment={selectedShipment} transactions={selectedTransactions} /> : null) : null}
+      {selectedId ? (detailLoading ? <div className="admin-modal-backdrop"><section className="admin-modal admin-empty">Loading order detail...</section></div> : selectedOrder ? <OrderDetail inspectionAssets={selectedInspectionAssets} inspectionSummary={selectedInspectionSummary} onClose={() => { setSelectedId(null); setSelectedOrder(null); setSelectedPayment(null); setSelectedShipment(null); setSelectedReturnShipment(null); setSelectedTransactions([]); setSelectedRefunds([]); setSelectedInspectionAssets([]); setSelectedInspectionSummary(null); }} onInspectionUpdated={refreshInspection} onPaymentUpdated={refreshPayment} onShipmentUpdated={refreshShipment} onReturnShipmentUpdated={refreshReturnShipment} onRefundsUpdated={setSelectedRefunds} onUpdated={refreshAfterUpdate} order={selectedOrder} payment={selectedPayment} refunds={selectedRefunds} returnShipment={selectedReturnShipment} shipment={selectedShipment} transactions={selectedTransactions} /> : null) : null}
     </div>
   );
 }

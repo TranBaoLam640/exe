@@ -59,6 +59,11 @@ export async function fetchCustomerShipment(orderId) {
   return response.data?.data;
 }
 
+export async function fetchCustomerShipments(orderId) {
+  const response = await api.get(`/api/orders/${encodeURIComponent(orderId)}/shipments`);
+  return response.data?.data || [];
+}
+
 export async function fetchCustomerRefunds(orderId) {
   const response = await api.get(`/api/orders/${encodeURIComponent(orderId)}/refunds`);
   return response.data?.data || [];

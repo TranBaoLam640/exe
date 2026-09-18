@@ -11,6 +11,9 @@ public class ShipmentResponse
     public string ServiceType { get; set; } = null!;
     public string Status { get; set; } = null!;
     public string? TrackingCode { get; set; }
+    public string SenderName { get; set; } = null!;
+    public string SenderPhone { get; set; } = null!;
+    public string SenderAddress { get; set; } = null!;
     public string ReceiverName { get; set; } = null!;
     public string ReceiverPhone { get; set; } = null!;
     public string ReceiverAddress { get; set; } = null!;

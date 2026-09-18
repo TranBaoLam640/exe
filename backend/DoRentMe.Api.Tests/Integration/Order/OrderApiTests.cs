@@ -109,6 +109,44 @@ public class OrderApiTests : IDisposable
     }
 
     [Fact]
+    public async Task ReturnShipmentLifecycle_SynchronizesReturnOrderAndPreservesOutboundShipment()
+    {
+        var seed = await SeedCatalogAsync(ownerEmail: LenderEmail, stock: 1);
+        await LoginAsync(_client, CustomerEmail);
+        await AddCartItemAsync(_client, seed.VariantId, quantity: 1, days: 1);
+        var checkout = await _client.PostAsJsonAsync("/api/orders/checkout", CheckoutPayload());
+        var orderId = await FirstOrderIdAsync(checkout);
+        await LoginAsync(_client, AdminEmail);
+
+        var outbound = await _client.PostAsJsonAsync($"/api/admin/orders/{orderId}/shipment", new { provider = "manual" });
+        using var outboundJson = await ReadJsonAsync(outbound);
+        var outboundId = outboundJson.RootElement.GetProperty("data").GetProperty("id").GetInt32();
+        Assert.Equal(HttpStatusCode.OK, (await _client.PutAsJsonAsync($"/api/admin/shipments/{outboundId}/status", new { status = "shipping" })).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await _client.PutAsJsonAsync($"/api/admin/shipments/{outboundId}/status", new { status = "delivered" })).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await _client.PutAsJsonAsync($"/api/orders/{orderId}/status", new { status = "return_requested" })).StatusCode);
+
+        var returnShipment = await _client.PostAsJsonAsync($"/api/admin/orders/{orderId}/return-shipment", new { provider = "manual", trackingCode = "RETURN-1" });
+        Assert.Equal(HttpStatusCode.Created, returnShipment.StatusCode);
+        using var returnJson = await ReadJsonAsync(returnShipment);
+        var returnId = returnJson.RootElement.GetProperty("data").GetProperty("id").GetInt32();
+        Assert.Equal("return", returnJson.RootElement.GetProperty("data").GetProperty("direction").GetString());
+        Assert.Equal(HttpStatusCode.OK, (await _client.PutAsJsonAsync($"/api/admin/shipments/{returnId}/status", new { status = "picked_up" })).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await _client.PutAsJsonAsync($"/api/admin/shipments/{returnId}/status", new { status = "returning" })).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await _client.PutAsJsonAsync($"/api/admin/shipments/{returnId}/status", new { status = "returned" })).StatusCode);
+
+        using var scope = _factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<DoRentMeDbContext>();
+        var order = await dbContext.Orders.SingleAsync(item => item.Id == orderId);
+        var reservation = await dbContext.RentalReservations.SingleAsync(item => item.OrderItem.OrderId == orderId);
+        var inventory = await dbContext.ProductInventoryItems.SingleAsync(item => item.Id == reservation.ProductInventoryItemId);
+        Assert.Equal("returned", order.Status);
+        Assert.Equal("COMPLETED", reservation.Status);
+        Assert.Equal("CLEANING", inventory.Status);
+        Assert.Equal(2, await dbContext.Shipments.CountAsync(item => item.OrderId == orderId));
+        Assert.True(await dbContext.ShipmentTrackingEvents.CountAsync(item => item.ShipmentId == returnId) >= 4);
+    }
+
+    [Fact]
     public async Task Checkout_RequiresAuthAndRejectsEmptyCart()
     {
         var unauthorized = await _client.PostAsJsonAsync("/api/orders/checkout", CheckoutPayload());

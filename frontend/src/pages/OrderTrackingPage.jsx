@@ -2,7 +2,7 @@ import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { imageUrl } from '../assets/imageUrl.js';
 import { getSession } from '../features/auth/authService.js';
 import { formatVnd, parsePrice } from '../features/cart/cartService.js';
-import { createPayOsPayment, fetchCustomerInspections, fetchCustomerPayment, fetchCustomerPaymentTransactions, fetchCustomerRefunds, fetchCustomerShipment } from '../features/orders/orderApi.js';
+import { createPayOsPayment, fetchCustomerInspections, fetchCustomerPayment, fetchCustomerPaymentTransactions, fetchCustomerRefunds, fetchCustomerShipments } from '../features/orders/orderApi.js';
 import {
   confirmDelivery,
   formatOrderDate,
@@ -101,7 +101,7 @@ export default function OrderTrackingPage() {
   const [refunds, setRefunds] = useState([]);
   const [inspections, setInspections] = useState([]);
   const [transactions, setTransactions] = useState([]);
-  const [shipment, setShipment] = useState(null);
+  const [shipments, setShipments] = useState([]);
   const [payOsLoading, setPayOsLoading] = useState(false);
   const [payOsError, setPayOsError] = useState('');
   useOrders();
@@ -113,12 +113,12 @@ export default function OrderTrackingPage() {
       setRefunds([]);
       setInspections([]);
       setTransactions([]);
-      setShipment(null);
+      setShipments([]);
       return () => { active = false; };
     }
-    Promise.all([fetchCustomerPayment(effectiveOrderId), fetchCustomerRefunds(effectiveOrderId), fetchCustomerInspections(effectiveOrderId), fetchCustomerPaymentTransactions(effectiveOrderId), fetchCustomerShipment(effectiveOrderId).catch(() => null)])
-      .then(([paymentResult, refundResult, inspectionResult, transactionResult, shipmentResult]) => { if (active) { setPayment(paymentResult); setRefunds(refundResult); setInspections(inspectionResult); setTransactions(transactionResult); setShipment(shipmentResult); } })
-      .catch(() => { if (active) { setPayment(null); setRefunds([]); setInspections([]); setTransactions([]); } });
+    Promise.all([fetchCustomerPayment(effectiveOrderId), fetchCustomerRefunds(effectiveOrderId), fetchCustomerInspections(effectiveOrderId), fetchCustomerPaymentTransactions(effectiveOrderId), fetchCustomerShipments(effectiveOrderId).catch(() => [])])
+      .then(([paymentResult, refundResult, inspectionResult, transactionResult, shipmentResult]) => { if (active) { setPayment(paymentResult); setRefunds(refundResult); setInspections(inspectionResult); setTransactions(transactionResult); setShipments(shipmentResult); } })
+      .catch(() => { if (active) { setPayment(null); setRefunds([]); setInspections([]); setTransactions([]); setShipments([]); } });
     return () => { active = false; };
   }, [effectiveOrderId, session?.token]);
 
@@ -213,7 +213,7 @@ export default function OrderTrackingPage() {
         </section>
       ) : null}
 
-      {shipment ? <section className="tracking-card"><h3>Giao hàng</h3><div className="tracking-info-line">Trạng thái: <b>{shipment.status}</b></div><div className="tracking-info-line">Đơn vị: <b>{shipment.provider}</b></div>{shipment.trackingCode ? <div className="tracking-info-line">Mã vận đơn: <b>{shipment.trackingCode}</b></div> : null}<div className="tracking-info-line">Người nhận: <b>{shipment.receiverName}</b> · {shipment.receiverPhone}</div><div className="tracking-info-line">Địa chỉ: <b>{shipment.receiverAddress}</b></div>{shipment.trackingEvents?.length ? <div className="tracking-payment-instructions">{shipment.trackingEvents.map((event) => <div key={event.id}><b>{event.status}</b> · {event.message || 'Cập nhật vận chuyển'} · {formatOrderDate(event.createdAt)}</div>)}</div> : null}</section> : null}
+      {shipments.map((shipment) => <section className="tracking-card" key={shipment.id}><h3>{shipment.direction === 'return' ? 'Trả hàng về shop' : 'Giao hàng đến bạn'}</h3><div className="tracking-info-line">Trạng thái: <b>{shipment.status}</b></div><div className="tracking-info-line">Đơn vị: <b>{shipment.provider}</b></div>{shipment.trackingCode ? <div className="tracking-info-line">Mã vận đơn: <b>{shipment.trackingCode}</b></div> : null}<div className="tracking-info-line">Người gửi: <b>{shipment.direction === 'return' ? shipment.receiverName : shipment.senderName}</b></div><div className="tracking-info-line">Người nhận: <b>{shipment.receiverName}</b> · {shipment.receiverPhone}</div><div className="tracking-info-line">Địa chỉ nhận: <b>{shipment.receiverAddress}</b></div>{shipment.trackingEvents?.length ? <div className="tracking-payment-instructions">{shipment.trackingEvents.map((event) => <div key={event.id}><b>{event.status}</b> · {event.message || 'Cập nhật vận chuyển'} · {formatOrderDate(event.createdAt)}</div>)}</div> : null}</section>)}
 
       {inspections.length > 0 ? (
         <section className="tracking-card">

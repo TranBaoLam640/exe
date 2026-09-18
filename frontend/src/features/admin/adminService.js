@@ -34,8 +34,18 @@ export async function fetchAdminShipment(orderId) {
   return response.data?.data;
 }
 
+export async function fetchAdminShipments(orderId) {
+  const response = await api.get(`/api/admin/orders/${encodeURIComponent(orderId)}/shipments`);
+  return response.data?.data || [];
+}
+
 export async function createAdminShipment(orderId, payload) {
   const response = await api.post(`/api/admin/orders/${encodeURIComponent(orderId)}/shipment`, payload);
+  return response.data?.data;
+}
+
+export async function createAdminReturnShipment(orderId, payload) {
+  const response = await api.post(`/api/admin/orders/${encodeURIComponent(orderId)}/return-shipment`, payload);
   return response.data?.data;
 }
 

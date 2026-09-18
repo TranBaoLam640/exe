@@ -31,10 +31,20 @@ public class ShipmentController : ApiControllerBase
     public async Task<IActionResult> GetAdminOrderShipment(int orderId, CancellationToken cancellationToken)
         => Success(await _shipmentService.GetAdminShipmentByOrderAsync(orderId, cancellationToken));
 
+    [HttpGet("admin/orders/{orderId:int}/shipments")]
+    [Authorize(Roles = "ADMIN")]
+    public async Task<IActionResult> GetAdminOrderShipments(int orderId, CancellationToken cancellationToken)
+        => Success(await _shipmentService.GetAdminShipmentsByOrderAsync(orderId, cancellationToken));
+
     [HttpPost("admin/orders/{orderId:int}/shipment")]
     [Authorize(Roles = "ADMIN")]
     public async Task<IActionResult> Create(int orderId, [FromBody] ShipmentCreateRequest request, CancellationToken cancellationToken)
         => CreatedSuccess(await _shipmentService.CreateAsync(GetUserId(), orderId, request, cancellationToken));
+
+    [HttpPost("admin/orders/{orderId:int}/return-shipment")]
+    [Authorize(Roles = "ADMIN")]
+    public async Task<IActionResult> CreateReturn(int orderId, [FromBody] ShipmentCreateRequest request, CancellationToken cancellationToken)
+        => CreatedSuccess(await _shipmentService.CreateReturnAsync(GetUserId(), orderId, request, cancellationToken));
 
     [HttpPut("admin/shipments/{id:int}")]
     [Authorize(Roles = "ADMIN")]
@@ -50,6 +60,11 @@ public class ShipmentController : ApiControllerBase
     [Authorize]
     public async Task<IActionResult> GetCustomerShipment(int orderId, CancellationToken cancellationToken)
         => Success(await _shipmentService.GetCustomerShipmentAsync(GetUserId(), orderId, cancellationToken));
+
+    [HttpGet("orders/{orderId:int}/shipments")]
+    [Authorize]
+    public async Task<IActionResult> GetCustomerShipments(int orderId, CancellationToken cancellationToken)
+        => Success(await _shipmentService.GetCustomerShipmentsAsync(GetUserId(), orderId, cancellationToken));
 
     private int GetUserId() => int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
 }
