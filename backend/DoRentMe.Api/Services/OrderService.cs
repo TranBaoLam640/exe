@@ -209,6 +209,14 @@ public class OrderService : IOrderService
         return MapOrder(await OrdersForResponse().FirstAsync(o => o.Id == order.Id, cancellationToken));
     }
 
+    public async Task UpdateStatusFromShipmentAsync(int orderId, int adminUserId, string status, string? note, CancellationToken cancellationToken = default)
+    {
+        var order = await _dbContext.Orders.Include(item => item.Shop).FirstOrDefaultAsync(item => item.Id == orderId, cancellationToken);
+        if (order == null) throw NotFound(ErrorCodes.OrderNotFound, "Order not found.");
+        if (!CanTransition(order.Status, status)) throw Conflict(ErrorCodes.InvalidOrderStatusTransition, "Order status transition is not allowed.");
+        await ApplyStatusAsync(order, status, adminUserId, note, cancellationToken);
+    }
+
     public async Task<IReadOnlyList<AdminOrderListItemResponse>> GetAdminOrdersAsync(
         AdminOrderFilters filters,
         CancellationToken cancellationToken = default)

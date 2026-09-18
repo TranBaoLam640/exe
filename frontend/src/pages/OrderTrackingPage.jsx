@@ -2,7 +2,7 @@ import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { imageUrl } from '../assets/imageUrl.js';
 import { getSession } from '../features/auth/authService.js';
 import { formatVnd, parsePrice } from '../features/cart/cartService.js';
-import { createPayOsPayment, fetchCustomerInspections, fetchCustomerPayment, fetchCustomerPaymentTransactions, fetchCustomerRefunds } from '../features/orders/orderApi.js';
+import { createPayOsPayment, fetchCustomerInspections, fetchCustomerPayment, fetchCustomerPaymentTransactions, fetchCustomerRefunds, fetchCustomerShipment } from '../features/orders/orderApi.js';
 import {
   confirmDelivery,
   formatOrderDate,
@@ -101,6 +101,7 @@ export default function OrderTrackingPage() {
   const [refunds, setRefunds] = useState([]);
   const [inspections, setInspections] = useState([]);
   const [transactions, setTransactions] = useState([]);
+  const [shipment, setShipment] = useState(null);
   const [payOsLoading, setPayOsLoading] = useState(false);
   const [payOsError, setPayOsError] = useState('');
   useOrders();
@@ -112,10 +113,11 @@ export default function OrderTrackingPage() {
       setRefunds([]);
       setInspections([]);
       setTransactions([]);
+      setShipment(null);
       return () => { active = false; };
     }
-    Promise.all([fetchCustomerPayment(effectiveOrderId), fetchCustomerRefunds(effectiveOrderId), fetchCustomerInspections(effectiveOrderId), fetchCustomerPaymentTransactions(effectiveOrderId)])
-      .then(([paymentResult, refundResult, inspectionResult, transactionResult]) => { if (active) { setPayment(paymentResult); setRefunds(refundResult); setInspections(inspectionResult); setTransactions(transactionResult); } })
+    Promise.all([fetchCustomerPayment(effectiveOrderId), fetchCustomerRefunds(effectiveOrderId), fetchCustomerInspections(effectiveOrderId), fetchCustomerPaymentTransactions(effectiveOrderId), fetchCustomerShipment(effectiveOrderId).catch(() => null)])
+      .then(([paymentResult, refundResult, inspectionResult, transactionResult, shipmentResult]) => { if (active) { setPayment(paymentResult); setRefunds(refundResult); setInspections(inspectionResult); setTransactions(transactionResult); setShipment(shipmentResult); } })
       .catch(() => { if (active) { setPayment(null); setRefunds([]); setInspections([]); setTransactions([]); } });
     return () => { active = false; };
   }, [effectiveOrderId, session?.token]);
@@ -210,6 +212,8 @@ export default function OrderTrackingPage() {
           {refunds.map((refund) => <div className="tracking-refund" key={refund.id}><div className="tracking-info-line">{refund.type}: <b>{formatVnd(refund.amount)}</b></div><div className="tracking-info-line">Trang thai: <b>{refund.status}</b></div>{refund.reason ? <div className="tracking-info-line">Ly do: {refund.reason}</div> : null}{refund.processedAt ? <div className="tracking-info-line">Xu ly luc: <b>{formatOrderDate(refund.processedAt)}</b></div> : null}</div>)}
         </section>
       ) : null}
+
+      {shipment ? <section className="tracking-card"><h3>Giao hàng</h3><div className="tracking-info-line">Trạng thái: <b>{shipment.status}</b></div><div className="tracking-info-line">Đơn vị: <b>{shipment.provider}</b></div>{shipment.trackingCode ? <div className="tracking-info-line">Mã vận đơn: <b>{shipment.trackingCode}</b></div> : null}<div className="tracking-info-line">Người nhận: <b>{shipment.receiverName}</b> · {shipment.receiverPhone}</div><div className="tracking-info-line">Địa chỉ: <b>{shipment.receiverAddress}</b></div>{shipment.trackingEvents?.length ? <div className="tracking-payment-instructions">{shipment.trackingEvents.map((event) => <div key={event.id}><b>{event.status}</b> · {event.message || 'Cập nhật vận chuyển'} · {formatOrderDate(event.createdAt)}</div>)}</div> : null}</section> : null}
 
       {inspections.length > 0 ? (
         <section className="tracking-card">

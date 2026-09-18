@@ -74,6 +74,7 @@ builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IRefundService, RefundService>();
 builder.Services.AddScoped<IReturnInspectionService, ReturnInspectionService>();
+builder.Services.AddScoped<IShipmentService, ShipmentService>();
 builder.Services.Configure<PayOsOptions>(builder.Configuration.GetSection("PayOS"));
 builder.Services.AddScoped<IPaymentGateway, PayOsPaymentGateway>();
 builder.Services.AddScoped<IPaymentTransactionService, PaymentTransactionService>();

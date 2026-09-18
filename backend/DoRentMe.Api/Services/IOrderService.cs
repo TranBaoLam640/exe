@@ -30,6 +30,8 @@ public interface IOrderService
         OrderStatusUpdateRequest request,
         CancellationToken cancellationToken = default);
 
+    Task UpdateStatusFromShipmentAsync(int orderId, int adminUserId, string status, string? note, CancellationToken cancellationToken = default);
+
     Task<IReadOnlyList<AdminOrderListItemResponse>> GetAdminOrdersAsync(
         AdminOrderFilters filters,
         CancellationToken cancellationToken = default);

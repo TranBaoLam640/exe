@@ -84,4 +84,12 @@ public static class ErrorCodes
     public const string InvalidInventoryCondition = "INVALID_INVENTORY_CONDITION";
     public const string ProductVariantMismatch = "PRODUCT_VARIANT_MISMATCH";
     public const string InventoryHasRentalHistory = "INVENTORY_HAS_RENTAL_HISTORY";
+
+    // Shipment specific
+    public const string ShipmentNotFound = "SHIPMENT_NOT_FOUND";
+    public const string ShipmentAlreadyExists = "SHIPMENT_ALREADY_EXISTS";
+    public const string InvalidShipmentStatus = "INVALID_SHIPMENT_STATUS";
+    public const string InvalidShipmentTransition = "INVALID_SHIPMENT_TRANSITION";
+    public const string OrderNotEligibleForShipment = "ORDER_NOT_ELIGIBLE_FOR_SHIPMENT";
+    public const string ShipmentAlreadyDelivered = "SHIPMENT_ALREADY_DELIVERED";
 }

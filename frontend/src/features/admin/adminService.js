@@ -29,6 +29,21 @@ export async function fetchAdminPaymentTransactions(paymentId) {
   return response.data?.data || [];
 }
 
+export async function fetchAdminShipment(orderId) {
+  const response = await api.get(`/api/admin/orders/${encodeURIComponent(orderId)}/shipment`);
+  return response.data?.data;
+}
+
+export async function createAdminShipment(orderId, payload) {
+  const response = await api.post(`/api/admin/orders/${encodeURIComponent(orderId)}/shipment`, payload);
+  return response.data?.data;
+}
+
+export async function updateAdminShipmentStatus(id, status, note) {
+  const response = await api.put(`/api/admin/shipments/${encodeURIComponent(id)}/status`, { status, note: note?.trim() || null });
+  return response.data?.data;
+}
+
 export async function updateAdminPaymentStatus(paymentId, status, transactionCode) {
   const response = await api.put(`/api/admin/payments/${encodeURIComponent(paymentId)}/status`, {
     status,
