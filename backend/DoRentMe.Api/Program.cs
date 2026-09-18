@@ -73,6 +73,7 @@ builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IRefundService, RefundService>();
+builder.Services.AddScoped<IReturnInspectionService, ReturnInspectionService>();
 builder.Services.AddApiControllers();
 builder.Services.AddOpenApiDocumentation();
 builder.Services.AddFrontendCors(builder.Configuration);

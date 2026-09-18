@@ -59,6 +59,17 @@ public static class ErrorCodes
     public const string DepositSettlementAlreadyExists = "DEPOSIT_SETTLEMENT_ALREADY_EXISTS";
     public const string PaymentNotPaid = "PAYMENT_NOT_PAID";
 
+    // Return inspection specific
+    public const string InspectionNotFound = "INSPECTION_NOT_FOUND";
+    public const string InspectionAlreadyExists = "INSPECTION_ALREADY_EXISTS";
+    public const string OrderNotReadyForInspection = "ORDER_NOT_READY_FOR_INSPECTION";
+    public const string InventoryItemNotPartOfOrder = "INVENTORY_ITEM_NOT_PART_OF_ORDER";
+    public const string InvalidInspectionCondition = "INVALID_INSPECTION_CONDITION";
+    public const string InvalidDamageAssessment = "INVALID_DAMAGE_ASSESSMENT";
+    public const string InvalidDamageDeduction = "INVALID_DAMAGE_DEDUCTION";
+    public const string InspectionRequiredBeforeSettlement = "INSPECTION_REQUIRED_BEFORE_SETTLEMENT";
+    public const string InspectionLockedAfterSettlement = "INSPECTION_LOCKED_AFTER_SETTLEMENT";
+
     // Inventory specific
     public const string InventoryItemNotFound = "INVENTORY_ITEM_NOT_FOUND";
     public const string DuplicateAssetCode = "DUPLICATE_ASSET_CODE";

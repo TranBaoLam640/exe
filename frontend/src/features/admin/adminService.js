@@ -47,3 +47,23 @@ export async function updateAdminRefundStatus(refundId, status, transactionCode)
   const response = await api.put(`/api/admin/refunds/${encodeURIComponent(refundId)}/status`, { status, transactionCode: transactionCode?.trim() || null });
   return response.data?.data;
 }
+
+export async function fetchInspectionAssets(orderId) {
+  const response = await api.get(`/api/admin/orders/${encodeURIComponent(orderId)}/inspection-assets`);
+  return response.data?.data || [];
+}
+
+export async function fetchInspectionSummary(orderId) {
+  const response = await api.get(`/api/admin/orders/${encodeURIComponent(orderId)}/inspection-summary`);
+  return response.data?.data;
+}
+
+export async function createInspection(orderId, payload) {
+  const response = await api.post(`/api/admin/orders/${encodeURIComponent(orderId)}/inspections`, payload);
+  return response.data?.data;
+}
+
+export async function updateInspection(id, payload) {
+  const response = await api.put(`/api/admin/inspections/${encodeURIComponent(id)}`, payload);
+  return response.data?.data;
+}

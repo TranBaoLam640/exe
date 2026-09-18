@@ -31,6 +31,7 @@ public class DoRentMeDbContext : DbContext
     public DbSet<ShipmentTrackingEvent> ShipmentTrackingEvents => Set<ShipmentTrackingEvent>();
     public DbSet<OrderStatusHistory> OrderStatusHistory => Set<OrderStatusHistory>();
     public DbSet<Refund> Refunds => Set<Refund>();
+    public DbSet<ReturnInspection> ReturnInspections => Set<ReturnInspection>();
     public DbSet<ProductLike> ProductLikes => Set<ProductLike>();
     public DbSet<Review> Reviews => Set<Review>();
     public DbSet<ChatSession> ChatSessions => Set<ChatSession>();
@@ -467,6 +468,23 @@ public class DoRentMeDbContext : DbContext
             entity.HasOne(x => x.RequestedByUser).WithMany().HasForeignKey(x => x.RequestedByUserId).OnDelete(DeleteBehavior.Restrict);
             entity.HasOne(x => x.ProcessedByUser).WithMany().HasForeignKey(x => x.ProcessedByUserId).OnDelete(DeleteBehavior.Restrict);
         });
+
+        modelBuilder.Entity<ReturnInspection>(entity =>
+        {
+            entity.ToTable("ReturnInspections", table =>
+            {
+                table.HasCheckConstraint("CK_ReturnInspections_Condition", "`ConditionAfterReturn` IN ('NEW','GOOD','FAIR','WORN','DAMAGED')");
+                table.HasCheckConstraint("CK_ReturnInspections_RecommendedDeduction", "`RecommendedDeduction` >= 0");
+            });
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.ConditionAfterReturn).HasMaxLength(20).IsRequired();
+            entity.Property(x => x.DamageDescription).HasMaxLength(1000);
+            entity.Property(x => x.RecommendedDeduction).HasPrecision(18, 2);
+            entity.HasOne(x => x.Order).WithMany().HasForeignKey(x => x.OrderId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(x => x.OrderItem).WithMany().HasForeignKey(x => x.OrderItemId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(x => x.ProductInventoryItem).WithMany().HasForeignKey(x => x.ProductInventoryItemId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(x => x.InspectorUser).WithMany().HasForeignKey(x => x.InspectorUserId).OnDelete(DeleteBehavior.Restrict);
+        });
     }
 
     private static void ConfigureEngagementAndAi(ModelBuilder modelBuilder)
@@ -692,6 +710,7 @@ public class DoRentMeDbContext : DbContext
         modelBuilder.Entity<Refund>().HasIndex(x => x.OrderId);
         modelBuilder.Entity<Refund>().HasIndex(x => x.PaymentId);
         modelBuilder.Entity<Refund>().HasIndex(x => x.Status);
+        modelBuilder.Entity<ReturnInspection>().HasIndex(x => new { x.OrderId, x.ProductInventoryItemId }).IsUnique();
 
         modelBuilder.Entity<ProductLike>().HasIndex(x => x.UserId);
         modelBuilder.Entity<ProductLike>().HasIndex(x => x.ProductId);

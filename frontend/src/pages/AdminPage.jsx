@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { imageUrl } from '../assets/imageUrl.js';
-import { createDepositSettlement, fetchAdminOrder, fetchAdminOrders, fetchAdminPayment, fetchAdminRefunds, fetchAdminSession, updateAdminPaymentStatus, updateAdminRefundStatus } from '../features/admin/adminService.js';
+import { createDepositSettlement, createInspection, fetchAdminOrder, fetchAdminOrders, fetchAdminPayment, fetchAdminRefunds, fetchAdminSession, fetchInspectionAssets, fetchInspectionSummary, updateAdminPaymentStatus, updateAdminRefundStatus, updateInspection } from '../features/admin/adminService.js';
 import { clearSession } from '../features/auth/authService.js';
 import { formatVnd } from '../features/cart/cartService.js';
 import { formatOrderDate, STATUS_LABELS } from '../features/orders/orderCreation.js';
@@ -22,7 +22,7 @@ const NEXT_STATUSES = {
 
 function statusLabel(status) { return STATUS_LABELS[status] || status; }
 
-function OrderDetail({ order, payment, refunds, onClose, onUpdated, onPaymentUpdated, onRefundsUpdated }) {
+function OrderDetail({ order, payment, refunds, inspectionAssets, inspectionSummary, onClose, onUpdated, onPaymentUpdated, onRefundsUpdated, onInspectionUpdated }) {
   const [status, setStatus] = useState(order.status);
   const [note, setNote] = useState('');
   const [saving, setSaving] = useState(false);
@@ -35,6 +35,13 @@ function OrderDetail({ order, payment, refunds, onClose, onUpdated, onPaymentUpd
   const [refundReason, setRefundReason] = useState('');
   const [refundSaving, setRefundSaving] = useState(false);
   const [refundError, setRefundError] = useState('');
+  const [inspectionAsset, setInspectionAsset] = useState(null);
+  const [inspectionCondition, setInspectionCondition] = useState('GOOD');
+  const [inspectionDamage, setInspectionDamage] = useState(false);
+  const [inspectionDescription, setInspectionDescription] = useState('');
+  const [inspectionDeduction, setInspectionDeduction] = useState('0');
+  const [inspectionSaving, setInspectionSaving] = useState(false);
+  const [inspectionError, setInspectionError] = useState('');
   const nextStatuses = NEXT_STATUSES[order.status] || [];
   const paymentTransitions = payment?.status === 'pending' ? ['paid', 'failed', 'cancelled'] : [];
 
@@ -102,6 +109,33 @@ function OrderDetail({ order, payment, refunds, onClose, onUpdated, onPaymentUpd
     }
   }
 
+  function openInspection(asset) {
+    const inspection = asset.inspection;
+    setInspectionAsset(asset);
+    setInspectionCondition(inspection?.conditionAfterReturn || 'GOOD');
+    setInspectionDamage(inspection?.hasDamage || false);
+    setInspectionDescription(inspection?.damageDescription || '');
+    setInspectionDeduction(String(inspection?.recommendedDeduction || 0));
+    setInspectionError('');
+  }
+
+  async function saveInspection(event) {
+    event.preventDefault();
+    if (!inspectionAsset) return;
+    const hasDamage = inspectionDamage;
+    const description = hasDamage ? inspectionDescription.trim() : null;
+    const deduction = hasDamage ? Number(inspectionDeduction) : 0;
+    if (hasDamage && !description) { setInspectionError('Damage description is required.'); return; }
+    if (!Number.isFinite(deduction) || deduction < 0 || deduction > Number(inspectionAsset.depositAllocation)) { setInspectionError('Deduction exceeds this asset deposit allocation.'); return; }
+    setInspectionSaving(true); setInspectionError('');
+    try {
+      const payload = { productInventoryItemId: inspectionAsset.productInventoryItemId, conditionAfterReturn: inspectionCondition, hasDamage, damageDescription: description, recommendedDeduction: deduction };
+      const saved = inspectionAsset.inspection ? await updateInspection(inspectionAsset.inspection.id, payload) : await createInspection(order.id, payload);
+      onInspectionUpdated(saved);
+      setInspectionAsset(null);
+    } catch (requestError) { setInspectionError(getApiErrorMessage(requestError, 'Unable to save inspection.')); } finally { setInspectionSaving(false); }
+  }
+
   return (
     <div className="admin-modal-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
       <section aria-labelledby="admin-order-detail-title" className="admin-modal" role="dialog">
@@ -125,6 +159,7 @@ function OrderDetail({ order, payment, refunds, onClose, onUpdated, onPaymentUpd
         <h3>Refunds</h3>
         {refunds.length > 0 ? refunds.map((refund) => <div className="admin-refund-row" key={refund.id}><div><strong>{refund.type}</strong><span>{formatVnd(refund.amount)} · {refund.status}</span>{refund.reason ? <small>{refund.reason}</small> : null}</div>{refund.status === 'pending' ? <div><button className="admin-secondary-button" onClick={() => processRefund(refund, 'processing')} type="button">Processing</button><button className="admin-primary-button" onClick={() => processRefund(refund, 'completed')} type="button">Mark completed</button><button className="admin-secondary-button" onClick={() => processRefund(refund, 'rejected')} type="button">Reject</button></div> : refund.status === 'processing' ? <div><button className="admin-primary-button" onClick={() => processRefund(refund, 'completed')} type="button">Mark completed</button><button className="admin-secondary-button" onClick={() => processRefund(refund, 'rejected')} type="button">Reject</button></div> : null}</div>) : <div className="admin-muted">No refunds recorded.</div>}
         {order.status === 'returned' && payment?.status === 'paid' && !refunds.some((refund) => refund.type === 'deposit' && !['rejected', 'cancelled'].includes(refund.status)) ? <form className="admin-detail-status" onSubmit={settleDeposit}><label htmlFor="admin-refund-amount">Settle deposit</label><div className="admin-status-form"><input id="admin-refund-amount" min="0" onChange={(event) => setRefundAmount(event.target.value)} step="0.01" type="number" value={refundAmount} /><button className="admin-primary-button" disabled={refundSaving} type="submit">{refundSaving ? 'Saving...' : 'Create settlement'}</button></div><small>Original deposit: {formatVnd(payment.depositAmount)} · Deduction: {formatVnd(Math.max(0, Number(payment.depositAmount) - Number(refundAmount || 0)))}</small><textarea maxLength={500} onChange={(event) => setRefundReason(event.target.value)} placeholder="Reason required for a partial or zero refund" value={refundReason} />{refundError ? <div className="admin-error-message">{refundError}</div> : null}</form> : null}
+        {order.status === 'returned' ? <><h3>Return inspection</h3>{inspectionSummary ? <div className="admin-detail-grid"><div><span>Inspection progress</span><strong>{inspectionSummary.inspectedAssetCount} / {inspectionSummary.requiredAssetCount}</strong></div><div><span>Recommended deduction</span><strong>{formatVnd(inspectionSummary.totalRecommendedDeduction)}</strong></div><div><span>Recommended refund</span><strong>{formatVnd(inspectionSummary.recommendedRefund)}</strong></div></div> : null}<div className="admin-inspection-list">{inspectionAssets.map((asset) => <div className="admin-refund-row" key={asset.productInventoryItemId}><div><strong>{asset.assetCode}</strong><span>{asset.productName} · {asset.size} / {asset.color} · {asset.operationalStatus}</span><small>{asset.inspection ? `${asset.inspection.conditionAfterReturn} · Deduction ${formatVnd(asset.inspection.recommendedDeduction)}` : 'Not inspected'}</small></div><button className="admin-secondary-button" onClick={() => openInspection(asset)} type="button">{asset.inspection ? 'Edit inspection' : 'Inspect'}</button></div>)}</div>{inspectionAsset ? <form className="admin-detail-status" onSubmit={saveInspection}><label htmlFor="inspection-condition">Asset {inspectionAsset.assetCode}</label><select id="inspection-condition" onChange={(event) => setInspectionCondition(event.target.value)} value={inspectionCondition}>{['NEW', 'GOOD', 'FAIR', 'WORN', 'DAMAGED'].map((condition) => <option key={condition} value={condition}>{condition}</option>)}</select><label><input checked={inspectionDamage} onChange={(event) => { setInspectionDamage(event.target.checked); if (!event.target.checked) setInspectionDeduction('0'); }} type="checkbox" /> Damage found</label><textarea maxLength={1000} onChange={(event) => setInspectionDescription(event.target.value)} placeholder="Damage description" value={inspectionDescription} /><input max={inspectionAsset.depositAllocation} min="0" onChange={(event) => setInspectionDeduction(event.target.value)} step="0.01" type="number" value={inspectionDeduction} /><small>Maximum deduction: {formatVnd(inspectionAsset.depositAllocation)}</small>{inspectionError ? <div className="admin-error-message">{inspectionError}</div> : null}<div className="admin-status-form"><button className="admin-primary-button" disabled={inspectionSaving} type="submit">{inspectionSaving ? 'Saving...' : 'Save inspection'}</button><button className="admin-secondary-button" onClick={() => setInspectionAsset(null)} type="button">Cancel</button></div></form> : null}</> : null}
         <h3>Items</h3>
         <div className="admin-detail-items">{(order.items || []).map((item) => <div className="admin-detail-item" key={item.id}><img alt="" onError={(event) => event.currentTarget.removeAttribute('src')} src={imageUrl(item.image)} /><div><strong>{item.name}</strong><span>{item.size} / {item.color} · Qty {item.qty}</span><small>{item.rentalStartDate} - {item.rentalEndDate} · {item.rentalDays} days</small></div><b>{formatVnd(item.lineSubtotal)}</b></div>)}</div>
         <div className="admin-detail-status"><div><span>Current status</span><strong className={`admin-status-pill ${order.status}`}>{statusLabel(order.status)}</strong>{order.status === 'returned' ? <small className="admin-lifecycle-note">Return completed. Inventory items are awaiting cleaning.</small> : null}</div>{nextStatuses.length > 0 ? <form onSubmit={saveStatus}><label htmlFor="admin-next-status">Update status</label><div className="admin-status-form"><select id="admin-next-status" onChange={(event) => setStatus(event.target.value)} value={status}><option value={order.status}>{statusLabel(order.status)}</option>{nextStatuses.map((next) => <option key={next} value={next}>{statusLabel(next)}</option>)}</select><button className="admin-primary-button" disabled={saving || status === order.status} type="submit">{saving ? 'Saving...' : 'Save'}</button></div><textarea maxLength={500} onChange={(event) => setNote(event.target.value)} placeholder="Optional note" value={note} />{error ? <div className="admin-error-message">{error}</div> : null}</form> : <span className="admin-muted">No further status transition is available.</span>}</div>
@@ -145,6 +180,8 @@ export default function AdminPage() {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [selectedPayment, setSelectedPayment] = useState(null);
   const [selectedRefunds, setSelectedRefunds] = useState([]);
+  const [selectedInspectionAssets, setSelectedInspectionAssets] = useState([]);
+  const [selectedInspectionSummary, setSelectedInspectionSummary] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
 
   async function loadOrders(nextFilters = filters) {
@@ -155,20 +192,23 @@ export default function AdminPage() {
   useEffect(() => { fetchAdminSession().catch((requestError) => { if (requestError?.response?.status === 401) clearSession(); }); loadOrders().catch(() => {}); }, []);
 
   async function openDetail(id) {
-    setSelectedId(id); setDetailLoading(true); setSelectedOrder(null); setSelectedPayment(null); setSelectedRefunds([]);
-    try { const [order, payment, refunds] = await Promise.all([fetchAdminOrder(id), fetchAdminPayment(id), fetchAdminRefunds({ orderId: id })]); setSelectedOrder(order); setSelectedPayment(payment); setSelectedRefunds(refunds); } catch (requestError) { setError(getApiErrorMessage(requestError, 'Unable to load order detail.')); setSelectedId(null); } finally { setDetailLoading(false); }
+    setSelectedId(id); setDetailLoading(true); setSelectedOrder(null); setSelectedPayment(null); setSelectedRefunds([]); setSelectedInspectionAssets([]); setSelectedInspectionSummary(null);
+    try { const [order, payment, refunds, inspectionAssets, inspectionSummary] = await Promise.all([fetchAdminOrder(id), fetchAdminPayment(id), fetchAdminRefunds({ orderId: id }), fetchInspectionAssets(id), fetchInspectionSummary(id)]); setSelectedOrder(order); setSelectedPayment(payment); setSelectedRefunds(refunds); setSelectedInspectionAssets(inspectionAssets); setSelectedInspectionSummary(inspectionSummary); } catch (requestError) { setError(getApiErrorMessage(requestError, 'Unable to load order detail.')); setSelectedId(null); } finally { setDetailLoading(false); }
   }
 
   async function refreshAfterUpdate(updated) {
     setSelectedOrder(updated);
     if (selectedId) {
-      const [payment, refunds] = await Promise.all([fetchAdminPayment(selectedId), fetchAdminRefunds({ orderId: selectedId })]);
+      const [payment, refunds, inspectionAssets, inspectionSummary] = await Promise.all([fetchAdminPayment(selectedId), fetchAdminRefunds({ orderId: selectedId }), fetchInspectionAssets(selectedId), fetchInspectionSummary(selectedId)]);
       setSelectedPayment(payment);
       setSelectedRefunds(refunds);
+      setSelectedInspectionAssets(inspectionAssets);
+      setSelectedInspectionSummary(inspectionSummary);
     }
     await loadOrders();
   }
   function refreshPayment(updated) { setSelectedPayment(updated); }
+  async function refreshInspection(updated) { setSelectedInspectionAssets((assets) => assets.map((asset) => asset.productInventoryItemId === updated.productInventoryItemId ? { ...asset, inspection: updated, operationalStatus: asset.operationalStatus } : asset)); setSelectedInspectionSummary(await fetchInspectionSummary(selectedId)); }
 
   function changeFilter(name, value) { const next = { ...filters, [name]: value }; setFilters(next); loadOrders(next).catch(() => {}); }
 
@@ -181,7 +221,7 @@ export default function AdminPage() {
         {error ? <div className="admin-error-message">{error}</div> : null}
         {loading ? <div className="admin-empty">Loading orders...</div> : orders.length === 0 ? <div className="admin-empty">No database orders match these filters.</div> : <div className="admin-orders-table-wrap"><table className="admin-orders-table"><thead><tr><th>Order</th><th>Customer</th><th>Shop</th><th>Items</th><th>Rental period</th><th>Total</th><th>Status</th><th /></tr></thead><tbody>{orders.map((order) => <tr key={order.id}><td><strong>{order.orderCode}</strong><small>{formatOrderDate(order.createdAt)}</small></td><td><strong>{order.customerName}</strong><small>{order.customerEmail || '-'}</small></td><td>{order.shopName || '-'}</td><td>{order.itemCount}</td><td>{order.startDate} - {order.endDate}</td><td>{formatVnd(order.total)}</td><td><span className={`admin-status-pill ${order.status}`}>{statusLabel(order.status)}</span></td><td><button className="admin-secondary-button" onClick={() => openDetail(order.id)} type="button">View</button></td></tr>)}</tbody></table></div>}
       </main>
-      {selectedId ? (detailLoading ? <div className="admin-modal-backdrop"><section className="admin-modal admin-empty">Loading order detail...</section></div> : selectedOrder ? <OrderDetail onClose={() => { setSelectedId(null); setSelectedOrder(null); setSelectedPayment(null); setSelectedRefunds([]); }} onPaymentUpdated={refreshPayment} onRefundsUpdated={setSelectedRefunds} onUpdated={refreshAfterUpdate} order={selectedOrder} payment={selectedPayment} refunds={selectedRefunds} /> : null) : null}
+      {selectedId ? (detailLoading ? <div className="admin-modal-backdrop"><section className="admin-modal admin-empty">Loading order detail...</section></div> : selectedOrder ? <OrderDetail inspectionAssets={selectedInspectionAssets} inspectionSummary={selectedInspectionSummary} onClose={() => { setSelectedId(null); setSelectedOrder(null); setSelectedPayment(null); setSelectedRefunds([]); setSelectedInspectionAssets([]); setSelectedInspectionSummary(null); }} onInspectionUpdated={refreshInspection} onPaymentUpdated={refreshPayment} onRefundsUpdated={setSelectedRefunds} onUpdated={refreshAfterUpdate} order={selectedOrder} payment={selectedPayment} refunds={selectedRefunds} /> : null) : null}
     </div>
   );
 }

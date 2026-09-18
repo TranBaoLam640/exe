@@ -23,10 +23,12 @@ public class RefundService : IRefundService
         };
 
     private readonly DoRentMeDbContext _dbContext;
+    private readonly IReturnInspectionService _returnInspectionService;
 
-    public RefundService(DoRentMeDbContext dbContext)
+    public RefundService(DoRentMeDbContext dbContext, IReturnInspectionService returnInspectionService)
     {
         _dbContext = dbContext;
+        _returnInspectionService = returnInspectionService;
     }
 
     public async Task CreateOrderCancellationRefundIfRequiredAsync(int orderId, int requestedByUserId, CancellationToken cancellationToken = default)
@@ -90,6 +92,8 @@ public class RefundService : IRefundService
             throw BusinessError(ErrorCodes.PaymentNotPaid, "The order payment must be paid before deposit settlement.");
         }
 
+        var inspectionSummary = await _returnInspectionService.GetSummaryAsync(orderId, requireComplete: true, cancellationToken: cancellationToken);
+
         var amount = decimal.Round(request.RefundAmount, 2, MidpointRounding.ToEven);
         if (amount < 0 || amount > order.TotalDeposit)
         {
@@ -100,6 +104,11 @@ public class RefundService : IRefundService
         if (amount < order.TotalDeposit && reason == null)
         {
             throw BusinessError(ErrorCodes.InvalidRefundAmount, "A reason is required when the refundable deposit is less than the stored deposit.");
+        }
+
+        if (amount != inspectionSummary.RecommendedRefund && reason == null)
+        {
+            throw BusinessError(ErrorCodes.InvalidRefundAmount, "A reason is required when the settlement differs from the inspection recommendation.");
         }
 
         var existing = await _dbContext.Refunds.AnyAsync(item =>

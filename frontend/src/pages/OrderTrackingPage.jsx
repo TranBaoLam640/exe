@@ -2,7 +2,7 @@ import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { imageUrl } from '../assets/imageUrl.js';
 import { getSession } from '../features/auth/authService.js';
 import { formatVnd, parsePrice } from '../features/cart/cartService.js';
-import { fetchCustomerPayment, fetchCustomerRefunds } from '../features/orders/orderApi.js';
+import { fetchCustomerInspections, fetchCustomerPayment, fetchCustomerRefunds } from '../features/orders/orderApi.js';
 import {
   confirmDelivery,
   formatOrderDate,
@@ -99,6 +99,7 @@ export default function OrderTrackingPage() {
   const backendOrder = useOrderById(effectiveOrderId);
   const [payment, setPayment] = useState(null);
   const [refunds, setRefunds] = useState([]);
+  const [inspections, setInspections] = useState([]);
   useOrders();
   const order = session ? backendOrder.order : effectiveOrderId ? getOrderById(effectiveOrderId) : null;
   useEffect(() => {
@@ -106,11 +107,12 @@ export default function OrderTrackingPage() {
     if (!session?.token || !effectiveOrderId) {
       setPayment(null);
       setRefunds([]);
+      setInspections([]);
       return () => { active = false; };
     }
-    Promise.all([fetchCustomerPayment(effectiveOrderId), fetchCustomerRefunds(effectiveOrderId)])
-      .then(([paymentResult, refundResult]) => { if (active) { setPayment(paymentResult); setRefunds(refundResult); } })
-      .catch(() => { if (active) { setPayment(null); setRefunds([]); } });
+    Promise.all([fetchCustomerPayment(effectiveOrderId), fetchCustomerRefunds(effectiveOrderId), fetchCustomerInspections(effectiveOrderId)])
+      .then(([paymentResult, refundResult, inspectionResult]) => { if (active) { setPayment(paymentResult); setRefunds(refundResult); setInspections(inspectionResult); } })
+      .catch(() => { if (active) { setPayment(null); setRefunds([]); setInspections([]); } });
     return () => { active = false; };
   }, [effectiveOrderId, session?.token]);
   useDocumentTitle(order ? `Theo Dõi Đơn ${order.id} | DoRentMe` : 'Theo Dõi Đơn Hàng | DoRentMe');
@@ -185,6 +187,13 @@ export default function OrderTrackingPage() {
         <section className="tracking-card">
           <h3>Hoan tien va tien coc</h3>
           {refunds.map((refund) => <div className="tracking-refund" key={refund.id}><div className="tracking-info-line">{refund.type}: <b>{formatVnd(refund.amount)}</b></div><div className="tracking-info-line">Trang thai: <b>{refund.status}</b></div>{refund.reason ? <div className="tracking-info-line">Ly do: {refund.reason}</div> : null}{refund.processedAt ? <div className="tracking-info-line">Xu ly luc: <b>{formatOrderDate(refund.processedAt)}</b></div> : null}</div>)}
+        </section>
+      ) : null}
+
+      {inspections.length > 0 ? (
+        <section className="tracking-card">
+          <h3>Ket qua kiem tra sau khi tra</h3>
+          {inspections.map((inspection) => <div className="tracking-refund" key={inspection.id}><div className="tracking-info-line">Tai san: <b>{inspection.assetCode}</b> · {inspection.productName}</div><div className="tracking-info-line">Tinh trang: <b>{inspection.conditionAfterReturn}</b></div>{inspection.hasDamage ? <div className="tracking-info-line">Damage: {inspection.damageDescription || '-'}</div> : <div className="tracking-info-line">Khong ghi nhan hu hong</div>}{inspection.recommendedDeduction > 0 ? <div className="tracking-info-line">Khau tru de xuat: <b>{formatVnd(inspection.recommendedDeduction)}</b></div> : null}</div>)}
         </section>
       ) : null}
 

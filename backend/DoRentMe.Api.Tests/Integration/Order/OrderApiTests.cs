@@ -380,6 +380,8 @@ public class OrderApiTests : IDisposable
             Assert.Equal(HttpStatusCode.OK, (await _client.PutAsJsonAsync($"/api/orders/{orderId}/status", new { status })).StatusCode);
         }
 
+        Assert.Equal(HttpStatusCode.Created, (await _client.PostAsJsonAsync($"/api/admin/orders/{orderId}/inspections", new { productInventoryItemId = (await dbContext.ProductInventoryItems.Select(item => item.Id).FirstAsync()), conditionAfterReturn = "DAMAGED", hasDamage = true, damageDescription = "Small damage", recommendedDeduction = 0 })).StatusCode);
+
         var partialWithoutReason = await _client.PostAsJsonAsync($"/api/admin/orders/{orderId}/deposit-settlement", new { refundAmount = deposit - 1 });
         var tooLarge = await _client.PostAsJsonAsync($"/api/admin/orders/{orderId}/deposit-settlement", new { refundAmount = deposit + 1, reason = "Invalid" });
         Assert.Equal(HttpStatusCode.BadRequest, partialWithoutReason.StatusCode);
@@ -414,6 +416,110 @@ public class OrderApiTests : IDisposable
         Assert.Equal(HttpStatusCode.NotFound, (await otherClient.GetAsync($"/api/orders/{orderId}/refunds")).StatusCode);
         Assert.Equal(HttpStatusCode.Forbidden, (await _client.PostAsJsonAsync($"/api/admin/orders/{orderId}/deposit-settlement", new { refundAmount = 0, reason = "Attempt" })).StatusCode);
         otherClient.Dispose();
+    }
+
+    [Fact]
+    public async Task ReturnInspection_RequiresReturnedOrderAndValidAssetReference()
+    {
+        var seed = await SeedCatalogAsync(ownerEmail: LenderEmail, stock: 1);
+        await LoginAsync(_client, CustomerEmail);
+        await AddCartItemAsync(_client, seed.VariantId);
+        var checkout = await _client.PostAsJsonAsync("/api/orders/checkout", CheckoutPayload());
+        var orderId = await FirstOrderIdAsync(checkout);
+
+        await LoginAsync(_client, AdminEmail);
+        var early = await _client.PostAsJsonAsync($"/api/admin/orders/{orderId}/inspections", new { productInventoryItemId = seed.InventoryItemIds[0], conditionAfterReturn = "GOOD", hasDamage = false, recommendedDeduction = 0 });
+        Assert.Equal(HttpStatusCode.BadRequest, early.StatusCode);
+
+        await AdvanceOrderToReturnedAsync(orderId);
+        var unrelated = await SeedCatalogAsync(ownerEmail: LenderEmail, stock: 1);
+        var invalidAsset = await _client.PostAsJsonAsync($"/api/admin/orders/{orderId}/inspections", new { productInventoryItemId = unrelated.InventoryItemIds[0], conditionAfterReturn = "GOOD", hasDamage = false, recommendedDeduction = 0 });
+        Assert.Equal(HttpStatusCode.BadRequest, invalidAsset.StatusCode);
+    }
+
+    [Fact]
+    public async Task ReturnInspection_RecordsDamageAndUpdatesConditionWithoutChangingOperationalStatus()
+    {
+        var seed = await SeedCatalogAsync(ownerEmail: LenderEmail, stock: 1);
+        await LoginAsync(_client, CustomerEmail);
+        await AddCartItemAsync(_client, seed.VariantId);
+        var checkout = await _client.PostAsJsonAsync("/api/orders/checkout", CheckoutPayload());
+        var orderId = await FirstOrderIdAsync(checkout);
+        await LoginAsync(_client, AdminEmail);
+        await AdvanceOrderToReturnedAsync(orderId);
+
+        var missingDescription = await _client.PostAsJsonAsync($"/api/admin/orders/{orderId}/inspections", new { productInventoryItemId = seed.InventoryItemIds[0], conditionAfterReturn = "DAMAGED", hasDamage = true, recommendedDeduction = 10000 });
+        var tooLarge = await _client.PostAsJsonAsync($"/api/admin/orders/{orderId}/inspections", new { productInventoryItemId = seed.InventoryItemIds[0], conditionAfterReturn = "DAMAGED", hasDamage = true, damageDescription = "Tear", recommendedDeduction = 400000 });
+        Assert.Equal(HttpStatusCode.BadRequest, missingDescription.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, tooLarge.StatusCode);
+
+        var created = await _client.PostAsJsonAsync($"/api/admin/orders/{orderId}/inspections", new { productInventoryItemId = seed.InventoryItemIds[0], conditionAfterReturn = "DAMAGED", hasDamage = true, damageDescription = "Small tear on sleeve", recommendedDeduction = 200000 });
+        Assert.Equal(HttpStatusCode.Created, created.StatusCode);
+        using var json = await ReadJsonAsync(created);
+        Assert.Equal("DAMAGED", json.RootElement.GetProperty("data").GetProperty("conditionAfterReturn").GetString());
+        Assert.Equal(200000m, json.RootElement.GetProperty("data").GetProperty("recommendedDeduction").GetDecimal());
+
+        using var scope = _factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<DoRentMeDbContext>();
+        var inventory = await dbContext.ProductInventoryItems.SingleAsync(item => item.Id == seed.InventoryItemIds[0]);
+        Assert.Equal("DAMAGED", inventory.Condition);
+        Assert.Equal("CLEANING", inventory.Status);
+    }
+
+    [Fact]
+    public async Task DepositSettlement_RequiresAllAssetInspectionsAndLocksAfterCompletion()
+    {
+        var seed = await SeedCatalogAsync(ownerEmail: LenderEmail, stock: 2);
+        await LoginAsync(_client, CustomerEmail);
+        await AddCartItemAsync(_client, seed.VariantId, quantity: 2);
+        var checkout = await _client.PostAsJsonAsync("/api/orders/checkout", CheckoutPayload());
+        var orderId = await FirstOrderIdAsync(checkout);
+        await LoginAsync(_client, AdminEmail);
+        await AdvanceOrderToReturnedAsync(orderId);
+
+        using var scope = _factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<DoRentMeDbContext>();
+        var payment = await dbContext.Payments.SingleAsync(item => item.OrderId == orderId);
+        var order = await dbContext.Orders.SingleAsync(item => item.Id == orderId);
+        Assert.Equal(HttpStatusCode.OK, (await _client.PutAsJsonAsync($"/api/admin/payments/{payment.Id}/status", new { status = "paid" })).StatusCode);
+
+        var first = await _client.PostAsJsonAsync($"/api/admin/orders/{orderId}/inspections", new { productInventoryItemId = seed.InventoryItemIds[0], conditionAfterReturn = "GOOD", hasDamage = false, recommendedDeduction = 0 });
+        Assert.Equal(HttpStatusCode.Created, first.StatusCode);
+        var incomplete = await _client.PostAsJsonAsync($"/api/admin/orders/{orderId}/deposit-settlement", new { refundAmount = order.TotalDeposit });
+        Assert.Equal(HttpStatusCode.BadRequest, incomplete.StatusCode);
+
+        var second = await _client.PostAsJsonAsync($"/api/admin/orders/{orderId}/inspections", new { productInventoryItemId = seed.InventoryItemIds[1], conditionAfterReturn = "GOOD", hasDamage = false, recommendedDeduction = 0 });
+        Assert.Equal(HttpStatusCode.Created, second.StatusCode);
+        var settlement = await _client.PostAsJsonAsync($"/api/admin/orders/{orderId}/deposit-settlement", new { refundAmount = order.TotalDeposit });
+        Assert.Equal(HttpStatusCode.Created, settlement.StatusCode);
+        using var settlementJson = await ReadJsonAsync(settlement);
+        var refundId = settlementJson.RootElement.GetProperty("data").GetProperty("id").GetInt32();
+        Assert.Equal(HttpStatusCode.OK, (await _client.PutAsJsonAsync($"/api/admin/refunds/{refundId}/status", new { status = "completed" })).StatusCode);
+
+        using var refreshed = _factory.Services.CreateScope();
+        var refreshedDb = refreshed.ServiceProvider.GetRequiredService<DoRentMeDbContext>();
+        var inspectionId = await refreshedDb.ReturnInspections.Where(item => item.OrderId == orderId).Select(item => item.Id).FirstAsync();
+        var locked = await _client.PutAsJsonAsync($"/api/admin/inspections/{inspectionId}", new { productInventoryItemId = seed.InventoryItemIds[0], conditionAfterReturn = "DAMAGED", hasDamage = true, damageDescription = "Late change", recommendedDeduction = 1 });
+        Assert.Equal(HttpStatusCode.Conflict, locked.StatusCode);
+    }
+
+    [Fact]
+    public async Task ReturnInspection_IsAdminOnlyAndCustomerCanViewOwnReturnedInspection()
+    {
+        var seed = await SeedCatalogAsync(ownerEmail: LenderEmail, stock: 1);
+        await LoginAsync(_client, CustomerEmail);
+        await AddCartItemAsync(_client, seed.VariantId);
+        var checkout = await _client.PostAsJsonAsync("/api/orders/checkout", CheckoutPayload());
+        var orderId = await FirstOrderIdAsync(checkout);
+        var customerCreate = await _client.PostAsJsonAsync($"/api/admin/orders/{orderId}/inspections", new { productInventoryItemId = seed.InventoryItemIds[0], conditionAfterReturn = "GOOD", hasDamage = false, recommendedDeduction = 0 });
+        Assert.Equal(HttpStatusCode.Forbidden, customerCreate.StatusCode);
+
+        await LoginAsync(_client, AdminEmail);
+        await AdvanceOrderToReturnedAsync(orderId);
+        Assert.Equal(HttpStatusCode.Created, (await _client.PostAsJsonAsync($"/api/admin/orders/{orderId}/inspections", new { productInventoryItemId = seed.InventoryItemIds[0], conditionAfterReturn = "GOOD", hasDamage = false, recommendedDeduction = 0 })).StatusCode);
+        await LoginAsync(_client, CustomerEmail);
+        var visible = await _client.GetAsync($"/api/orders/{orderId}/inspections");
+        Assert.Equal(HttpStatusCode.OK, visible.StatusCode);
     }
 
     [Fact]
@@ -566,6 +672,14 @@ public class OrderApiTests : IDisposable
             customerNote = "Leave at reception",
             voucherCode
         };
+    }
+
+    private async Task AdvanceOrderToReturnedAsync(int orderId)
+    {
+        foreach (var status in new[] { "shipping", "delivered", "return_requested", "return_processing", "returned" })
+        {
+            Assert.Equal(HttpStatusCode.OK, (await _client.PutAsJsonAsync($"/api/orders/{orderId}/status", new { status })).StatusCode);
+        }
     }
 
     private static async Task AddCartItemAsync(

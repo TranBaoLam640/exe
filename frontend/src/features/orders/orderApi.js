@@ -49,6 +49,11 @@ export async function fetchCustomerRefunds(orderId) {
   return response.data?.data || [];
 }
 
+export async function fetchCustomerInspections(orderId) {
+  const response = await api.get(`/api/orders/${encodeURIComponent(orderId)}/inspections`);
+  return response.data?.data || [];
+}
+
 export function mapBackendOrder(order) {
   if (!order) return null;
 
