@@ -14,8 +14,8 @@ const NEXT_STATUSES = {
   pending_confirmation: ['shipping', 'cancelled'],
   shipping: ['delivered'],
   delivered: ['return_requested'],
-  return_requested: ['return_processing'],
-  return_processing: ['returned'],
+  return_requested: [],
+  return_processing: [],
   returned: [],
   cancelled: [],
 };
