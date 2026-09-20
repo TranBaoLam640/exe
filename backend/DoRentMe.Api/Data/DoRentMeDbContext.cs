@@ -94,6 +94,8 @@ public class DoRentMeDbContext : DbContext
                 .WithMany(x => x.Users)
                 .HasForeignKey(x => x.RoleId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            entity.Ignore(x => x.OwnedProducts);
         });
 
         modelBuilder.Entity<UserAddress>(entity =>
@@ -140,6 +142,8 @@ public class DoRentMeDbContext : DbContext
             entity.Property(x => x.Slug).HasMaxLength(120).IsRequired();
             entity.HasIndex(x => x.Name).IsUnique();
             entity.HasIndex(x => x.Slug).IsUnique();
+
+            entity.Ignore(x => x.Products);
         });
 
         modelBuilder.Entity<Brand>(entity =>
