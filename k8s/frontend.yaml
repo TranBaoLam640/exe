@@ -26,9 +26,6 @@ spec:
         app: frontend
 
     spec:
-      imagePullSecrets:
-        - name: ghcr-secret
-
       containers:
         - name: frontend
           image: FRONTEND_IMAGE_PLACEHOLDER
