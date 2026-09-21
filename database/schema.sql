@@ -54,6 +54,7 @@ CREATE TABLE UserAddresses (
 CREATE TABLE Shops (
   Id INT PRIMARY KEY IDENTITY(1,1),
   Name NVARCHAR(150) NOT NULL,
+  OwnerUserId INT NOT NULL,
   Phone NVARCHAR(20) NOT NULL,
   Email NVARCHAR(150) NULL,
   Address NVARCHAR(500) NOT NULL,
@@ -65,7 +66,9 @@ CREATE TABLE Shops (
   BankAccountName NVARCHAR(100) NULL,
   IsActive BIT NOT NULL DEFAULT 1,
   CreatedAt DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
-  UpdatedAt DATETIME2 NULL
+  UpdatedAt DATETIME2 NULL,
+
+  CONSTRAINT FK_Shops_Users_OwnerUserId FOREIGN KEY (OwnerUserId) REFERENCES Users(Id) ON DELETE CASCADE
 );
 
 -- 5. Categories
@@ -654,6 +657,7 @@ WHERE RequestId IS NOT NULL;
 CREATE INDEX IX_Users_RoleId ON Users(RoleId);
 CREATE INDEX IX_UserAddresses_UserId ON UserAddresses(UserId);
 CREATE INDEX IX_Shops_IsActive ON Shops(IsActive);
+CREATE INDEX IX_Shops_OwnerUserId ON Shops(OwnerUserId);
 
 CREATE INDEX IX_Products_ShopId ON Products(ShopId);
 CREATE INDEX IX_Products_OwnerUserId ON Products(OwnerUserId);

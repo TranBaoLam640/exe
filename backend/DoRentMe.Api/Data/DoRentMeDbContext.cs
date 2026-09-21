@@ -133,8 +133,10 @@ public class DoRentMeDbContext : DbContext
             entity.Property(x => x.BankAccountName).HasMaxLength(100);
             entity.HasIndex(x => x.IsActive);
 
-            entity.Ignore(x => x.OwnerUserId);
-            entity.Ignore(x => x.OwnerUser);
+            entity.HasOne(x => x.OwnerUser)
+                .WithMany()
+                .HasForeignKey(x => x.OwnerUserId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<Category>(entity =>

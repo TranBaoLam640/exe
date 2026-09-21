@@ -5,13 +5,32 @@ using Microsoft.EntityFrameworkCore;
 using DoRentMe.Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using MySqlConnector;
 using System.Text;
 using System.Security.Claims;
 var builder = WebApplication.CreateBuilder(args);
 
+if (builder.Environment.IsDevelopment())
+{
+    builder.Logging.ClearProviders();
+    builder.Logging.AddConsole();
+    builder.Logging.AddDebug();
+}
+
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException(
         "Connection string 'DefaultConnection' was not found.");
+
+if (builder.Environment.IsDevelopment())
+{
+    var mysqlConnection = new MySqlConnectionStringBuilder(connectionString);
+
+    if (mysqlConnection.SslMode == MySqlSslMode.Preferred)
+    {
+        mysqlConnection.SslMode = MySqlSslMode.None;
+        connectionString = mysqlConnection.ConnectionString;
+    }
+}
 
 builder.Services.AddDbContext<DoRentMeDbContext>(options =>
     options.UseMySql(
@@ -86,7 +105,12 @@ var app = builder.Build();
 
 app.UseCentralizedExceptionHandling();
 app.UseOpenApiDocumentation();
-app.UseHttpsRedirection();
+
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
+
 app.UseCors("Frontend");
 app.UseAuthentication();
 app.UseAuthorization();
