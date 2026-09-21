@@ -8,7 +8,7 @@ namespace DoRentMe.Api.Services;
 
 public sealed class AiGatewayService : IAiGatewayService
 {
-    private const string GeminiModel = "gemini-2.5-flash-lite";
+    private const string GeminiModel = "gemini-3.5-flash-lite";
     private const string FashnBaseUrl = "https://api.fashn.ai/v1";
 
     private static readonly JsonSerializerOptions JsonOptions = new(
