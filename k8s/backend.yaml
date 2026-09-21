@@ -24,9 +24,6 @@ spec:
         app: backend
 
     spec:
-      imagePullSecrets:
-        - name: ghcr-secret
-
       containers:
         - name: backend
           image: BACKEND_IMAGE_PLACEHOLDER

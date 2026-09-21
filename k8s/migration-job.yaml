@@ -15,9 +15,6 @@ spec:
     spec:
       restartPolicy: Never
 
-      imagePullSecrets:
-        - name: ghcr-secret
-
       containers:
         - name: migration
           image: BACKEND_IMAGE_PLACEHOLDER
@@ -33,6 +30,7 @@ spec:
 
           args:
             - |
+              set -e
               echo "Starting EF Core migration..."
               ./efbundle --connection "$ConnectionStrings__DefaultConnection"
               echo "Migration completed."
