@@ -11,7 +11,7 @@ import {
   isSupportedImageFile,
 } from '../src/features/ai/tryon/imageProcessing.js';
 import { TRYON_API_URL, createTryOn, getApiErrorMessage, getTryOnStatus } from '../src/features/ai/tryon/tryOnService.js';
-import { getProviderGarmentUrl, resolveTryOnProduct } from '../src/features/ai/tryon/tryOnProduct.js';
+import { buildTryOnProductUrl, getProviderGarmentUrl, resolveTryOnProduct } from '../src/features/ai/tryon/tryOnProduct.js';
 import { MAX_TRIES_PER_SESSION, TRYON_COUNT_KEY, bumpTryOnCount, canUseTryOn, getTryOnCount } from '../src/features/ai/tryon/tryOnSession.js';
 import { TRYON_MAX_POLL_ATTEMPTS, TRYON_POLL_INTERVAL_MS, pollTryOnStatus } from '../src/features/ai/tryon/tryOnPolling.js';
 
@@ -88,6 +88,18 @@ const selected = resolveTryOnProduct(new URLSearchParams(`product=${sampleProduc
 assert.equal(selected.source, 'react-id');
 assert.equal(selected.product.id, sampleProduct.id);
 assert.equal(resolveTryOnProduct(new URLSearchParams('product=missing'), products).source, 'none');
+
+const apiProduct = { ...sampleProduct, id: 123 };
+const apiProductTryOnUrl = buildTryOnProductUrl(apiProduct);
+const apiProductTryOnParams = new URLSearchParams(apiProductTryOnUrl.split('?')[1]);
+assert.equal(apiProductTryOnParams.get('product'), '123');
+assert.equal(apiProductTryOnParams.get('name'), apiProduct.name);
+const selectedApiProduct = resolveTryOnProduct(new URLSearchParams('product=123'), [apiProduct]);
+assert.equal(selectedApiProduct.source, 'react-id');
+assert.equal(selectedApiProduct.product.id, 123);
+const fallbackSelectedApiProduct = resolveTryOnProduct(apiProductTryOnParams, []);
+assert.equal(fallbackSelectedApiProduct.source, 'legacy-query');
+assert.equal(fallbackSelectedApiProduct.product.name, apiProduct.name);
 
 const legacyParams = new URLSearchParams({
   name: 'Legacy Product',

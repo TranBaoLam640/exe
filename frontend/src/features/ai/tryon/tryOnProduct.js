@@ -1,13 +1,14 @@
 export function buildTryOnProductUrl(product) {
-  if (!product?.id) {
-    const params = new URLSearchParams();
-    ['name', 'image', 'category', 'price3day', 'priceExtra', 'price1day', 'priceTag', 'priceDeposit'].forEach((key) => {
-      if (product?.[key]) params.set(key, product[key]);
-    });
-    return `/ai-tryon?${params.toString()}`;
+  const params = new URLSearchParams();
+  if (product?.id !== undefined && product?.id !== null && String(product.id).trim()) {
+    params.set('product', String(product.id));
   }
 
-  return `/ai-tryon?product=${encodeURIComponent(product.id)}`;
+  ['name', 'image', 'category', 'categoryLabel', 'price3day', 'priceExtra', 'price1day', 'priceTag', 'priceDeposit'].forEach((key) => {
+    if (product?.[key]) params.set(key, product[key]);
+  });
+
+  return `/ai-tryon?${params.toString()}`;
 }
 
 export function legacyProductFromParams(params) {
@@ -22,7 +23,7 @@ export function legacyProductFromParams(params) {
     name: params.get('name'),
     image: params.get('image') || '',
     category: params.get('category') || '',
-    categoryLabel: params.get('category') || '',
+    categoryLabel: params.get('categoryLabel') || params.get('category') || '',
     price3day: params.get('price3day') || '',
     priceExtra: params.get('priceExtra') || '',
     price1day: params.get('price1day') || '',
@@ -37,7 +38,7 @@ export function legacyProductFromParams(params) {
 export function resolveTryOnProduct(params, catalog) {
   const productId = params.get('product');
   if (productId) {
-    const product = catalog.find((candidate) => candidate.id === productId);
+    const product = catalog.find((candidate) => String(candidate.id) === productId);
     if (product) return { product, source: 'react-id' };
   }
 
