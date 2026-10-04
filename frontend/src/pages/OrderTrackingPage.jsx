@@ -141,7 +141,7 @@ export default function OrderTrackingPage() {
       if (!result?.checkoutUrl) throw new Error('Missing checkout URL');
       window.location.assign(result.checkoutUrl);
     } catch (requestError) {
-      setPayOsError(requestError?.response?.data?.message || 'Không thể tạo thanh toán PayOS.');
+      setPayOsError(getApiErrorMessage(requestError, 'Không thể tạo thanh toán PayOS.'));
       setPayOsLoading(false);
     }
   }
