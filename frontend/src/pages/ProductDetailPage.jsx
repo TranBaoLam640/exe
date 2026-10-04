@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { imageUrl } from '../assets/imageUrl.js';
 import { addProductToActiveCart } from '../features/cart/cartService.js';
 import { buildTryOnProductUrl, legacyProductFromParams } from '../features/ai/tryon/tryOnProduct.js';
@@ -17,6 +17,7 @@ import { useDocumentTitle } from '../hooks/useDocumentTitle.js';
 
 export default function ProductDetailPage() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const session = useAuthState();
   const fallbackProduct = useMemo(() => getFallbackProduct(), []);
@@ -24,6 +25,9 @@ export default function ProductDetailPage() {
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [cartActionError, setCartActionError] = useState('');
+  const [cartActionMessage, setCartActionMessage] = useState('');
+  const [cartActionLoading, setCartActionLoading] = useState('');
   const [favoriteError, setFavoriteError] = useState('');
 
   useDocumentTitle(`${product.name} | DoRentMe`);
@@ -65,13 +69,46 @@ export default function ProductDetailPage() {
     return '*'.repeat(count) + '-'.repeat(5 - count);
   }, [product.rating]);
 
+  const hasAvailableVariant = useMemo(
+    () => (product.variants || []).some((variant) => variant.isActive !== false && (variant.availableStock ?? 0) > 0),
+    [product.variants],
+  );
+  const canAddToCart = (product.availableStock || 0) > 0 && hasAvailableVariant && !cartActionLoading;
+
   async function addToCart() {
-    await addProductToActiveCart(product, quantity);
+    setCartActionError('');
+    setCartActionMessage('');
+    setCartActionLoading('cart');
+
+    try {
+      await addProductToActiveCart(product, quantity);
+      setCartActionMessage('Da them san pham vao gio hang.');
+    } catch (requestError) {
+      const message = requestError?.response?.status === 401
+        ? 'Phien dang nhap da het han. Vui long dang nhap lai de them san pham vao gio.'
+        : getApiErrorMessage(requestError, 'Khong them duoc san pham vao gio.');
+      setCartActionError(message);
+    } finally {
+      setCartActionLoading('');
+    }
   }
 
   async function rentNow() {
-    await addToCart();
-    window.location.href = '/cart';
+    setCartActionError('');
+    setCartActionMessage('');
+    setCartActionLoading('rent');
+
+    try {
+      await addProductToActiveCart(product, quantity);
+      navigate('/cart');
+    } catch (requestError) {
+      const message = requestError?.response?.status === 401
+        ? 'Phien dang nhap da het han. Vui long dang nhap lai de thue san pham.'
+        : getApiErrorMessage(requestError, 'Khong thue duoc san pham nay.');
+      setCartActionError(message);
+    } finally {
+      setCartActionLoading('');
+    }
   }
 
   async function toggleFavorite() {
@@ -192,9 +229,15 @@ export default function ProductDetailPage() {
             </div>
 
             <div className="product-action-btns">
-              <button className="product-btn-cart" type="button" onClick={addToCart}>Them vao gio</button>
-              <button className="product-btn-rent-now" type="button" onClick={rentNow}>Thue ngay</button>
+              <button className="product-btn-cart" type="button" onClick={addToCart} disabled={!canAddToCart}>
+                {cartActionLoading === 'cart' ? 'Dang them...' : 'Them vao gio'}
+              </button>
+              <button className="product-btn-rent-now" type="button" onClick={rentNow} disabled={!canAddToCart}>
+                {cartActionLoading === 'rent' ? 'Dang xu ly...' : 'Thue ngay'}
+              </button>
             </div>
+            {cartActionError ? <div className="product-action-message error">{cartActionError}</div> : null}
+            {cartActionMessage ? <div className="product-action-message success">{cartActionMessage}</div> : null}
             <Link to={buildTryOnProductUrl(product)} className="product-btn-tryon">Thu do AI voi san pham nay</Link>
           </div>
         </div>
