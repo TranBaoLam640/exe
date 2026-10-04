@@ -22,7 +22,18 @@ const steps = [
   { key: 3, icon: '↩', label: 'Trả hàng / Hoàn tất' },
 ];
 
-function stepIndex(status) {
+const returnStatuses = new Set(['return_requested', 'return_processing', 'returned']);
+
+function timelineSteps(order) {
+  const isReturnFlow = returnStatuses.has(order.status);
+  return steps.map((step) => (step.key === 3
+    ? { ...step, icon: isReturnFlow ? '↩' : '🏁', label: isReturnFlow ? 'Trả hàng / Hoàn tất' : 'Hoàn tất' }
+    : step));
+}
+
+function stepIndex(order) {
+  const status = order.status;
+  if (status === 'delivered' && order.deliveryConfirmed) return 3;
   return {
     pending_confirmation: 0,
     shipping: 1,
@@ -202,7 +213,8 @@ export default function OrderTrackingPage() {
   }
 
   const items = Array.isArray(order.items) ? order.items : [];
-  const idx = stepIndex(order.status);
+  const idx = stepIndex(order);
+  const visibleSteps = timelineSteps(order);
   const fillPct = [8, 36, 64, 92][idx];
 
   return (
@@ -269,7 +281,7 @@ export default function OrderTrackingPage() {
         <h3>Trạng thái đơn hàng</h3>
         <div className="tracking-stepper">
           <div className="tracking-fill-line" style={{ width: `${fillPct}%` }} />
-          {steps.map((step) => (
+          {visibleSteps.map((step) => (
             <div className={`tracking-step ${step.key < idx ? 'done' : step.key === idx ? 'active done' : ''}`} key={step.key}>
               <div className="tracking-step-dot">{step.icon}</div>
               <div className="tracking-step-label">{step.label}</div>
