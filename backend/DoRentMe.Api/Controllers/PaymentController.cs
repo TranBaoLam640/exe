@@ -34,6 +34,13 @@ public class PaymentController : ApiControllerBase
         return CreatedSuccess(await _transactionService.CreatePayOsPaymentAsync(userId, orderId, request, cancellationToken));
     }
 
+    [HttpPost("payos/sync")]
+    public async Task<IActionResult> SyncPayOsPayment(int orderId, CancellationToken cancellationToken)
+    {
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        return Success(await _transactionService.SyncPayOsPaymentAsync(userId, orderId, cancellationToken));
+    }
+
     [HttpGet("transactions")]
     public async Task<IActionResult> GetCustomerTransactions(int orderId, CancellationToken cancellationToken)
     {

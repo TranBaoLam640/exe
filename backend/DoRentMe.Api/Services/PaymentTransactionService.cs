@@ -81,6 +81,47 @@ public class PaymentTransactionService : IPaymentTransactionService
         }).ToListAsync(cancellationToken);
     }
 
+    public async Task<PaymentTransactionResponse> SyncPayOsPaymentAsync(int userId, int orderId, CancellationToken cancellationToken = default)
+    {
+        var transaction = await _dbContext.PaymentTransactions
+            .Include(item => item.Payment)
+            .Where(item => item.Provider == "payos" && item.Payment.OrderId == orderId && item.Payment.Order.UserId == userId)
+            .OrderByDescending(item => item.CreatedAt)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (transaction == null) throw NotFound(ErrorCodes.PaymentTransactionNotFound, "Payment transaction not found.");
+        if (transaction.Payment.Status == "paid" && transaction.Status == "paid") return Map(transaction);
+
+        PaymentGatewayStatusResult status;
+        try { status = await _gateway.GetPaymentStatusAsync(transaction.ProviderOrderCode, cancellationToken); }
+        catch (Exception exception) when (exception is not ApiException) { throw BusinessError(ErrorCodes.PayOsCreatePaymentFailed, "PayOS payment status could not be verified."); }
+
+        if (status.Amount != transaction.Amount || status.Amount != transaction.Payment.Amount)
+            throw BusinessError(ErrorCodes.PaymentAmountMismatch, "PayOS amount does not match the expected payment amount.");
+
+        transaction.UpdatedAt = DateTime.UtcNow;
+        transaction.ProviderTransactionId = status.ProviderTransactionId ?? transaction.ProviderTransactionId;
+
+        if (status.IsPaid)
+        {
+            transaction.Status = "paid";
+            transaction.PaidAt ??= DateTime.UtcNow;
+            if (transaction.Payment.Status == "pending")
+            {
+                transaction.Payment.Status = "paid";
+                transaction.Payment.PaidAt = DateTime.UtcNow;
+                transaction.Payment.ProviderTransactionId = transaction.ProviderTransactionId;
+            }
+        }
+        else if (transaction.Status == "pending" && status.Status is "CANCELLED" or "EXPIRED")
+        {
+            transaction.Status = status.Status.Equals("EXPIRED", StringComparison.OrdinalIgnoreCase) ? "expired" : "cancelled";
+        }
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        return Map(transaction);
+    }
+
     public async Task<IReadOnlyList<PaymentTransactionResponse>> GetAdminTransactionsAsync(int paymentId, CancellationToken cancellationToken = default)
     {
         if (!await _dbContext.Payments.AnyAsync(item => item.Id == paymentId, cancellationToken)) throw NotFound(ErrorCodes.PaymentNotFound, "Payment not found.");

@@ -49,6 +49,11 @@ export async function createPayOsPayment(orderId) {
   return response.data?.data;
 }
 
+export async function syncPayOsPayment(orderId) {
+  const response = await api.post(`/api/orders/${encodeURIComponent(orderId)}/payment/payos/sync`, {});
+  return response.data?.data;
+}
+
 export async function fetchCustomerPaymentTransactions(orderId) {
   const response = await api.get(`/api/orders/${encodeURIComponent(orderId)}/payment/transactions`);
   return response.data?.data || [];

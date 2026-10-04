@@ -1,6 +1,6 @@
 import { Link, useSearchParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { fetchCustomerPayment, fetchCustomerPaymentTransactions } from '../features/orders/orderApi.js';
+import { fetchCustomerPayment, fetchCustomerPaymentTransactions, syncPayOsPayment } from '../features/orders/orderApi.js';
 
 export default function PayOsReturnPage() {
   const [params] = useSearchParams();
@@ -12,7 +12,9 @@ export default function PayOsReturnPage() {
   useEffect(() => {
     if (!orderId) return undefined;
     let active = true;
-    Promise.all([fetchCustomerPayment(orderId), fetchCustomerPaymentTransactions(orderId)])
+    syncPayOsPayment(orderId)
+      .catch(() => null)
+      .then(() => Promise.all([fetchCustomerPayment(orderId), fetchCustomerPaymentTransactions(orderId)]))
       .then(([paymentResult, transactionResult]) => {
         if (active) { setPayment(paymentResult); setTransactions(transactionResult); }
       })
