@@ -5,6 +5,7 @@ public class Shipment
     public int Id { get; set; }
     public int? ShopId { get; set; }
     public int OrderId { get; set; }
+    public int? AssignedShipperUserId { get; set; }
     public string Direction { get; set; } = "outbound";
     public string Provider { get; set; } = "SPX";
     public string ServiceType { get; set; } = "instant";
@@ -29,5 +30,6 @@ public class Shipment
 
     public Shop? Shop { get; set; }
     public Order Order { get; set; } = null!;
+    public User? AssignedShipperUser { get; set; }
     public ICollection<ShipmentTrackingEvent> TrackingEvents { get; set; } = new List<ShipmentTrackingEvent>();
 }

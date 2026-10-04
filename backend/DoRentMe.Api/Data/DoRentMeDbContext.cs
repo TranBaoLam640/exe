@@ -429,6 +429,7 @@ public class DoRentMeDbContext : DbContext
 
             entity.HasOne(x => x.Shop).WithMany().HasForeignKey(x => x.ShopId).OnDelete(DeleteBehavior.Restrict);
             entity.HasOne(x => x.Order).WithMany().HasForeignKey(x => x.OrderId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(x => x.AssignedShipperUser).WithMany().HasForeignKey(x => x.AssignedShipperUserId).OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<ShipmentTrackingEvent>(entity =>
@@ -731,6 +732,7 @@ public class DoRentMeDbContext : DbContext
 
         modelBuilder.Entity<Shipment>().HasIndex(x => x.ShopId);
         modelBuilder.Entity<Shipment>().HasIndex(x => x.OrderId);
+        modelBuilder.Entity<Shipment>().HasIndex(x => x.AssignedShipperUserId);
         modelBuilder.Entity<Shipment>().HasIndex(x => x.Status);
         modelBuilder.Entity<Shipment>().HasIndex(x => x.Direction);
         modelBuilder.Entity<Shipment>().HasIndex(x => x.TrackingCode);

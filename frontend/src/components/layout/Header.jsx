@@ -34,6 +34,7 @@ export default function Header() {
   const activeLabel = location.pathname.startsWith('/product/') ? 'Dịch vụ' : reactNav.get(location.pathname);
   const role = String(session?.role || '').toUpperCase();
   const canManageInventory = role === 'ADMIN' || role === 'LENDER';
+  const canManageShipments = role === 'SHIPPER';
 
   useEffect(() => {
     const update = () => setScrolled(window.scrollY > 60);
@@ -78,6 +79,11 @@ export default function Header() {
         {canManageInventory ? (
           <Link className="inventory-nav-link" to="/admin/inventory" title="Inventory management" aria-label="Inventory management">
             Inventory
+          </Link>
+        ) : null}
+        {canManageShipments ? (
+          <Link className="inventory-nav-link" to="/shipper" title="Assigned shipments" aria-label="Assigned shipments">
+            Shipper
           </Link>
         ) : null}
         {session ? (

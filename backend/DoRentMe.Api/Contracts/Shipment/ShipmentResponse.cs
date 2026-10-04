@@ -6,6 +6,10 @@ public class ShipmentResponse
     public int OrderId { get; set; }
     public string? OrderCode { get; set; }
     public int? ShopId { get; set; }
+    public int? AssignedShipperUserId { get; set; }
+    public string? AssignedShipperName { get; set; }
+    public string? AssignedShipperEmail { get; set; }
+    public string? AssignedShipperPhone { get; set; }
     public string Direction { get; set; } = null!;
     public string Provider { get; set; } = null!;
     public string ServiceType { get; set; } = null!;

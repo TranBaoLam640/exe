@@ -14,6 +14,11 @@ export async function fetchAdminOrders(filters = {}) {
   return response.data?.data || [];
 }
 
+export async function fetchAdminShippers() {
+  const response = await api.get('/api/admin/shippers');
+  return response.data?.data || [];
+}
+
 export async function fetchAdminOrder(id) {
   const response = await api.get(`/api/admin/orders/${encodeURIComponent(id)}`);
   return mapBackendOrder(response.data?.data);
@@ -49,8 +54,8 @@ export async function createAdminReturnShipment(orderId, payload) {
   return response.data?.data;
 }
 
-export async function updateAdminShipmentStatus(id, status, note) {
-  const response = await api.put(`/api/admin/shipments/${encodeURIComponent(id)}/status`, { status, note: note?.trim() || null });
+export async function updateAdminShipment(id, payload) {
+  const response = await api.put(`/api/admin/shipments/${encodeURIComponent(id)}`, payload);
   return response.data?.data;
 }
 

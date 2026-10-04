@@ -1571,6 +1571,9 @@ namespace DoRentMe.Api.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("AssignedShipperUserId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime?>("CancelledAt")
                         .HasColumnType("datetime(6)");
 
@@ -1665,6 +1668,8 @@ namespace DoRentMe.Api.Migrations
                         .HasColumnType("datetime(6)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("AssignedShipperUserId");
 
                     b.HasIndex("Direction");
 
@@ -2500,6 +2505,11 @@ namespace DoRentMe.Api.Migrations
 
             modelBuilder.Entity("DoRentMe.Api.Models.Shipment", b =>
                 {
+                    b.HasOne("DoRentMe.Api.Models.User", "AssignedShipperUser")
+                        .WithMany()
+                        .HasForeignKey("AssignedShipperUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("DoRentMe.Api.Models.Order", "Order")
                         .WithMany()
                         .HasForeignKey("OrderId")
@@ -2510,6 +2520,8 @@ namespace DoRentMe.Api.Migrations
                         .WithMany()
                         .HasForeignKey("ShopId")
                         .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("AssignedShipperUser");
 
                     b.Navigation("Order");
 

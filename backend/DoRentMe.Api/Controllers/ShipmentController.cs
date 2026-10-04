@@ -1,4 +1,6 @@
 using System.Security.Claims;
+using DoRentMe.Api.Common.Errors;
+using DoRentMe.Api.Common.Exceptions;
 using DoRentMe.Api.Contracts.Shipment;
 using DoRentMe.Api.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -53,8 +55,23 @@ public class ShipmentController : ApiControllerBase
 
     [HttpPut("admin/shipments/{id:int}/status")]
     [Authorize(Roles = "ADMIN")]
-    public async Task<IActionResult> UpdateStatus(int id, [FromBody] ShipmentStatusRequest request, CancellationToken cancellationToken)
-        => Success(await _shipmentService.UpdateStatusAsync(GetUserId(), id, request, cancellationToken));
+    public IActionResult UpdateStatus(int id, [FromBody] ShipmentStatusRequest request)
+        => throw new ApiException(ErrorCodes.Forbidden, "Shipment status is updated by the assigned shipper.", StatusCodes.Status403Forbidden);
+
+    [HttpGet("shipper/shipments")]
+    [Authorize(Roles = "SHIPPER")]
+    public async Task<IActionResult> GetShipperShipments([FromQuery] ShipmentQueryRequest request, CancellationToken cancellationToken)
+        => Success(await _shipmentService.GetShipperShipmentsAsync(GetUserId(), request, cancellationToken));
+
+    [HttpGet("shipper/shipments/{id:int}")]
+    [Authorize(Roles = "SHIPPER")]
+    public async Task<IActionResult> GetShipperShipment(int id, CancellationToken cancellationToken)
+        => Success(await _shipmentService.GetShipperShipmentAsync(GetUserId(), id, cancellationToken));
+
+    [HttpPut("shipper/shipments/{id:int}/status")]
+    [Authorize(Roles = "SHIPPER")]
+    public async Task<IActionResult> UpdateStatusByShipper(int id, [FromBody] ShipmentStatusRequest request, CancellationToken cancellationToken)
+        => Success(await _shipmentService.UpdateStatusByShipperAsync(GetUserId(), id, request, cancellationToken));
 
     [HttpGet("orders/{orderId:int}/shipment")]
     [Authorize]

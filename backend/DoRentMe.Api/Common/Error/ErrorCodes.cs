@@ -94,4 +94,6 @@ public static class ErrorCodes
     public const string InvalidShipmentTransition = "INVALID_SHIPMENT_TRANSITION";
     public const string OrderNotEligibleForShipment = "ORDER_NOT_ELIGIBLE_FOR_SHIPMENT";
     public const string ShipmentAlreadyDelivered = "SHIPMENT_ALREADY_DELIVERED";
+    public const string ShipperAssignmentRequired = "SHIPPER_ASSIGNMENT_REQUIRED";
+    public const string ShipperNotFound = "SHIPPER_NOT_FOUND";
 }

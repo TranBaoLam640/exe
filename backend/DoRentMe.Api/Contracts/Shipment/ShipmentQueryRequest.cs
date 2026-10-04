@@ -5,5 +5,6 @@ public class ShipmentQueryRequest
     public string? Status { get; set; }
     public string? Provider { get; set; }
     public int? OrderId { get; set; }
+    public int? AssignedShipperUserId { get; set; }
     public string? TrackingCode { get; set; }
 }

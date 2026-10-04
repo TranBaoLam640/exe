@@ -19,6 +19,7 @@ public class OrderApiTests : IDisposable
     private const string LenderEmail = "order-lender@example.com";
     private const string OtherLenderEmail = "order-other-lender@example.com";
     private const string AdminEmail = "order-admin@example.com";
+    private const string ShipperEmail = "order-shipper@example.com";
     private const string Password = "Password123!";
 
     private readonly CustomWebApplicationFactory _factory;
@@ -85,16 +86,25 @@ public class OrderApiTests : IDisposable
         await AddCartItemAsync(_client, seed.VariantId, quantity: 1, days: 1);
         var checkout = await _client.PostAsJsonAsync("/api/orders/checkout", CheckoutPayload());
         var orderId = await FirstOrderIdAsync(checkout);
+        var shipper = await EnsureUserAsync(ShipperEmail, "SHIPPER");
 
         await LoginAsync(_client, AdminEmail);
-        var create = await _client.PostAsJsonAsync($"/api/admin/orders/{orderId}/shipment", new { provider = "manual", trackingCode = "MANUAL-1" });
+        var create = await _client.PostAsJsonAsync($"/api/admin/orders/{orderId}/shipment", new { provider = "manual", trackingCode = "MANUAL-1", assignedShipperUserId = shipper.Id });
         Assert.Equal(HttpStatusCode.Created, create.StatusCode);
         using var createJson = await ReadJsonAsync(create);
         var shipmentId = createJson.RootElement.GetProperty("data").GetProperty("id").GetInt32();
+        Assert.Equal(shipper.Id, createJson.RootElement.GetProperty("data").GetProperty("assignedShipperUserId").GetInt32());
 
-        var shipped = await _client.PutAsJsonAsync($"/api/admin/shipments/{shipmentId}/status", new { status = "shipping", note = "Handed to delivery" });
+        var adminStatusUpdate = await _client.PutAsJsonAsync($"/api/admin/shipments/{shipmentId}/status", new { status = "shipping", note = "Admin should not update" });
+        Assert.Equal(HttpStatusCode.Forbidden, adminStatusUpdate.StatusCode);
+
+        await LoginAsync(_client, ShipperEmail);
+        var shipperShipments = await _client.GetAsync("/api/shipper/shipments");
+        Assert.Equal(HttpStatusCode.OK, shipperShipments.StatusCode);
+
+        var shipped = await _client.PutAsJsonAsync($"/api/shipper/shipments/{shipmentId}/status", new { status = "shipping", note = "Handed to delivery" });
         Assert.Equal(HttpStatusCode.OK, shipped.StatusCode);
-        var delivered = await _client.PutAsJsonAsync($"/api/admin/shipments/{shipmentId}/status", new { status = "delivered", note = "Delivered" });
+        var delivered = await _client.PutAsJsonAsync($"/api/shipper/shipments/{shipmentId}/status", new { status = "delivered", note = "Delivered" });
         Assert.Equal(HttpStatusCode.OK, delivered.StatusCode);
 
         using var scope = _factory.Services.CreateScope();
@@ -116,23 +126,28 @@ public class OrderApiTests : IDisposable
         await AddCartItemAsync(_client, seed.VariantId, quantity: 1, days: 1);
         var checkout = await _client.PostAsJsonAsync("/api/orders/checkout", CheckoutPayload());
         var orderId = await FirstOrderIdAsync(checkout);
+        var shipper = await EnsureUserAsync(ShipperEmail, "SHIPPER");
         await LoginAsync(_client, AdminEmail);
 
-        var outbound = await _client.PostAsJsonAsync($"/api/admin/orders/{orderId}/shipment", new { provider = "manual" });
+        var outbound = await _client.PostAsJsonAsync($"/api/admin/orders/{orderId}/shipment", new { provider = "manual", assignedShipperUserId = shipper.Id });
         using var outboundJson = await ReadJsonAsync(outbound);
         var outboundId = outboundJson.RootElement.GetProperty("data").GetProperty("id").GetInt32();
-        Assert.Equal(HttpStatusCode.OK, (await _client.PutAsJsonAsync($"/api/admin/shipments/{outboundId}/status", new { status = "shipping" })).StatusCode);
-        Assert.Equal(HttpStatusCode.OK, (await _client.PutAsJsonAsync($"/api/admin/shipments/{outboundId}/status", new { status = "delivered" })).StatusCode);
+        await LoginAsync(_client, ShipperEmail);
+        Assert.Equal(HttpStatusCode.OK, (await _client.PutAsJsonAsync($"/api/shipper/shipments/{outboundId}/status", new { status = "shipping" })).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await _client.PutAsJsonAsync($"/api/shipper/shipments/{outboundId}/status", new { status = "delivered" })).StatusCode);
+        await LoginAsync(_client, CustomerEmail);
         Assert.Equal(HttpStatusCode.OK, (await _client.PutAsJsonAsync($"/api/orders/{orderId}/status", new { status = "return_requested" })).StatusCode);
 
-        var returnShipment = await _client.PostAsJsonAsync($"/api/admin/orders/{orderId}/return-shipment", new { provider = "manual", trackingCode = "RETURN-1" });
+        await LoginAsync(_client, AdminEmail);
+        var returnShipment = await _client.PostAsJsonAsync($"/api/admin/orders/{orderId}/return-shipment", new { provider = "manual", trackingCode = "RETURN-1", assignedShipperUserId = shipper.Id });
         Assert.Equal(HttpStatusCode.Created, returnShipment.StatusCode);
         using var returnJson = await ReadJsonAsync(returnShipment);
         var returnId = returnJson.RootElement.GetProperty("data").GetProperty("id").GetInt32();
         Assert.Equal("return", returnJson.RootElement.GetProperty("data").GetProperty("direction").GetString());
-        Assert.Equal(HttpStatusCode.OK, (await _client.PutAsJsonAsync($"/api/admin/shipments/{returnId}/status", new { status = "picked_up" })).StatusCode);
-        Assert.Equal(HttpStatusCode.OK, (await _client.PutAsJsonAsync($"/api/admin/shipments/{returnId}/status", new { status = "returning" })).StatusCode);
-        Assert.Equal(HttpStatusCode.OK, (await _client.PutAsJsonAsync($"/api/admin/shipments/{returnId}/status", new { status = "returned" })).StatusCode);
+        await LoginAsync(_client, ShipperEmail);
+        Assert.Equal(HttpStatusCode.OK, (await _client.PutAsJsonAsync($"/api/shipper/shipments/{returnId}/status", new { status = "picked_up" })).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await _client.PutAsJsonAsync($"/api/shipper/shipments/{returnId}/status", new { status = "returning" })).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await _client.PutAsJsonAsync($"/api/shipper/shipments/{returnId}/status", new { status = "returned" })).StatusCode);
 
         using var scope = _factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<DoRentMeDbContext>();
@@ -1084,6 +1099,11 @@ public class OrderApiTests : IDisposable
         if (email.Contains("lender", StringComparison.OrdinalIgnoreCase))
         {
             return "LENDER";
+        }
+
+        if (email.Contains("shipper", StringComparison.OrdinalIgnoreCase))
+        {
+            return "SHIPPER";
         }
 
         return "CUSTOMER";

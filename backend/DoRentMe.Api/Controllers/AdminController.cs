@@ -3,9 +3,11 @@ using DoRentMe.Api.Common.Responses;
 using DoRentMe.Api.Contracts.Payment;
 using DoRentMe.Api.Contracts.Order;
 using DoRentMe.Api.Contracts.Refund;
+using DoRentMe.Api.Data;
 using DoRentMe.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace DoRentMe.Api.Controllers;
 
@@ -17,13 +19,15 @@ public class AdminController : ApiControllerBase
     private readonly IPaymentService _paymentService;
     private readonly IPaymentTransactionService _transactionService;
     private readonly IRefundService _refundService;
+    private readonly DoRentMeDbContext _dbContext;
 
-    public AdminController(IOrderService orderService, IPaymentService paymentService, IRefundService refundService, IPaymentTransactionService transactionService)
+    public AdminController(IOrderService orderService, IPaymentService paymentService, IRefundService refundService, IPaymentTransactionService transactionService, DoRentMeDbContext dbContext)
     {
         _orderService = orderService;
         _paymentService = paymentService;
         _refundService = refundService;
         _transactionService = transactionService;
+        _dbContext = dbContext;
     }
 
     [HttpGet("session")]
@@ -50,6 +54,24 @@ public class AdminController : ApiControllerBase
     {
         var orders = await _orderService.GetAdminOrdersAsync(filters, cancellationToken);
         return Success(orders);
+    }
+
+    [HttpGet("shippers")]
+    public async Task<IActionResult> GetShippers(CancellationToken cancellationToken)
+    {
+        var shippers = await _dbContext.Users.AsNoTracking()
+            .Include(item => item.Role)
+            .Where(item => item.IsActive && item.Role.Code == "SHIPPER")
+            .OrderBy(item => item.Name)
+            .Select(item => new
+            {
+                item.Id,
+                item.Name,
+                item.Email,
+                item.Phone
+            })
+            .ToListAsync(cancellationToken);
+        return Success(shippers);
     }
 
     [HttpGet("orders/{id:int}")]

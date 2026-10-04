@@ -21,6 +21,7 @@ import PayOsReturnPage from '../pages/PayOsReturnPage.jsx';
 import ProductDetailPage from '../pages/ProductDetailPage.jsx';
 import RegisterPage from '../pages/RegisterPage.jsx';
 import RouteErrorPage from '../pages/RouteErrorPage.jsx';
+import ShipperPage from '../pages/ShipperPage.jsx';
 import ShopPage from '../pages/ShopPage.jsx';
 import TutorialPage from '../pages/TutorialPage.jsx';
 import TryOnPage from '../pages/TryOnPage.jsx';
@@ -220,6 +221,15 @@ export const router = createBrowserRouter([
     element: (
       <RequireRole allowedRoles={['ADMIN', 'LENDER']}>
         <InventoryPage />
+      </RequireRole>
+    ),
+    errorElement: <RouteErrorPage />,
+  },
+  {
+    path: '/shipper',
+    element: (
+      <RequireRole allowedRoles={['SHIPPER']}>
+        <ShipperPage />
       </RequireRole>
     ),
     errorElement: <RouteErrorPage />,

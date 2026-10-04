@@ -4,6 +4,9 @@ namespace DoRentMe.Api.Contracts.Shipment;
 
 public class ShipmentUpdateRequest
 {
+    [Range(1, int.MaxValue)]
+    public int? AssignedShipperUserId { get; set; }
+
     [MaxLength(50)]
     public string? Provider { get; set; }
 
