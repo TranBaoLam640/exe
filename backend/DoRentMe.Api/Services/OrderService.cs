@@ -164,6 +164,36 @@ public class OrderService : IOrderService
         return await GetCustomerOrderAsync(userId, order.Id, cancellationToken);
     }
 
+    public async Task<OrderResponse> ConfirmDeliveryAsync(
+        int userId,
+        int orderId,
+        CancellationToken cancellationToken = default)
+    {
+        var order = await _dbContext.Orders
+            .FirstOrDefaultAsync(o => o.Id == orderId && o.UserId == userId, cancellationToken);
+
+        if (order == null)
+        {
+            throw NotFound(ErrorCodes.OrderNotFound, "Order not found.");
+        }
+
+        if (!string.Equals(order.Status, "delivered", StringComparison.OrdinalIgnoreCase))
+        {
+            throw Conflict(
+                ErrorCodes.OrderNotReadyForDeliveryConfirmation,
+                "Order delivery can only be confirmed after it has been delivered.");
+        }
+
+        if (!order.DeliveryConfirmed)
+        {
+            order.DeliveryConfirmed = true;
+            order.UpdatedAt = DateTime.UtcNow;
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+
+        return await GetCustomerOrderAsync(userId, order.Id, cancellationToken);
+    }
+
     public async Task<OrderResponse> UpdateStatusAsync(
         int userId,
         string role,
@@ -680,7 +710,6 @@ public class OrderService : IOrderService
         var oldStatus = order.Status;
         order.Status = newStatus;
         order.UpdatedAt = DateTime.UtcNow;
-        order.DeliveryConfirmed = newStatus == "delivered" || order.DeliveryConfirmed;
         order.ReturnRequestedAt = newStatus == "return_requested" && order.ReturnRequestedAt == null
             ? DateTime.UtcNow
             : order.ReturnRequestedAt;

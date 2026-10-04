@@ -51,6 +51,14 @@ public class OrderController : ApiControllerBase
         return Success(order);
     }
 
+    [HttpPost("{id:int}/confirm-delivery")]
+    public async Task<IActionResult> ConfirmDelivery(int id, CancellationToken cancellationToken)
+    {
+        var order = await _orderService.ConfirmDeliveryAsync(GetCurrentUserId(), id, cancellationToken);
+
+        return Success(order);
+    }
+
     [HttpPut("{id:int}/status")]
     [Authorize(Roles = "ADMIN,LENDER")]
     public async Task<IActionResult> UpdateStatus(

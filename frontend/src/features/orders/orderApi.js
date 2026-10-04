@@ -31,6 +31,11 @@ export async function cancelBackendOrder(id) {
   return mapBackendOrder(response.data?.data);
 }
 
+export async function confirmBackendDelivery(id) {
+  const response = await api.post(`/api/orders/${encodeURIComponent(id)}/confirm-delivery`);
+  return mapBackendOrder(response.data?.data);
+}
+
 export async function updateBackendOrderStatus(id, status, note) {
   const response = await api.put(`/api/orders/${encodeURIComponent(id)}/status`, {
     status,

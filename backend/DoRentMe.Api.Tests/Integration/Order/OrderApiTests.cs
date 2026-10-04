@@ -325,7 +325,38 @@ public class OrderApiTests : IDisposable
         var dbContext = scope.ServiceProvider.GetRequiredService<DoRentMeDbContext>();
         var order = await dbContext.Orders.SingleAsync(o => o.Id == orderId);
         Assert.Equal("delivered", order.Status);
+        Assert.False(order.DeliveryConfirmed);
         Assert.Equal(3, await dbContext.OrderStatusHistory.CountAsync(h => h.OrderId == orderId));
+    }
+
+    [Fact]
+    public async Task CustomerCanConfirmDeliveredOrder_AndOwnershipIsEnforced()
+    {
+        var seed = await SeedCatalogAsync(ownerEmail: LenderEmail, stock: 1);
+        await LoginAsync(_client, CustomerEmail);
+        await AddCartItemAsync(_client, seed.VariantId);
+        var checkout = await _client.PostAsJsonAsync("/api/orders/checkout", CheckoutPayload());
+        var orderId = await FirstOrderIdAsync(checkout);
+
+        var tooEarly = await _client.PostAsync($"/api/orders/{orderId}/confirm-delivery", null);
+        Assert.Equal(HttpStatusCode.Conflict, tooEarly.StatusCode);
+
+        await LoginAsync(_client, AdminEmail);
+        Assert.Equal(HttpStatusCode.OK, (await _client.PutAsJsonAsync($"/api/orders/{orderId}/status", new { status = "shipping" })).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await _client.PutAsJsonAsync($"/api/orders/{orderId}/status", new { status = "delivered" })).StatusCode);
+
+        await LoginAsync(_client, OtherCustomerEmail);
+        var otherCustomer = await _client.PostAsync($"/api/orders/{orderId}/confirm-delivery", null);
+        Assert.Equal(HttpStatusCode.NotFound, otherCustomer.StatusCode);
+
+        await LoginAsync(_client, CustomerEmail);
+        var confirmed = await _client.PostAsync($"/api/orders/{orderId}/confirm-delivery", null);
+        Assert.Equal(HttpStatusCode.OK, confirmed.StatusCode);
+        using var confirmedJson = await ReadJsonAsync(confirmed);
+        Assert.True(confirmedJson.RootElement.GetProperty("data").GetProperty("deliveryConfirmed").GetBoolean());
+
+        var confirmedAgain = await _client.PostAsync($"/api/orders/{orderId}/confirm-delivery", null);
+        Assert.Equal(HttpStatusCode.OK, confirmedAgain.StatusCode);
     }
 
     [Fact]

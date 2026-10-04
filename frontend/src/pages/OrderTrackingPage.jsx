@@ -3,7 +3,7 @@ import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { imageUrl } from '../assets/imageUrl.js';
 import { getSession } from '../features/auth/authService.js';
 import { formatVnd, parsePrice } from '../features/cart/cartService.js';
-import { createPayOsPayment, fetchCustomerInspections, fetchCustomerPayment, fetchCustomerPaymentTransactions, fetchCustomerRefunds, fetchCustomerShipments } from '../features/orders/orderApi.js';
+import { confirmBackendDelivery, createPayOsPayment, fetchCustomerInspections, fetchCustomerPayment, fetchCustomerPaymentTransactions, fetchCustomerRefunds, fetchCustomerShipments } from '../features/orders/orderApi.js';
 import {
   confirmDelivery,
   formatOrderDate,
@@ -60,25 +60,50 @@ function StatusBanner({ order }) {
   return null;
 }
 
-function TrackingActions({ order }) {
+function TrackingActions({ order, onOrderUpdated }) {
+  const [confirmingDelivery, setConfirmingDelivery] = useState(false);
+  const [confirmDeliveryError, setConfirmDeliveryError] = useState('');
+
+  async function handleConfirmDelivery() {
+    setConfirmingDelivery(true);
+    setConfirmDeliveryError('');
+
+    try {
+      if (order.backendOrder) {
+        onOrderUpdated(await confirmBackendDelivery(order.id));
+      } else {
+        confirmDelivery(order.id);
+      }
+    } catch (requestError) {
+      setConfirmDeliveryError(getApiErrorMessage(requestError, 'Không thể xác nhận đã nhận hàng.'));
+    } finally {
+      setConfirmingDelivery(false);
+    }
+  }
+
   if (order.status === 'delivered') {
     return (
-      <div className="tracking-action-row">
-        {order.deliveryConfirmed ? (
-          <button className="btn-done" disabled type="button">✅ Đã xác nhận nhận hàng</button>
-        ) : (
-          <button className="btn-done" onClick={() => confirmDelivery(order.id)} type="button">✅ Hoàn thành đơn</button>
-        )}
-        <button
-          className="btn-return"
-          onClick={() => {
-            if (window.confirm('Xác nhận gửi yêu cầu trả hàng cho shop?')) requestReturn(order.id);
-          }}
-          type="button"
-        >
-          ↩ Yêu cầu trả hàng
-        </button>
-      </div>
+      <>
+        <div className="tracking-action-row">
+          {order.deliveryConfirmed ? (
+            <button className="btn-done" disabled type="button">✅ Đã xác nhận nhận hàng</button>
+          ) : (
+            <button className="btn-done" disabled={confirmingDelivery} onClick={handleConfirmDelivery} type="button">
+              {confirmingDelivery ? 'Đang xác nhận...' : '✅ Hoàn thành đơn'}
+            </button>
+          )}
+          <button
+            className="btn-return"
+            onClick={() => {
+              if (window.confirm('Xác nhận gửi yêu cầu trả hàng cho shop?')) requestReturn(order.id);
+            }}
+            type="button"
+          >
+            ↩ Yêu cầu trả hàng
+          </button>
+        </div>
+        {confirmDeliveryError ? <div className="checkout-error" style={{ display: 'block' }}>{confirmDeliveryError}</div> : null}
+      </>
     );
   }
 
@@ -252,7 +277,7 @@ export default function OrderTrackingPage() {
           ))}
         </div>
         <div className="tracking-banner-wrap"><StatusBanner order={order} /></div>
-        <TrackingActions order={order} />
+        <TrackingActions order={order} onOrderUpdated={backendOrder.replaceOrder} />
       </section>
 
       <section className="tracking-card">

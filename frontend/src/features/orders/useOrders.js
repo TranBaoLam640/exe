@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { getSession } from '../auth/authService.js';
 import { fetchBackendOrder, fetchBackendOrders } from './orderApi.js';
 import { getOrders, ORDERS_CHANGED_EVENT, ORDERS_KEY } from './orderCreation.js';
@@ -45,6 +45,7 @@ export function useOrders() {
 export function useOrderById(orderId) {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(Boolean(orderId && getSession()));
+  const replaceOrder = useCallback((nextOrder) => setOrder(nextOrder), []);
 
   useEffect(() => {
     let cancelled = false;
@@ -81,5 +82,5 @@ export function useOrderById(orderId) {
     };
   }, [orderId]);
 
-  return { order, loading };
+  return { order, loading, replaceOrder };
 }

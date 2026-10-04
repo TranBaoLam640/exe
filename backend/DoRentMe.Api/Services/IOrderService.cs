@@ -23,6 +23,11 @@ public interface IOrderService
         int orderId,
         CancellationToken cancellationToken = default);
 
+    Task<OrderResponse> ConfirmDeliveryAsync(
+        int userId,
+        int orderId,
+        CancellationToken cancellationToken = default);
+
     Task<OrderResponse> UpdateStatusAsync(
         int userId,
         string role,
