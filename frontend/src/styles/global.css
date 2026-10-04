@@ -3219,6 +3219,50 @@ a {
   border-color: #c0392b;
 }
 
+
+.auth-role-options {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.auth-role-option {
+  display: grid;
+  gap: 4px;
+  min-height: 78px;
+  padding: 10px;
+  cursor: pointer;
+  background: #fafafa;
+  border: 1.5px solid #ddd;
+  border-radius: 8px;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+
+.auth-role-option input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.auth-role-option span {
+  color: #222;
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
+.auth-role-option small {
+  color: #777;
+  font-size: 0.74rem;
+  line-height: 1.35;
+}
+
+.auth-role-option.selected {
+  background: #eef9f3;
+  border-color: #55b689;
+  box-shadow: 0 0 0 3px rgba(85, 182, 137, 0.12);
+}
 .auth-password-field {
   position: relative;
 }
@@ -3313,6 +3357,11 @@ a {
   background: #e8f8f1;
 }
 
+@media (max-width: 520px) {
+  .auth-role-options {
+    grid-template-columns: 1fr;
+  }
+}
 .auth-submit {
   width: 100%;
   padding: 13px 0;

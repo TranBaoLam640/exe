@@ -1552,6 +1552,14 @@ namespace DoRentMe.Api.Migrations
                             CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Description = "Platform administrator",
                             Name = "Admin"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Code = "SHIPPER",
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "User who handles order shipment and returns",
+                            Name = "Shipper"
                         });
                 });
 

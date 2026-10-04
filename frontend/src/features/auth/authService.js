@@ -52,10 +52,11 @@ export function clearSession(options = {}) {
   dispatchAppEvent(eventTarget, AUTH_CHANGED_EVENT, null);
 }
 
-export async function register({ name, email, phone, password }, options = {}) {
+export async function register({ name, email, phone, password, role }, options = {}) {
   const cleanName = (name || '').trim();
   const cleanEmail = normalizeEmail(email);
   const cleanPhone = (phone || '').trim();
+  const cleanRole = String(role || 'CUSTOMER').trim().toUpperCase();
 
   // Validation frontend vẫn giữ
   if (cleanName.length < 2) {
@@ -80,7 +81,7 @@ export async function register({ name, email, phone, password }, options = {}) {
       email: cleanEmail,
       phone: cleanPhone || null,
       password,
-      role: 'CUSTOMER',
+      role: cleanRole,
     });
 
     const authData = response.data?.data;

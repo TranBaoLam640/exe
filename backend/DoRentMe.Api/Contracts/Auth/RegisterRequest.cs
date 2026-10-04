@@ -22,6 +22,6 @@ public class RegisterRequest
     public string Password { get; set; } = null!;
 
     [Required(ErrorMessage = "Role is required")]
-    [RegularExpression("^(CUSTOMER|LENDER)$", ErrorMessage = "Role must be either CUSTOMER or LENDER")]
+    [RegularExpression("^(CUSTOMER|LENDER|SHIPPER)$", ErrorMessage = "Role must be CUSTOMER, LENDER, or SHIPPER")]
     public string Role { get; set; } = "CUSTOMER";
 }

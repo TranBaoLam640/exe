@@ -252,6 +252,56 @@ public class AuthApiTests : IDisposable
     }
 
     [Fact]
+    public async Task Register_WithShipperRole_ReturnsOkAndStoresShipperRole()
+    {
+        var request = new
+        {
+            name = "Shipper User",
+            email = "shipper@gmail.com",
+            phone = "0901234570",
+            password = "Password123!",
+            role = "SHIPPER"
+        };
+
+        var response = await _client.PostAsJsonAsync(
+            "/api/auth/register",
+            request);
+
+        Assert.Equal(
+            HttpStatusCode.OK,
+            response.StatusCode);
+
+        using var json = await ReadJsonAsync(response);
+
+        var data = json.RootElement.GetProperty("data");
+
+        Assert.Equal(
+            "SHIPPER",
+            data.GetProperty("role").GetString());
+
+        var token = data.GetProperty("token").GetString();
+        Assert.False(string.IsNullOrWhiteSpace(token));
+
+        var jwt = new JwtSecurityTokenHandler().ReadJwtToken(token);
+        Assert.Equal(
+            "SHIPPER",
+            jwt.Claims.Single(c => c.Type == ClaimTypes.Role).Value);
+
+        using var scope = _factory.Services.CreateScope();
+
+        var dbContext =
+            scope.ServiceProvider.GetRequiredService<DoRentMeDbContext>();
+
+        var user = await dbContext.Users
+            .Include(u => u.Role)
+            .SingleAsync(u => u.Email == "shipper@gmail.com");
+
+        Assert.Equal(
+            "SHIPPER",
+            user.Role.Code);
+    }
+
+    [Fact]
     public async Task Register_WithDuplicateEmail_ReturnsBadRequest()
     {
         var firstRequest = new

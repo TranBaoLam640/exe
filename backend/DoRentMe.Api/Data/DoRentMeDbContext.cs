@@ -74,7 +74,8 @@ public class DoRentMeDbContext : DbContext
             entity.HasData(
                 new Role { Id = 1, Code = "CUSTOMER", Name = "Customer", Description = "Customer who rents fashion products", CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
                 new Role { Id = 2, Code = "LENDER", Name = "Lender", Description = "User who owns and lists rental products", CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
-                new Role { Id = 3, Code = "ADMIN", Name = "Admin", Description = "Platform administrator", CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) }
+                new Role { Id = 3, Code = "ADMIN", Name = "Admin", Description = "Platform administrator", CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+                new Role { Id = 4, Code = "SHIPPER", Name = "Shipper", Description = "User who handles order shipment and returns", CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) }
             );
         });
 

@@ -9,7 +9,13 @@ const initialForm = {
   phone: '',
   password: '',
   confirm: '',
+  role: 'CUSTOMER',
 };
+const roleOptions = [
+  { value: 'CUSTOMER', label: 'Khách thuê', description: 'Thuê đồ và theo dõi đơn hàng' },
+  { value: 'LENDER', label: 'Chủ shop', description: 'Đăng sản phẩm và quản lý kho' },
+  { value: 'SHIPPER', label: 'Shipper', description: 'Phụ trách giao và trả hàng' },
+];
 
 export default function RegisterPage() {
   useDocumentTitle('Đăng Ký | DoRentMe');
@@ -102,6 +108,24 @@ export default function RegisterPage() {
               type="tel"
               value={form.phone}
             />
+          </div>
+          <div className="auth-form-row">
+            <label>Vai trò</label>
+            <div className="auth-role-options">
+              {roleOptions.map((option) => (
+                <label className={`auth-role-option ${form.role === option.value ? 'selected' : ''}`} key={option.value}>
+                  <input
+                    checked={form.role === option.value}
+                    name="registerRole"
+                    onChange={(event) => updateField('role', event.target.value)}
+                    type="radio"
+                    value={option.value}
+                  />
+                  <span>{option.label}</span>
+                  <small>{option.description}</small>
+                </label>
+              ))}
+            </div>
           </div>
           <div className="auth-form-row">
             <label htmlFor="registerPassword">Mật khẩu</label>

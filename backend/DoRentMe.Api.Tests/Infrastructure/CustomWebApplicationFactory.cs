@@ -69,6 +69,19 @@ public class CustomWebApplicationFactory
                 );
             }
 
+            // Seed SHIPPER
+            if (!dbContext.Roles.Any(r => r.Code == "SHIPPER"))
+            {
+                dbContext.Roles.Add(
+                    new Role
+                    {
+                        Code = "SHIPPER",
+                        Name = "Shipper",
+                        Description = "Shipper role"
+                    }
+                );
+            }
+
             dbContext.SaveChanges();
         });
     }
