@@ -42,6 +42,7 @@ public static class ErrorCodes
     public const string InvalidOrderStatus = "INVALID_ORDER_STATUS";
     public const string InvalidOrderStatusTransition = "INVALID_ORDER_STATUS_TRANSITION";
     public const string OrderNotReadyForDeliveryConfirmation = "ORDER_NOT_READY_FOR_DELIVERY_CONFIRMATION";
+    public const string OrderNotReadyForReturnRequest = "ORDER_NOT_READY_FOR_RETURN_REQUEST";
     public const string RentalInventoryConflict = "RENTAL_INVENTORY_CONFLICT";
 
     // Payment specific

@@ -59,6 +59,14 @@ public class OrderController : ApiControllerBase
         return Success(order);
     }
 
+    [HttpPost("{id:int}/request-return")]
+    public async Task<IActionResult> RequestReturn(int id, CancellationToken cancellationToken)
+    {
+        var order = await _orderService.RequestReturnAsync(GetCurrentUserId(), id, cancellationToken);
+
+        return Success(order);
+    }
+
     [HttpPut("{id:int}/status")]
     [Authorize(Roles = "ADMIN,LENDER")]
     public async Task<IActionResult> UpdateStatus(

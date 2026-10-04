@@ -28,6 +28,11 @@ public interface IOrderService
         int orderId,
         CancellationToken cancellationToken = default);
 
+    Task<OrderResponse> RequestReturnAsync(
+        int userId,
+        int orderId,
+        CancellationToken cancellationToken = default);
+
     Task<OrderResponse> UpdateStatusAsync(
         int userId,
         string role,

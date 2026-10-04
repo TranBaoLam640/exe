@@ -194,6 +194,37 @@ public class OrderService : IOrderService
         return await GetCustomerOrderAsync(userId, order.Id, cancellationToken);
     }
 
+    public async Task<OrderResponse> RequestReturnAsync(
+        int userId,
+        int orderId,
+        CancellationToken cancellationToken = default)
+    {
+        var order = await _dbContext.Orders
+            .FirstOrDefaultAsync(o => o.Id == orderId && o.UserId == userId, cancellationToken);
+
+        if (order == null)
+        {
+            throw NotFound(ErrorCodes.OrderNotFound, "Order not found.");
+        }
+
+        if (string.Equals(order.Status, "return_requested", StringComparison.OrdinalIgnoreCase))
+        {
+            return await GetCustomerOrderAsync(userId, order.Id, cancellationToken);
+        }
+
+        if (!string.Equals(order.Status, "delivered", StringComparison.OrdinalIgnoreCase))
+        {
+            throw Conflict(
+                ErrorCodes.OrderNotReadyForReturnRequest,
+                "A return can only be requested after the order has been delivered.");
+        }
+
+        await ApplyStatusAsync(order, "return_requested", userId, "Customer requested return.", cancellationToken);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        return await GetCustomerOrderAsync(userId, order.Id, cancellationToken);
+    }
+
     public async Task<OrderResponse> UpdateStatusAsync(
         int userId,
         string role,

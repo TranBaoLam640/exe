@@ -36,6 +36,11 @@ export async function confirmBackendDelivery(id) {
   return mapBackendOrder(response.data?.data);
 }
 
+export async function requestBackendReturn(id) {
+  const response = await api.post(`/api/orders/${encodeURIComponent(id)}/request-return`);
+  return mapBackendOrder(response.data?.data);
+}
+
 export async function updateBackendOrderStatus(id, status, note) {
   const response = await api.put(`/api/orders/${encodeURIComponent(id)}/status`, {
     status,

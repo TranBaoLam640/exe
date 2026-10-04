@@ -3,7 +3,7 @@ import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { imageUrl } from '../assets/imageUrl.js';
 import { getSession } from '../features/auth/authService.js';
 import { formatVnd, parsePrice } from '../features/cart/cartService.js';
-import { confirmBackendDelivery, createPayOsPayment, fetchCustomerInspections, fetchCustomerPayment, fetchCustomerPaymentTransactions, fetchCustomerRefunds, fetchCustomerShipments } from '../features/orders/orderApi.js';
+import { confirmBackendDelivery, createPayOsPayment, fetchCustomerInspections, fetchCustomerPayment, fetchCustomerPaymentTransactions, fetchCustomerRefunds, fetchCustomerShipments, requestBackendReturn } from '../features/orders/orderApi.js';
 import {
   confirmDelivery,
   formatOrderDate,
@@ -74,6 +74,9 @@ function StatusBanner({ order }) {
 function TrackingActions({ order, onOrderUpdated }) {
   const [confirmingDelivery, setConfirmingDelivery] = useState(false);
   const [confirmDeliveryError, setConfirmDeliveryError] = useState('');
+  const [returnDialogOpen, setReturnDialogOpen] = useState(false);
+  const [requestingReturn, setRequestingReturn] = useState(false);
+  const [requestReturnError, setRequestReturnError] = useState('');
 
   async function handleConfirmDelivery() {
     setConfirmingDelivery(true);
@@ -92,6 +95,26 @@ function TrackingActions({ order, onOrderUpdated }) {
     }
   }
 
+  async function handleRequestReturnSubmit(event) {
+    event.preventDefault();
+    setRequestingReturn(true);
+    setRequestReturnError('');
+
+    try {
+      if (order.backendOrder) {
+        onOrderUpdated(await requestBackendReturn(order.id));
+      } else {
+        const updated = requestReturn(order.id);
+        if (!updated) throw new Error('Unable to request return.');
+      }
+      setReturnDialogOpen(false);
+    } catch (requestError) {
+      setRequestReturnError(getApiErrorMessage(requestError, 'Không thể gửi yêu cầu trả hàng.'));
+    } finally {
+      setRequestingReturn(false);
+    }
+  }
+
   if (order.status === 'delivered') {
     return (
       <>
@@ -105,15 +128,30 @@ function TrackingActions({ order, onOrderUpdated }) {
           )}
           <button
             className="btn-return"
-            onClick={() => {
-              if (window.confirm('Xác nhận gửi yêu cầu trả hàng cho shop?')) requestReturn(order.id);
-            }}
+            disabled={requestingReturn}
+            onClick={() => { setRequestReturnError(''); setReturnDialogOpen(true); }}
             type="button"
           >
             ↩ Yêu cầu trả hàng
           </button>
         </div>
         {confirmDeliveryError ? <div className="checkout-error" style={{ display: 'block' }}>{confirmDeliveryError}</div> : null}
+        {returnDialogOpen ? (
+          <div className="tracking-return-backdrop" role="presentation">
+            <form aria-modal="true" className="tracking-return-dialog" onSubmit={handleRequestReturnSubmit} role="dialog">
+              <div>
+                <span className="tracking-return-kicker">Yêu cầu trả hàng</span>
+                <h3>Xác nhận gửi yêu cầu cho shop?</h3>
+                <p>Shop sẽ nhận thông báo và sắp xếp bước trả hàng tiếp theo cho đơn <b>{order.code || order.id}</b>.</p>
+              </div>
+              {requestReturnError ? <div className="checkout-error" style={{ display: 'block' }}>{requestReturnError}</div> : null}
+              <div className="tracking-return-dialog-actions">
+                <button className="tracking-return-cancel" disabled={requestingReturn} onClick={() => setReturnDialogOpen(false)} type="button">Hủy</button>
+                <button className="tracking-return-submit" disabled={requestingReturn} type="submit">{requestingReturn ? 'Đang gửi...' : 'OK'}</button>
+              </div>
+            </form>
+          </div>
+        ) : null}
       </>
     );
   }

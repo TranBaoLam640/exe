@@ -360,6 +360,38 @@ public class OrderApiTests : IDisposable
     }
 
     [Fact]
+    public async Task CustomerCanRequestReturnForDeliveredOrder_AndOwnershipIsEnforced()
+    {
+        var seed = await SeedCatalogAsync(ownerEmail: LenderEmail, stock: 1);
+        await LoginAsync(_client, CustomerEmail);
+        await AddCartItemAsync(_client, seed.VariantId);
+        var checkout = await _client.PostAsJsonAsync("/api/orders/checkout", CheckoutPayload());
+        var orderId = await FirstOrderIdAsync(checkout);
+
+        var tooEarly = await _client.PostAsync($"/api/orders/{orderId}/request-return", null);
+        Assert.Equal(HttpStatusCode.Conflict, tooEarly.StatusCode);
+
+        await LoginAsync(_client, AdminEmail);
+        Assert.Equal(HttpStatusCode.OK, (await _client.PutAsJsonAsync($"/api/orders/{orderId}/status", new { status = "shipping" })).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await _client.PutAsJsonAsync($"/api/orders/{orderId}/status", new { status = "delivered" })).StatusCode);
+
+        await LoginAsync(_client, OtherCustomerEmail);
+        var otherCustomer = await _client.PostAsync($"/api/orders/{orderId}/request-return", null);
+        Assert.Equal(HttpStatusCode.NotFound, otherCustomer.StatusCode);
+
+        await LoginAsync(_client, CustomerEmail);
+        var requested = await _client.PostAsync($"/api/orders/{orderId}/request-return", null);
+        Assert.Equal(HttpStatusCode.OK, requested.StatusCode);
+        using var requestedJson = await ReadJsonAsync(requested);
+        Assert.Equal("return_requested", requestedJson.RootElement.GetProperty("data").GetProperty("status").GetString());
+        Assert.True(requestedJson.RootElement.GetProperty("data").TryGetProperty("returnRequestedAt", out var returnRequestedAt));
+        Assert.False(string.IsNullOrWhiteSpace(returnRequestedAt.GetString()));
+
+        var requestedAgain = await _client.PostAsync($"/api/orders/{orderId}/request-return", null);
+        Assert.Equal(HttpStatusCode.OK, requestedAgain.StatusCode);
+    }
+
+    [Fact]
     public async Task AdminOrders_ListAndDetailAreAdminOnlyAndSupportFilters()
     {
         var seed = await SeedCatalogAsync(ownerEmail: LenderEmail, stock: 1);
