@@ -13,6 +13,7 @@ import {
 } from '../features/orders/orderCreation.js';
 import { useOrderById, useOrders } from '../features/orders/useOrders.js';
 import { useDocumentTitle } from '../hooks/useDocumentTitle.js';
+import { getApiErrorMessage } from '../utils/apiError.js';
 
 const steps = [
   { key: 0, icon: '⏳', label: 'Chờ xác nhận' },
@@ -105,6 +106,7 @@ export default function OrderTrackingPage() {
   const [shipments, setShipments] = useState([]);
   const [payOsLoading, setPayOsLoading] = useState(false);
   const [payOsError, setPayOsError] = useState('');
+  const [paymentLoadError, setPaymentLoadError] = useState('');
   useOrders();
   const order = session ? backendOrder.order : effectiveOrderId ? getOrderById(effectiveOrderId) : null;
   useEffect(() => {
@@ -115,11 +117,19 @@ export default function OrderTrackingPage() {
       setInspections([]);
       setTransactions([]);
       setShipments([]);
+      setPaymentLoadError('');
       return () => { active = false; };
     }
-    Promise.all([fetchCustomerPayment(effectiveOrderId), fetchCustomerRefunds(effectiveOrderId), fetchCustomerInspections(effectiveOrderId), fetchCustomerPaymentTransactions(effectiveOrderId), fetchCustomerShipments(effectiveOrderId).catch(() => [])])
+    setPaymentLoadError('');
+    Promise.all([
+      fetchCustomerPayment(effectiveOrderId),
+      fetchCustomerRefunds(effectiveOrderId).catch(() => []),
+      fetchCustomerInspections(effectiveOrderId).catch(() => []),
+      fetchCustomerPaymentTransactions(effectiveOrderId).catch(() => []),
+      fetchCustomerShipments(effectiveOrderId).catch(() => []),
+    ])
       .then(([paymentResult, refundResult, inspectionResult, transactionResult, shipmentResult]) => { if (active) { setPayment(paymentResult); setRefunds(refundResult); setInspections(inspectionResult); setTransactions(transactionResult); setShipments(shipmentResult); } })
-      .catch(() => { if (active) { setPayment(null); setRefunds([]); setInspections([]); setTransactions([]); setShipments([]); } });
+      .catch((requestError) => { if (active) { setPayment(null); setRefunds([]); setInspections([]); setTransactions([]); setShipments([]); setPaymentLoadError(getApiErrorMessage(requestError, 'Khong tai duoc thong tin thanh toan.')); } });
     return () => { active = false; };
   }, [effectiveOrderId, session?.token]);
 
@@ -204,6 +214,13 @@ export default function OrderTrackingPage() {
           {transactions.length > 0 ? <div className="tracking-payment-instructions"><div>Giao dịch gần nhất: <b>{transactions[0].status}</b></div></div> : null}
           {payment.transactionCode ? <div className="tracking-info-line">Ma giao dich: <b>{payment.transactionCode}</b></div> : null}
           {payment.paidAt ? <div className="tracking-info-line">Da thanh toan luc: <b>{formatOrderDate(payment.paidAt)}</b></div> : null}
+        </section>
+      ) : null}
+
+      {!payment && paymentLoadError ? (
+        <section className="tracking-card">
+          <h3>Thanh toan</h3>
+          <div className="checkout-error" style={{ display: 'block' }}>{paymentLoadError}</div>
         </section>
       ) : null}
 
