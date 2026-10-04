@@ -323,11 +323,8 @@ public class CartService : ICartService
             .Where(item => item.CartId == cartId
                 && item.ProductVariantId == productVariantId
                 && !excludedCartItemIds.Contains(item.Id)
-                && RentalAvailabilityRules.DateRangesOverlap(
-                    item.RentalStartDate,
-                    item.RentalEndDate,
-                    rentalStartDate,
-                    rentalEndDate))
+                && item.RentalStartDate < rentalEndDate
+                && item.RentalEndDate > rentalStartDate)
             .SumAsync(item => item.Quantity, cancellationToken);
 
         if (requestedQuantity + overlappingCartQuantity > availableStock)
