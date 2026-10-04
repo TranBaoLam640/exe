@@ -7,6 +7,11 @@ public sealed class FakePaymentGateway : IPaymentGateway
 {
     public Task<PaymentGatewayCreateResult> CreatePaymentAsync(PaymentGatewayCreateRequest request, CancellationToken cancellationToken = default)
     {
+        if (request.Description.Length > 9)
+        {
+            throw new InvalidOperationException("PayOS descriptions must be 9 characters or fewer.");
+        }
+
         return Task.FromResult(new PaymentGatewayCreateResult(
             $"https://payos.test/checkout/{request.ProviderOrderCode}",
             $"qr-{request.ProviderOrderCode}",

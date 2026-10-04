@@ -53,7 +53,7 @@ public class PaymentTransactionService : IPaymentTransactionService
 
         try
         {
-            var result = await _gateway.CreatePaymentAsync(new PaymentGatewayCreateRequest(transaction.ProviderOrderCode, checked((int)payment.Amount), $"DoRentMe {payment.Order.OrderCode}", BuildUrl(_options.Value.ReturnUrl!, payment.OrderId), BuildUrl(_options.Value.CancelUrl!, payment.OrderId)), cancellationToken);
+            var result = await _gateway.CreatePaymentAsync(new PaymentGatewayCreateRequest(transaction.ProviderOrderCode, checked((int)payment.Amount), CreatePayOsDescription(payment.OrderId), BuildUrl(_options.Value.ReturnUrl!, payment.OrderId), BuildUrl(_options.Value.CancelUrl!, payment.OrderId)), cancellationToken);
             transaction.CheckoutUrl = result.CheckoutUrl;
             transaction.QrCode = result.QrCode;
             transaction.ProviderTransactionId = result.ProviderTransactionId;
@@ -132,6 +132,13 @@ public class PaymentTransactionService : IPaymentTransactionService
     private IQueryable<PaymentTransaction> MapQuery() => _dbContext.PaymentTransactions.AsNoTracking();
     private static PaymentTransactionResponse Map(PaymentTransaction item) => new() { Id = item.Id, PaymentId = item.PaymentId, Provider = item.Provider, ProviderOrderCode = item.ProviderOrderCode, ProviderTransactionId = item.ProviderTransactionId, Amount = item.Amount, Status = item.Status, CheckoutUrl = item.CheckoutUrl, QrCode = item.QrCode, CreatedAt = item.CreatedAt, UpdatedAt = item.UpdatedAt, PaidAt = item.PaidAt, ExpiredAt = item.ExpiredAt };
     private static long CreateProviderOrderCode(int paymentId) => DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * 1000 + (Interlocked.Increment(ref _sequence) % 1000) + paymentId % 10;
+    private static string CreatePayOsDescription(int orderId)
+    {
+        var description = $"DRM{orderId.ToString(System.Globalization.CultureInfo.InvariantCulture)}";
+        return description.Length <= 9
+            ? description
+            : $"DRM{(orderId % 1000000).ToString("D6", System.Globalization.CultureInfo.InvariantCulture)}";
+    }
     private static string BuildUrl(string template, int orderId) => template.Replace("{orderId}", orderId.ToString(System.Globalization.CultureInfo.InvariantCulture), StringComparison.Ordinal);
     private static ApiException NotFound(string code, string message) => new(code, message, StatusCodes.Status404NotFound);
     private static ApiException BusinessError(string code, string message) => new(code, message, StatusCodes.Status400BadRequest);
