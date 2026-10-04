@@ -42,8 +42,7 @@ public class AuthService : IAuthService
         }
 
         // Get role
-        var role = await _context.Roles
-            .FirstOrDefaultAsync(r => r.Code == request.Role);
+        var role = await FindOrCreatePublicRoleAsync(request.Role);
 
         if (role == null)
         {
@@ -91,6 +90,50 @@ public class AuthService : IAuthService
             Token = token,
             LoyaltyPoints = user.LoyaltyPoints
         };
+    }
+
+    private async Task<Role?> FindOrCreatePublicRoleAsync(string roleCode)
+    {
+        var normalizedRole = roleCode.Trim().ToUpperInvariant();
+        var role = await _context.Roles.FirstOrDefaultAsync(r => r.Code == normalizedRole);
+        if (role != null)
+        {
+            return role;
+        }
+
+        var roleMetadata = normalizedRole switch
+        {
+            "CUSTOMER" => new { Name = "Customer", Description = "Customer who rents fashion products" },
+            "LENDER" => new { Name = "Lender", Description = "User who owns and lists rental products" },
+            "SHIPPER" => new { Name = "Shipper", Description = "User who handles order shipment and returns" },
+            _ => null
+        };
+
+        if (roleMetadata == null)
+        {
+            return null;
+        }
+
+        role = new Role
+        {
+            Code = normalizedRole,
+            Name = roleMetadata.Name,
+            Description = roleMetadata.Description,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _context.Roles.Add(role);
+
+        try
+        {
+            await _context.SaveChangesAsync();
+            return role;
+        }
+        catch (DbUpdateException)
+        {
+            _context.Entry(role).State = EntityState.Detached;
+            return await _context.Roles.FirstOrDefaultAsync(r => r.Code == normalizedRole);
+        }
     }
 
     public async Task<AuthResponse> LoginAsync(LoginRequest request)
