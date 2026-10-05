@@ -101,6 +101,12 @@ public class OrderApiTests : IDisposable
         await LoginAsync(_client, ShipperEmail);
         var shipperShipments = await _client.GetAsync("/api/shipper/shipments");
         Assert.Equal(HttpStatusCode.OK, shipperShipments.StatusCode);
+        using (var shipperShipmentsJson = await ReadJsonAsync(shipperShipments))
+        {
+            var data = shipperShipmentsJson.RootElement.GetProperty("data");
+            Assert.Equal(JsonValueKind.Array, data.ValueKind);
+            Assert.Contains(data.EnumerateArray(), item => item.GetProperty("id").GetInt32() == shipmentId);
+        }
 
         var shipped = await _client.PutAsJsonAsync($"/api/shipper/shipments/{shipmentId}/status", new { status = "shipping", note = "Handed to delivery" });
         Assert.Equal(HttpStatusCode.OK, shipped.StatusCode);

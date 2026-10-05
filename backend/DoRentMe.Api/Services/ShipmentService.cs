@@ -254,7 +254,7 @@ public class ShipmentService : IShipmentService
         return Map(await ShipmentQuery().FirstAsync(item => item.Id == shipment.Id, cancellationToken));
     }
 
-    private IQueryable<Shipment> ShipmentQuery() => _dbContext.Shipments.AsNoTracking().Include(item => item.Order).Include(item => item.AssignedShipperUser).Include(item => item.TrackingEvents);
+    private IQueryable<Shipment> ShipmentQuery() => _dbContext.Shipments.AsNoTracking().AsSplitQuery().Include(item => item.Order).Include(item => item.AssignedShipperUser).Include(item => item.TrackingEvents);
 
     private static void AddEvent(Shipment shipment, string status, string? message)
     {
