@@ -6,16 +6,24 @@ Configure these environment variables on the **backend** service:
 R2_ACCOUNT_ID=<Cloudflare account ID>
 R2_ACCESS_KEY_ID=<R2 S3 access key>
 R2_SECRET_ACCESS_KEY=<R2 S3 secret>
-R2_EVIDENCE_BUCKET=<private evidence bucket name>
+R2_BUCKET=dorentme-assets
 ```
 
-Use a private R2 bucket with Object Read & Write credentials scoped to that
-bucket. Disable public access and do not attach a public custom domain. Return
-photos and bank transfer screenshots must not go into the public catalog asset
-bucket. No browser R2 credentials or bucket CORS configuration are required:
-the authenticated backend uploads and reads objects through the S3 API.
-ASP.NET Core reads environment variables directly; a repository `.env` file is
-not automatically loaded by the API.
+Use the existing `dorentme-assets` bucket with Object Read & Write credentials
+scoped to that bucket. Both catalog assets and evidence use `R2_BUCKET`; no
+separate evidence bucket setting is required. Objects are stored under
+`evidence/{orderId}/return/{photoId}` and
+`evidence/{orderId}/refund-{refundId}/{photoId}`. R2 shows these prefixes as
+folders automatically after the first upload.
+
+In Development, the backend reads missing R2 settings from `.env.r2.local`
+in its content root or a parent directory (including the repository root).
+Explicit environment variables, user secrets and appsettings values take
+precedence. Only the four R2 settings listed above are loaded; secrets remain
+on the server. In Production, set these environment variables on the backend
+hosting service and restart/redeploy it; local files are not loaded or shipped.
+No browser R2 credentials or bucket CORS configuration are required: the
+authenticated backend uploads and reads objects through the S3 API.
 
 Apply the `AddEvidencePhotos` EF Core migration before deploying the API:
 
@@ -48,7 +56,10 @@ Order responses expose `returnPhotoIds`; refund responses expose
 `proofPhotoIds`. `GET /api/evidence/{photoId}` serves the original image with
 authentication and `private, no-store` caching. Only the order customer and
 admins can read attached photos. Unattached uploads are visible only to the
-uploader within those roles. Object keys and credentials are never returned.
+uploader within those roles. Object keys and credentials are never returned
+by the API. The shared bucket has public access: the API's authorization does
+not block direct public R2 URLs if an object key is known or reconstructed.
+Evidence object names use the GUID photo IDs returned by the API.
 Identical bytes uploaded again are reused; duplicate IDs cannot satisfy the
 minimum photo requirement. Uploads are saved before submission, so failed
 submissions can be retried without uploading the same images again.

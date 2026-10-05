@@ -12,6 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 if (builder.Environment.IsDevelopment())
 {
+    builder.Configuration.AddLocalR2Defaults(builder.Environment.ContentRootPath);
     builder.Logging.ClearProviders();
     builder.Logging.AddConsole();
     builder.Logging.AddDebug();

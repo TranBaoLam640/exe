@@ -29,7 +29,7 @@ public class R2EvidenceStorage(HttpClient client, IConfiguration configuration) 
         string Setting(string name) => configuration[$"R2_{name}"] is { Length: > 0 } value
             ? value : throw new ApiException("EVIDENCE_STORAGE_UNAVAILABLE", "Evidence storage is not configured.", 503);
         var account = Setting("ACCOUNT_ID");
-        var bucket = Setting("EVIDENCE_BUCKET");
+        var bucket = Setting("BUCKET");
         var accessKey = Setting("ACCESS_KEY_ID");
         var secret = Setting("SECRET_ACCESS_KEY");
         var host = $"{account}.r2.cloudflarestorage.com";
