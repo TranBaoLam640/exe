@@ -1,9 +1,12 @@
+using DoRentMe.Api.Data;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace DoRentMe.Api.Migrations
 {
+    [DbContext(typeof(DoRentMeDbContext))]
     [Migration("20261005103000_AssignShipmentsToShippers")]
     public partial class AssignShipmentsToShippers : Migration
     {

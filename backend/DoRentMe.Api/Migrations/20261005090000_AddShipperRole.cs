@@ -1,3 +1,5 @@
+using DoRentMe.Api.Data;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -5,6 +7,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace DoRentMe.Api.Migrations
 {
     /// <inheritdoc />
+    [DbContext(typeof(DoRentMeDbContext))]
     [Migration("20261005090000_AddShipperRole")]
     public partial class AddShipperRole : Migration
     {
