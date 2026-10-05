@@ -59,6 +59,23 @@ public class AdminAuthorizationTests : IDisposable
         Assert.Equal("ADMIN", data.GetProperty("role").GetString());
     }
 
+    [Fact]
+    public async Task AdminShippers_ReturnsActiveShipperUsers()
+    {
+        await EnsureUserAsync("admin-shippers@example.com", "ADMIN");
+        await EnsureUserAsync("available-shipper@example.com", "SHIPPER");
+        await EnsureUserAsync("inactive-shipper@example.com", "SHIPPER", isActive: false);
+
+        await LoginAsync("admin-shippers@example.com");
+        var response = await _client.GetAsync("/api/admin/shippers");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        using var json = await ReadJsonAsync(response);
+        var data = json.RootElement.GetProperty("data");
+        Assert.Contains(data.EnumerateArray(), item => item.GetProperty("email").GetString() == "available-shipper@example.com");
+        Assert.DoesNotContain(data.EnumerateArray(), item => item.GetProperty("email").GetString() == "inactive-shipper@example.com");
+    }
+
     private async Task LoginAsync(string email)
     {
         var response = await _client.PostAsJsonAsync("/api/auth/login", new
