@@ -31,7 +31,8 @@ public interface IOrderService
     Task<OrderResponse> RequestReturnAsync(
         int userId,
         int orderId,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default,
+        IReadOnlyList<Guid>? photoIds = null);
 
     Task<OrderResponse> UpdateStatusAsync(
         int userId,

@@ -3,6 +3,7 @@ namespace DoRentMe.Api.Contracts.Refund;
 public class RefundResponse
 {
     public int Id { get; set; }
+    public List<Guid> ProofPhotoIds { get; set; } = new();
     public int OrderId { get; set; }
     public int? PaymentId { get; set; }
     public string Type { get; set; } = null!;

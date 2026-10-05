@@ -19,6 +19,7 @@ public class Refund
     public DateTime? ProcessedAt { get; set; }
 
     public Order Order { get; set; } = null!;
+    public ICollection<EvidencePhoto> EvidencePhotos { get; set; } = new List<EvidencePhoto>();
     public Payment? Payment { get; set; }
     public User? RequestedByUser { get; set; }
     public User? ProcessedByUser { get; set; }

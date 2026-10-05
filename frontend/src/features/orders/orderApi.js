@@ -36,8 +36,8 @@ export async function confirmBackendDelivery(id) {
   return mapBackendOrder(response.data?.data);
 }
 
-export async function requestBackendReturn(id) {
-  const response = await api.post(`/api/orders/${encodeURIComponent(id)}/request-return`);
+export async function requestBackendReturn(id, photoIds) {
+  const response = await api.post(`/api/orders/${encodeURIComponent(id)}/request-return`, { photoIds });
   return mapBackendOrder(response.data?.data);
 }
 

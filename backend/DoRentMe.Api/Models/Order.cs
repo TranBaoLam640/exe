@@ -24,6 +24,7 @@ public class Order
     public DateTime? UpdatedAt { get; set; }
 
     public Shop? Shop { get; set; }
+    public ICollection<EvidencePhoto> EvidencePhotos { get; set; } = new List<EvidencePhoto>();
     public User? User { get; set; }
     public ICollection<OrderItem> Items { get; set; } = new List<OrderItem>();
     public ICollection<OrderStatusHistory> StatusHistory { get; set; } = new List<OrderStatusHistory>();

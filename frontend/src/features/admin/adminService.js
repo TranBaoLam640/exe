@@ -78,8 +78,8 @@ export async function createDepositSettlement(orderId, refundAmount, reason) {
   return response.data?.data;
 }
 
-export async function updateAdminRefundStatus(refundId, status, transactionCode) {
-  const response = await api.put(`/api/admin/refunds/${encodeURIComponent(refundId)}/status`, { status, transactionCode: transactionCode?.trim() || null });
+export async function updateAdminRefundStatus(refundId, status, transactionCode, photoIds = []) {
+  const response = await api.put(`/api/admin/refunds/${encodeURIComponent(refundId)}/status`, { status, transactionCode: transactionCode?.trim() || null, photoIds });
   return response.data?.data;
 }
 

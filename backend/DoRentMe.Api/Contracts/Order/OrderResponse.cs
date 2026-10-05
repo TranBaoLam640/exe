@@ -30,6 +30,7 @@ public class OrderResponse
     public bool DeliveryConfirmed { get; set; }
 
     public DateTime? ReturnRequestedAt { get; set; }
+    public List<Guid> ReturnPhotoIds { get; set; } = new();
 
     public DateTime CreatedAt { get; set; }
 

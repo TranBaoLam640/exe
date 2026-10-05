@@ -10,4 +10,6 @@ public class RefundStatusUpdateRequest
 
     [MaxLength(100)]
     public string? TransactionCode { get; set; }
+    [Required]
+    public List<Guid> PhotoIds { get; set; } = new();
 }

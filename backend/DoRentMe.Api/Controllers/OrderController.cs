@@ -60,9 +60,9 @@ public class OrderController : ApiControllerBase
     }
 
     [HttpPost("{id:int}/request-return")]
-    public async Task<IActionResult> RequestReturn(int id, CancellationToken cancellationToken)
+    public async Task<IActionResult> RequestReturn(int id, [FromBody(EmptyBodyBehavior = Microsoft.AspNetCore.Mvc.ModelBinding.EmptyBodyBehavior.Allow)] ReturnRequest? request, CancellationToken cancellationToken)
     {
-        var order = await _orderService.RequestReturnAsync(GetCurrentUserId(), id, cancellationToken);
+        var order = await _orderService.RequestReturnAsync(GetCurrentUserId(), id, cancellationToken, request?.PhotoIds);
 
         return Success(order);
     }

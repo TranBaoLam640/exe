@@ -26,6 +26,8 @@ public class CustomWebApplicationFactory
             services.RemoveAll<DbContextOptions<DoRentMeDbContext>>();
             services.RemoveAll<DoRentMeDbContext>();
             services.RemoveAll<IPaymentGateway>();
+            services.RemoveAll<IEvidenceStorage>();
+            services.AddSingleton<IEvidenceStorage, FakeEvidenceStorage>();
 
             services.AddDbContext<DoRentMeDbContext>(options =>
             {

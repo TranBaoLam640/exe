@@ -142,7 +142,7 @@ public class OrderApiTests : IDisposable
         Assert.Equal(HttpStatusCode.OK, (await _client.PutAsJsonAsync($"/api/shipper/shipments/{outboundId}/status", new { status = "shipping" })).StatusCode);
         Assert.Equal(HttpStatusCode.OK, (await _client.PutAsJsonAsync($"/api/shipper/shipments/{outboundId}/status", new { status = "delivered" })).StatusCode);
         await LoginAsync(_client, CustomerEmail);
-        Assert.Equal(HttpStatusCode.OK, (await _client.PostAsync($"/api/orders/{orderId}/request-return", null)).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await RequestReturnWithPhotosAsync(orderId)).StatusCode);
 
         await LoginAsync(_client, AdminEmail);
         var returnShipment = await _client.PostAsJsonAsync($"/api/admin/orders/{orderId}/return-shipment", new { provider = "manual", trackingCode = "RETURN-1", assignedShipperUserId = shipper.Id });
@@ -401,10 +401,45 @@ public class OrderApiTests : IDisposable
         Assert.Equal(HttpStatusCode.NotFound, otherCustomer.StatusCode);
 
         await LoginAsync(_client, CustomerEmail);
-        var requested = await _client.PostAsync($"/api/orders/{orderId}/request-return", null);
+        Assert.Equal(HttpStatusCode.BadRequest, (await _client.PostAsync($"/api/orders/{orderId}/request-return", null)).StatusCode);
+        using (var invalidUpload = new MultipartFormDataContent())
+        {
+            invalidUpload.Add(new ByteArrayContent(new byte[] { 1, 2, 3 }), "file", "fake.png");
+            Assert.Equal(HttpStatusCode.BadRequest, (await _client.PostAsync($"/api/orders/{orderId}/return-photos", invalidUpload)).StatusCode);
+        }
+        var storage = (FakeEvidenceStorage)_factory.Services.GetRequiredService<DoRentMe.Api.Services.IEvidenceStorage>();
+        storage.FailWrites = true;
+        using (var failedUpload = new MultipartFormDataContent())
+        {
+            failedUpload.Add(new ByteArrayContent(new byte[] { 137, 80, 78, 71, 13, 10, 26, 10, 1 }), "file", "photo.png");
+            Assert.Equal(HttpStatusCode.ServiceUnavailable, (await _client.PostAsync($"/api/orders/{orderId}/return-photos", failedUpload)).StatusCode);
+        }
+        storage.FailWrites = false;
+        using (var failedUploadScope = _factory.Services.CreateScope())
+        {
+            var db = failedUploadScope.ServiceProvider.GetRequiredService<DoRentMeDbContext>();
+            Assert.Empty(await db.EvidencePhotos.Where(p => p.OrderId == orderId).ToListAsync());
+            Assert.Equal("delivered", (await db.Orders.SingleAsync(o => o.Id == orderId)).Status);
+        }
+        var firstPhoto = await UploadPhotoAsync($"/api/orders/{orderId}/return-photos", 1);
+        var duplicatePhoto = await UploadPhotoAsync($"/api/orders/{orderId}/return-photos", 1);
+        Assert.Equal(firstPhoto, duplicatePhoto);
+        Assert.Equal(HttpStatusCode.BadRequest, (await _client.PostAsJsonAsync($"/api/orders/{orderId}/request-return", new { photoIds = new[] { firstPhoto, duplicatePhoto } })).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await _client.PostAsJsonAsync($"/api/orders/{orderId}/request-return", new { photoIds = new[] { firstPhoto, Guid.NewGuid() } })).StatusCode);
+        var secondPhoto = await UploadPhotoAsync($"/api/orders/{orderId}/return-photos", 2);
+        var requested = await _client.PostAsJsonAsync($"/api/orders/{orderId}/request-return", new { photoIds = new[] { firstPhoto, secondPhoto } });
         Assert.Equal(HttpStatusCode.OK, requested.StatusCode);
         using var requestedJson = await ReadJsonAsync(requested);
         Assert.Equal("return_requested", requestedJson.RootElement.GetProperty("data").GetProperty("status").GetString());
+        Assert.Equal(2, requestedJson.RootElement.GetProperty("data").GetProperty("returnPhotoIds").GetArrayLength());
+        Assert.Equal(HttpStatusCode.OK, (await _client.GetAsync($"/api/evidence/{firstPhoto}")).StatusCode);
+        await LoginAsync(_client, OtherCustomerEmail);
+        Assert.Equal(HttpStatusCode.NotFound, (await _client.GetAsync($"/api/evidence/{firstPhoto}")).StatusCode);
+        await LoginAsync(_client, AdminEmail);
+        Assert.Equal(HttpStatusCode.OK, (await _client.GetAsync($"/api/evidence/{firstPhoto}")).StatusCode);
+        using var adminDetail = await ReadJsonAsync(await _client.GetAsync($"/api/admin/orders/{orderId}"));
+        Assert.Equal(2, adminDetail.RootElement.GetProperty("data").GetProperty("returnPhotoIds").GetArrayLength());
+        await LoginAsync(_client, CustomerEmail);
         Assert.True(requestedJson.RootElement.GetProperty("data").TryGetProperty("returnRequestedAt", out var returnRequestedAt));
         Assert.False(string.IsNullOrWhiteSpace(returnRequestedAt.GetString()));
 
@@ -572,7 +607,13 @@ public class OrderApiTests : IDisposable
         Assert.Equal(HttpStatusCode.OK, (await _client.PutAsJsonAsync($"/api/admin/payments/{payment.Id}/status", new { status = "paid" })).StatusCode);
         foreach (var status in new[] { "shipping", "delivered", "return_requested", "return_processing", "returned" })
         {
-            Assert.Equal(HttpStatusCode.OK, (await _client.PutAsJsonAsync($"/api/orders/{orderId}/status", new { status })).StatusCode);
+            if (status == "return_requested")
+            {
+                await LoginAsync(_client, CustomerEmail);
+                Assert.Equal(HttpStatusCode.OK, (await RequestReturnWithPhotosAsync(orderId)).StatusCode);
+                await LoginAsync(_client, AdminEmail);
+            }
+            else Assert.Equal(HttpStatusCode.OK, (await _client.PutAsJsonAsync($"/api/orders/{orderId}/status", new { status })).StatusCode);
         }
 
         Assert.Equal(HttpStatusCode.Created, (await _client.PostAsJsonAsync($"/api/admin/orders/{orderId}/inspections", new { productInventoryItemId = (await dbContext.ProductInventoryItems.Select(item => item.Id).FirstAsync()), conditionAfterReturn = "DAMAGED", hasDamage = true, damageDescription = "Small damage", recommendedDeduction = 0 })).StatusCode);
@@ -590,7 +631,16 @@ public class OrderApiTests : IDisposable
 
         var duplicate = await _client.PostAsJsonAsync($"/api/admin/orders/{orderId}/deposit-settlement", new { refundAmount = deposit, reason = "Second attempt" });
         Assert.Equal(HttpStatusCode.Conflict, duplicate.StatusCode);
-        Assert.Equal(HttpStatusCode.OK, (await _client.PutAsJsonAsync($"/api/admin/refunds/{refundId}/status", new { status = "completed", transactionCode = "DEP-001" })).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await _client.PutAsJsonAsync($"/api/admin/refunds/{refundId}/status", new { status = "completed" })).StatusCode);
+        var proofId = await UploadPhotoAsync($"/api/admin/refunds/{refundId}/proof-photos", 3);
+        Assert.Equal(HttpStatusCode.BadRequest, (await _client.PutAsJsonAsync($"/api/admin/refunds/{refundId}/status", new { status = "completed", photoIds = new[] { Guid.NewGuid() } })).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await _client.PutAsJsonAsync($"/api/admin/refunds/{refundId}/status", new { status = "completed", transactionCode = "DEP-001", photoIds = new[] { proofId } })).StatusCode);
+        await LoginAsync(_client, CustomerEmail);
+        using var customerRefunds = await ReadJsonAsync(await _client.GetAsync($"/api/orders/{orderId}/refunds"));
+        Assert.Equal(HttpStatusCode.Forbidden, (await _client.PostAsync($"/api/admin/refunds/{refundId}/proof-photos", null)).StatusCode);
+        Assert.Equal(proofId, customerRefunds.RootElement.GetProperty("data")[0].GetProperty("proofPhotoIds")[0].GetGuid());
+        Assert.Equal(HttpStatusCode.OK, (await _client.GetAsync($"/api/evidence/{proofId}")).StatusCode);
+        await LoginAsync(_client, AdminEmail);
         Assert.Equal("paid", (await dbContext.Payments.AsNoTracking().SingleAsync(item => item.Id == payment.Id)).Status);
         Assert.Equal(1, await dbContext.Refunds.CountAsync(item => item.OrderId == orderId && item.Type == "deposit"));
     }
@@ -689,7 +739,8 @@ public class OrderApiTests : IDisposable
         Assert.Equal(HttpStatusCode.Created, settlement.StatusCode);
         using var settlementJson = await ReadJsonAsync(settlement);
         var refundId = settlementJson.RootElement.GetProperty("data").GetProperty("id").GetInt32();
-        Assert.Equal(HttpStatusCode.OK, (await _client.PutAsJsonAsync($"/api/admin/refunds/{refundId}/status", new { status = "completed" })).StatusCode);
+        var proofId = await UploadPhotoAsync($"/api/admin/refunds/{refundId}/proof-photos", 4);
+        Assert.Equal(HttpStatusCode.OK, (await _client.PutAsJsonAsync($"/api/admin/refunds/{refundId}/status", new { status = "completed", photoIds = new[] { proofId } })).StatusCode);
 
         using var refreshed = _factory.Services.CreateScope();
         var refreshedDb = refreshed.ServiceProvider.GetRequiredService<DoRentMeDbContext>();
@@ -743,7 +794,10 @@ public class OrderApiTests : IDisposable
             Assert.Equal(0, unavailableJson.RootElement.GetProperty("data").GetProperty("variants")[0].GetProperty("availableInventory").GetInt32());
         }
 
-        Assert.Equal(HttpStatusCode.OK, (await _client.PutAsJsonAsync($"/api/orders/{orderId}/status", new { status = "return_requested" })).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await _client.PutAsJsonAsync($"/api/orders/{orderId}/status", new { status = "return_requested" })).StatusCode);
+        await LoginAsync(_client, CustomerEmail);
+        Assert.Equal(HttpStatusCode.OK, (await RequestReturnWithPhotosAsync(orderId)).StatusCode);
+        await LoginAsync(_client, AdminEmail);
         using (var scope = _factory.Services.CreateScope())
         {
             var dbContext = scope.ServiceProvider.GetRequiredService<DoRentMeDbContext>();
@@ -869,11 +923,36 @@ public class OrderApiTests : IDisposable
         };
     }
 
+    private async Task<Guid> UploadPhotoAsync(string path, byte marker)
+    {
+        using var content = new MultipartFormDataContent();
+        var image = new ByteArrayContent(new byte[] { 137, 80, 78, 71, 13, 10, 26, 10, marker });
+        image.Headers.ContentType = new MediaTypeHeaderValue("image/png");
+        content.Add(image, "file", "photo.png");
+        var response = await _client.PostAsync(path, content);
+        Assert.True(response.StatusCode is HttpStatusCode.Created or HttpStatusCode.OK, await response.Content.ReadAsStringAsync());
+        using var json = await ReadJsonAsync(response);
+        return json.RootElement.GetProperty("data").GetProperty("id").GetGuid();
+    }
+
+    private async Task<HttpResponseMessage> RequestReturnWithPhotosAsync(int orderId)
+    {
+        var first = await UploadPhotoAsync($"/api/orders/{orderId}/return-photos", 1);
+        var second = await UploadPhotoAsync($"/api/orders/{orderId}/return-photos", 2);
+        return await _client.PostAsJsonAsync($"/api/orders/{orderId}/request-return", new { photoIds = new[] { first, second } });
+    }
+
     private async Task AdvanceOrderToReturnedAsync(int orderId)
     {
         foreach (var status in new[] { "shipping", "delivered", "return_requested", "return_processing", "returned" })
         {
-            Assert.Equal(HttpStatusCode.OK, (await _client.PutAsJsonAsync($"/api/orders/{orderId}/status", new { status })).StatusCode);
+            if (status == "return_requested")
+            {
+                await LoginAsync(_client, CustomerEmail);
+                Assert.Equal(HttpStatusCode.OK, (await RequestReturnWithPhotosAsync(orderId)).StatusCode);
+                await LoginAsync(_client, AdminEmail);
+            }
+            else Assert.Equal(HttpStatusCode.OK, (await _client.PutAsJsonAsync($"/api/orders/{orderId}/status", new { status })).StatusCode);
         }
     }
 

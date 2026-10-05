@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import EvidenceGallery from '../components/EvidenceGallery.jsx';
+import { uploadEvidencePhotos } from '../features/orders/evidenceApi.js';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { imageUrl } from '../assets/imageUrl.js';
 import { getSession } from '../features/auth/authService.js';
@@ -77,6 +79,8 @@ function TrackingActions({ order, onOrderUpdated }) {
   const [returnDialogOpen, setReturnDialogOpen] = useState(false);
   const [requestingReturn, setRequestingReturn] = useState(false);
   const [requestReturnError, setRequestReturnError] = useState('');
+  const [returnFiles, setReturnFiles] = useState([]);
+  const [returnPhotoIds, setReturnPhotoIds] = useState([]);
 
   async function handleConfirmDelivery() {
     setConfirmingDelivery(true);
@@ -102,7 +106,11 @@ function TrackingActions({ order, onOrderUpdated }) {
 
     try {
       if (order.backendOrder) {
-        onOrderUpdated(await requestBackendReturn(order.id));
+        if (returnFiles.length < 2) throw new Error('Vui lòng chọn ít nhất 2 ảnh khác nhau về tình trạng hàng khi trả.');
+        const ids = returnPhotoIds.length ? returnPhotoIds : await uploadEvidencePhotos(`/api/orders/${order.id}/return-photos`, returnFiles);
+        setReturnPhotoIds(ids);
+        if (ids.length < 2) throw new Error('Vui lòng chọn ít nhất 2 ảnh khác nhau.');
+        onOrderUpdated(await requestBackendReturn(order.id, ids));
       } else {
         const updated = requestReturn(order.id);
         if (!updated) throw new Error('Unable to request return.');
@@ -144,10 +152,15 @@ function TrackingActions({ order, onOrderUpdated }) {
                 <h3>Xác nhận gửi yêu cầu cho shop?</h3>
                 <p>Shop sẽ nhận thông báo và sắp xếp bước trả hàng tiếp theo cho đơn <b>{order.code || order.id}</b>.</p>
               </div>
+              {order.backendOrder ? <label>Ảnh tình trạng hàng khi trả (ít nhất 2 ảnh, tối đa 10 ảnh, 5 MB/ảnh)
+                <input accept="image/jpeg,image/png,image/webp" disabled={requestingReturn} multiple onChange={(event) => { setReturnFiles(Array.from(event.target.files || [])); setReturnPhotoIds([]); }} type="file" />
+                <small>Đã chọn {returnFiles.length} ảnh. Chụp rõ mặt trước, mặt sau và các hư hỏng nếu có.</small>
+                <EvidenceGallery ids={returnPhotoIds} label="Ảnh trả hàng" />
+              </label> : null}
               {requestReturnError ? <div className="checkout-error" style={{ display: 'block' }}>{requestReturnError}</div> : null}
               <div className="tracking-return-dialog-actions">
                 <button className="tracking-return-cancel" disabled={requestingReturn} onClick={() => setReturnDialogOpen(false)} type="button">Hủy</button>
-                <button className="tracking-return-submit" disabled={requestingReturn} type="submit">{requestingReturn ? 'Đang gửi...' : 'OK'}</button>
+                <button className="tracking-return-submit" disabled={requestingReturn || (order.backendOrder && returnFiles.length < 2)} type="submit">{requestingReturn ? 'Đang gửi...' : 'OK'}</button>
               </div>
             </form>
           </div>
@@ -299,10 +312,12 @@ export default function OrderTrackingPage() {
         </section>
       ) : null}
 
+      {order.returnPhotoIds?.length ? <section className="tracking-card"><h3>Ảnh tình trạng hàng khi trả</h3><EvidenceGallery ids={order.returnPhotoIds} label="Ảnh trả hàng" /></section> : null}
+
       {refunds.length > 0 ? (
         <section className="tracking-card">
           <h3>Hoan tien va tien coc</h3>
-          {refunds.map((refund) => <div className="tracking-refund" key={refund.id}><div className="tracking-info-line">{refund.type}: <b>{formatVnd(refund.amount)}</b></div><div className="tracking-info-line">Trang thai: <b>{refund.status}</b></div>{refund.reason ? <div className="tracking-info-line">Ly do: {refund.reason}</div> : null}{refund.processedAt ? <div className="tracking-info-line">Xu ly luc: <b>{formatOrderDate(refund.processedAt)}</b></div> : null}</div>)}
+          {refunds.map((refund) => <div className="tracking-refund" key={refund.id}><EvidenceGallery ids={refund.proofPhotoIds} label="Bằng chứng hoàn cọc" /><div className="tracking-info-line">{refund.type}: <b>{formatVnd(refund.amount)}</b></div><div className="tracking-info-line">Trang thai: <b>{refund.status}</b></div>{refund.reason ? <div className="tracking-info-line">Ly do: {refund.reason}</div> : null}{refund.processedAt ? <div className="tracking-info-line">Xu ly luc: <b>{formatOrderDate(refund.processedAt)}</b></div> : null}</div>)}
         </section>
       ) : null}
 

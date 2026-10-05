@@ -33,6 +33,7 @@ public class DoRentMeDbContext : DbContext
     public DbSet<OrderStatusHistory> OrderStatusHistory => Set<OrderStatusHistory>();
     public DbSet<Refund> Refunds => Set<Refund>();
     public DbSet<ReturnInspection> ReturnInspections => Set<ReturnInspection>();
+    public DbSet<EvidencePhoto> EvidencePhotos => Set<EvidencePhoto>();
     public DbSet<ProductLike> ProductLikes => Set<ProductLike>();
     public DbSet<Review> Reviews => Set<Review>();
     public DbSet<ChatSession> ChatSessions => Set<ChatSession>();
@@ -49,6 +50,17 @@ public class DoRentMeDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        modelBuilder.Entity<EvidencePhoto>(entity =>
+        {
+            entity.ToTable("EvidencePhotos");
+            entity.HasKey(p => p.Id);
+            entity.Property(p => p.ObjectKey).HasMaxLength(300).IsRequired();
+            entity.Property(p => p.ContentType).HasMaxLength(30).IsRequired();
+            entity.Property(p => p.ContentHash).HasMaxLength(64).IsRequired();
+            entity.HasOne(p => p.Order).WithMany(o => o.EvidencePhotos).HasForeignKey(p => p.OrderId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(p => p.Refund).WithMany(r => r.EvidencePhotos).HasForeignKey(p => p.RefundId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<User>().WithMany().HasForeignKey(p => p.UploadedByUserId).OnDelete(DeleteBehavior.Restrict);
+        });
 
         ConfigureIdentity(modelBuilder);
         ConfigureCatalog(modelBuilder);

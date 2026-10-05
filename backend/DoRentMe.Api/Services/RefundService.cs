@@ -185,6 +185,16 @@ public class RefundService : IRefundService
         if (!StatusTransitions.TryGetValue(refund.Status, out var allowed) || !allowed.Contains(target, StringComparer.OrdinalIgnoreCase))
             throw Conflict(ErrorCodes.InvalidRefundTransition, "Refund status transition is not allowed.");
 
+        if (target == "completed" && refund.Type == "deposit")
+        {
+            var ids = request.PhotoIds.Distinct().ToList();
+            if (ids.Count < 1 || ids.Count > 10)
+                throw new ApiException("REFUND_PROOF_REQUIRED", "Provide at least one photo proving the deposit refund.", 400);
+            var photos = await _dbContext.EvidencePhotos.Where(p => ids.Contains(p.Id) && p.RefundId == refundId && p.OrderId == refund.OrderId && p.UploadedByUserId == adminUserId).ToListAsync(cancellationToken);
+            if (photos.Count != ids.Count)
+                throw new ApiException("INVALID_REFUND_PROOF", "Proof photos must be uploaded by you for this refund.", 400);
+            foreach (var photo in photos) photo.Attached = true;
+        }
         refund.Status = target;
         refund.ProcessedByUserId = adminUserId;
         refund.TransactionCode = NormalizeOptional(request.TransactionCode) ?? refund.TransactionCode;
@@ -200,8 +210,8 @@ public class RefundService : IRefundService
         return MapRefund(await RefundQuery().FirstAsync(item => item.Id == refundId, cancellationToken));
     }
 
-    private IQueryable<Refund> RefundQuery() => _dbContext.Refunds.AsNoTracking().Include(item => item.Order);
-    private static RefundResponse MapRefund(Refund refund) => new() { Id = refund.Id, OrderId = refund.OrderId, PaymentId = refund.PaymentId, Type = refund.Type, Status = refund.Status, Amount = refund.Amount, Reason = refund.Reason, TransactionCode = refund.TransactionCode, RequestedAt = refund.RequestedAt, ProcessedAt = refund.ProcessedAt };
+    private IQueryable<Refund> RefundQuery() => _dbContext.Refunds.AsNoTracking().Include(item => item.Order).Include(item => item.EvidencePhotos);
+    private static RefundResponse MapRefund(Refund refund) => new() { Id = refund.Id, ProofPhotoIds = refund.EvidencePhotos.Where(p => p.Attached).Select(p => p.Id).ToList(), OrderId = refund.OrderId, PaymentId = refund.PaymentId, Type = refund.Type, Status = refund.Status, Amount = refund.Amount, Reason = refund.Reason, TransactionCode = refund.TransactionCode, RequestedAt = refund.RequestedAt, ProcessedAt = refund.ProcessedAt };
     private static string NormalizeStatus(string value) => value.Trim().ToLowerInvariant();
     private static string? NormalizeOptional(string? value) { var trimmed = value?.Trim(); return string.IsNullOrWhiteSpace(trimmed) ? null : trimmed; }
     private static ApiException NotFound(string code, string message) => new(code, message, StatusCodes.Status404NotFound);

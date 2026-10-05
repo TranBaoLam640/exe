@@ -197,7 +197,8 @@ public class OrderService : IOrderService
     public async Task<OrderResponse> RequestReturnAsync(
         int userId,
         int orderId,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        IReadOnlyList<Guid>? photoIds = null)
     {
         var order = await _dbContext.Orders
             .FirstOrDefaultAsync(o => o.Id == orderId && o.UserId == userId, cancellationToken);
@@ -219,6 +220,13 @@ public class OrderService : IOrderService
                 "A return can only be requested after the order has been delivered.");
         }
 
+        var ids = photoIds?.Distinct().ToList() ?? new List<Guid>();
+        if (ids.Count < 2 || ids.Count > 10)
+            throw new ApiException("RETURN_PHOTOS_REQUIRED", "Provide between 2 and 10 different return photos.", 400);
+        var photos = await _dbContext.EvidencePhotos.Where(p => ids.Contains(p.Id) && p.OrderId == orderId && p.RefundId == null && p.UploadedByUserId == userId).ToListAsync(cancellationToken);
+        if (photos.Count != ids.Count || photos.Select(p => p.ContentHash).Distinct().Count() < 2)
+            throw new ApiException("INVALID_RETURN_PHOTOS", "Return photos must be different photos uploaded by you for this order.", 400);
+        foreach (var photo in photos) photo.Attached = true;
         await ApplyStatusAsync(order, "return_requested", userId, "Customer requested return.", cancellationToken);
         await _dbContext.SaveChangesAsync(cancellationToken);
 
@@ -253,6 +261,9 @@ public class OrderService : IOrderService
         }
 
         EnsureCanManageOrder(order, userId, role);
+
+        if (targetStatus == "return_requested" && await _dbContext.EvidencePhotos.CountAsync(p => p.OrderId == orderId && p.RefundId == null && p.Attached, cancellationToken) < 2)
+            throw new ApiException("RETURN_PHOTOS_REQUIRED", "The customer must submit at least two return photos before requesting a return.", 400);
 
         if (!CanTransition(order.Status, targetStatus))
         {
@@ -783,6 +794,7 @@ public class OrderService : IOrderService
         return _dbContext.Orders
             .AsNoTracking()
             .Include(order => order.Shop)
+            .Include(order => order.EvidencePhotos)
             .Include(order => order.Items)
                 .ThenInclude(item => item.Product)
                     .ThenInclude(product => product.Images)
@@ -845,6 +857,7 @@ public class OrderService : IOrderService
             EndDate = order.EndDate,
             DeliveryConfirmed = order.DeliveryConfirmed,
             ReturnRequestedAt = order.ReturnRequestedAt,
+            ReturnPhotoIds = order.EvidencePhotos.Where(p => p.Attached && p.RefundId == null).Select(p => p.Id).ToList(),
             CreatedAt = order.CreatedAt,
             History = order.StatusHistory
                 .OrderBy(entry => entry.CreatedAt)

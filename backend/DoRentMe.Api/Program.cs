@@ -92,6 +92,7 @@ builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IRefundService, RefundService>();
+builder.Services.AddHttpClient<IEvidenceStorage, R2EvidenceStorage>();
 builder.Services.AddScoped<IReturnInspectionService, ReturnInspectionService>();
 builder.Services.AddScoped<IShipmentService, ShipmentService>();
 builder.Services.AddHttpClient<IAiGatewayService, AiGatewayService>();
