@@ -4,6 +4,7 @@ import api from '../config/api.js';
 function EvidenceImage({ id, label }) {
   const [url, setUrl] = useState('');
   const [error, setError] = useState(false);
+  const [retry, setRetry] = useState(0);
   useEffect(() => {
     let active = true;
     let objectUrl;
@@ -15,12 +16,12 @@ function EvidenceImage({ id, label }) {
       setUrl(objectUrl);
     }).catch(() => { if (active) setError(true); });
     return () => { active = false; if (objectUrl) URL.revokeObjectURL(objectUrl); };
-  }, [id]);
-  if (!url) return <span>{error ? 'Không thể tải ảnh.' : 'Đang tải ảnh...'}</span>;
-  return <a href={url} target="_blank" rel="noreferrer"><img alt={label} src={url} style={{ width: 120, height: 120, objectFit: 'cover', borderRadius: 8 }} /></a>;
+  }, [id, retry]);
+  if (!url) return <div className="evidence-image-placeholder" role="status"><span>{error ? 'Không thể tải ảnh.' : 'Đang tải ảnh...'}</span>{error ? <button type="button" onClick={() => setRetry((value) => value + 1)}>Thử lại</button> : null}</div>;
+  return <a className="evidence-image" href={url} target="_blank" rel="noreferrer"><img alt={label} src={url} /><span>{label}</span></a>;
 }
 
 export default function EvidenceGallery({ ids = [], label = 'Ảnh bằng chứng' }) {
   if (!ids.length) return null;
-  return <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', margin: '12px 0' }}>{ids.map((id, index) => <EvidenceImage id={id} key={id} label={`${label} ${index + 1}`} />)}</div>;
+  return <div className="evidence-gallery">{ids.map((id, index) => <EvidenceImage id={id} key={id} label={`${label} ${index + 1}`} />)}</div>;
 }

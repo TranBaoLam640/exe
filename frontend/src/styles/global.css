@@ -4342,6 +4342,29 @@ a {
   .tracking-return-dialog-actions button { flex: 1; min-width: 0; padding: 12px 10px; }
 }
 
+.evidence-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; margin: 14px 0; }
+.evidence-image { display: block; min-width: 0; overflow: hidden; border: 1px solid #eadce5; border-radius: 12px; background: #fff; color: #713b5e; text-decoration: none; }
+.evidence-image img { display: block; width: 100%; height: 160px; object-fit: cover; }
+.evidence-image > span { display: block; padding: 9px 10px; font-size: 0.75rem; line-height: 1.5; }
+.evidence-image:focus-visible { outline: 3px solid #dcb3cc; outline-offset: 3px; }
+.evidence-image-placeholder { display: grid; align-content: center; justify-items: center; gap: 10px; min-height: 180px; padding: 12px; border: 1px dashed #dcb3cc; border-radius: 12px; color: #82717d; font-size: 0.8rem; }
+.evidence-image-placeholder button { padding: 6px 12px; border: 1px solid #dcb3cc; background: #fff; border-radius: 8px; color: #713b5e; cursor: pointer; }
+.admin-customer-return-evidence, .admin-refund-evidence { padding: 20px; margin: 20px 0; border: 1px solid #eadce5; border-radius: 14px; background: #fffafd; }
+.admin-refund-evidence-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.admin-refund-evidence-heading h3 { margin: 0; }
+.admin-refund-evidence-heading > span { padding: 5px 10px; background: #f5e7ef; color: #713b5e; border-radius: 999px; font-size: 0.8rem; }
+.admin-customer-return-evidence p, .admin-refund-evidence p { color: #82717d; font-size: 0.85rem; line-height: 1.6; }
+.admin-refund-evidence h4 { margin: 14px 0 8px; font-size: 0.95rem; }
+.admin-transfer-proof-form { display: grid; gap: 12px; margin-top: 16px; padding-top: 16px; border-top: 1px solid #eadce5; }
+.admin-transfer-proof-form h4, .admin-transfer-proof-form p { margin: 0; }
+.admin-transfer-proof-form label { display: grid; gap: 8px; font-size: 0.85rem; font-weight: 600; }
+.admin-transfer-proof-form input { width: 100%; box-sizing: border-box; padding: 10px; border: 1px solid #dcb3cc; border-radius: 8px; background: #fff; }
+.admin-transfer-proof-form small { color: #82717d; font-weight: 400; }
+.admin-transfer-proof-upload { padding: 16px; border: 1px dashed #dcb3cc; border-radius: 10px; background: #fff; }
+.admin-transfer-proof-previews { display: flex; flex-wrap: wrap; gap: 10px; }
+.admin-transfer-proof-previews img { width: 120px; height: 120px; object-fit: cover; border-radius: 10px; }
+.admin-refund-evidence-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+
 .tracking-info-line {
   margin-bottom: 8px;
   color: #555;

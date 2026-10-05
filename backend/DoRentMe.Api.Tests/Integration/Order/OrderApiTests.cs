@@ -642,6 +642,21 @@ public class OrderApiTests : IDisposable
         Assert.Equal(HttpStatusCode.OK, (await _client.GetAsync($"/api/evidence/{proofId}")).StatusCode);
         await LoginAsync(_client, AdminEmail);
         Assert.Equal("paid", (await dbContext.Payments.AsNoTracking().SingleAsync(item => item.Id == payment.Id)).Status);
+        var additionalProofId = await UploadPhotoAsync($"/api/admin/refunds/{refundId}/proof-photos", 5);
+        await LoginAsync(_client, CustomerEmail);
+        Assert.Equal(HttpStatusCode.NotFound, (await _client.GetAsync($"/api/evidence/{additionalProofId}")).StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, (await _client.PutAsJsonAsync($"/api/admin/refunds/{refundId}/proof-photos", new { photoIds = new[] { additionalProofId } })).StatusCode);
+        await LoginAsync(_client, AdminEmail);
+        Assert.Equal(HttpStatusCode.BadRequest, (await _client.PutAsJsonAsync($"/api/admin/refunds/{refundId}/proof-photos", new { photoIds = new[] { Guid.NewGuid() } })).StatusCode);
+        var published = await _client.PutAsJsonAsync($"/api/admin/refunds/{refundId}/proof-photos", new { photoIds = new[] { additionalProofId } });
+        Assert.Equal(HttpStatusCode.OK, published.StatusCode);
+        using var publishedJson = await ReadJsonAsync(published);
+        Assert.Equal(2, publishedJson.RootElement.GetProperty("data").GetProperty("proofPhotoIds").GetArrayLength());
+        Assert.Equal("completed", publishedJson.RootElement.GetProperty("data").GetProperty("status").GetString());
+        await LoginAsync(_client, CustomerEmail);
+        Assert.Equal(HttpStatusCode.OK, (await _client.GetAsync($"/api/evidence/{additionalProofId}")).StatusCode);
+        using var updatedRefunds = await ReadJsonAsync(await _client.GetAsync($"/api/orders/{orderId}/refunds"));
+        Assert.Equal(2, updatedRefunds.RootElement.GetProperty("data")[0].GetProperty("proofPhotoIds").GetArrayLength());
         Assert.Equal(1, await dbContext.Refunds.CountAsync(item => item.OrderId == orderId && item.Type == "deposit"));
     }
 

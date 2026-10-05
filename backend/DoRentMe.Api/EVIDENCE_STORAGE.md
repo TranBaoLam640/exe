@@ -49,6 +49,10 @@ Admin flow:
    `{ "status": "completed", "transactionCode": "...", "photoIds": ["..."] }`.
 
 At least one proof photo is required when completing a deposit refund.
+Admins can also upload proof for an already completed deposit refund and
+publish it using `PUT /api/admin/refunds/{refundId}/proof-photos` with
+`{ "photoIds": ["..."] }`. This appends proof without changing the refund's
+amount, status or settlement time. Customers cannot read unpublished uploads.
 Cancellation refunds keep their existing behavior. Existing completed refunds
 remain readable without retrospective proof requirements.
 

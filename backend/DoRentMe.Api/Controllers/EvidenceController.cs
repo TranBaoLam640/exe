@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore;
 namespace DoRentMe.Api.Controllers;
 
 [Authorize]
-public class EvidenceController(DoRentMeDbContext db, IEvidenceStorage storage) : ApiControllerBase
+public class EvidenceController(DoRentMeDbContext db, IEvidenceStorage storage, IRefundService refunds) : ApiControllerBase
 {
     private int UserId => int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
 
@@ -32,9 +32,28 @@ public class EvidenceController(DoRentMeDbContext db, IEvidenceStorage storage) 
     {
         var refund = await db.Refunds.SingleOrDefaultAsync(r => r.Id == refundId, cancellationToken);
         if (refund == null) return NotFound();
-        if (refund.Type != "deposit" || refund.Status is not ("pending" or "processing"))
-            throw new ApiException("INVALID_EVIDENCE_STATE", "Proof can only be uploaded for an active deposit refund.", 409);
+        if (refund.Type != "deposit" || refund.Status is not ("pending" or "processing" or "completed"))
+            throw new ApiException("INVALID_EVIDENCE_STATE", "Proof can only be uploaded for an active or completed deposit refund.", 409);
         return await Upload(refund.OrderId, refund.Id, file, cancellationToken);
+    }
+
+    [Authorize(Roles = "ADMIN")]
+    [HttpPut("api/admin/refunds/{refundId:int}/proof-photos")]
+    public async Task<IActionResult> PublishRefundProof(int refundId, [FromBody] DoRentMe.Api.Contracts.Refund.RefundProofRequest request, CancellationToken cancellationToken)
+    {
+        var refund = await db.Refunds.SingleOrDefaultAsync(r => r.Id == refundId, cancellationToken);
+        if (refund == null) return NotFound();
+        if (refund.Type != "deposit" || refund.Status != "completed")
+            throw new ApiException("INVALID_EVIDENCE_STATE", "Only completed deposit refunds can publish additional proof.", 409);
+        var ids = request.PhotoIds.Distinct().ToList();
+        if (ids.Count is < 1 or > 10)
+            throw new ApiException("REFUND_PROOF_REQUIRED", "Provide between 1 and 10 proof photos.", 400);
+        var photos = await db.EvidencePhotos.Where(p => ids.Contains(p.Id) && p.OrderId == refund.OrderId && p.RefundId == refundId && p.UploadedByUserId == UserId).ToListAsync(cancellationToken);
+        if (photos.Count != ids.Count)
+            throw new ApiException("INVALID_REFUND_PROOF", "Proof photos must be uploaded by you for this refund.", 400);
+        foreach (var photo in photos) photo.Attached = true;
+        await db.SaveChangesAsync(cancellationToken);
+        return Success(await refunds.GetAdminRefundAsync(refundId, cancellationToken));
     }
 
     [HttpGet("api/evidence/{id:guid}")]

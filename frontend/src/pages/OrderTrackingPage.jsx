@@ -326,7 +326,13 @@ export default function OrderTrackingPage() {
       {refunds.length > 0 ? (
         <section className="tracking-card">
           <h3>Hoan tien va tien coc</h3>
-          {refunds.map((refund) => <div className="tracking-refund" key={refund.id}><EvidenceGallery ids={refund.proofPhotoIds} label="Bằng chứng hoàn cọc" /><div className="tracking-info-line">{refund.type}: <b>{formatVnd(refund.amount)}</b></div><div className="tracking-info-line">Trang thai: <b>{refund.status}</b></div>{refund.reason ? <div className="tracking-info-line">Ly do: {refund.reason}</div> : null}{refund.processedAt ? <div className="tracking-info-line">Xu ly luc: <b>{formatOrderDate(refund.processedAt)}</b></div> : null}</div>)}
+          {refunds.map((refund) => <div className="tracking-refund" key={refund.id}>
+            <div className="tracking-info-line">{refund.type === 'deposit' ? 'Hoàn tiền cọc' : 'Hoàn tiền hủy đơn'}: <b>{formatVnd(refund.amount)}</b></div>
+            <div className="tracking-info-line">Trạng thái: <b>{refund.status}</b></div>
+            {refund.reason ? <div className="tracking-info-line">Lý do: {refund.reason}</div> : null}
+            {refund.processedAt ? <div className="tracking-info-line">Xử lý lúc: <b>{formatOrderDate(refund.processedAt)}</b></div> : null}
+            {refund.type === 'deposit' ? <><h4>Ảnh chứng minh chuyển khoản từ shop</h4>{refund.proofPhotoIds?.length ? <><p>Shop đã gửi {refund.proofPhotoIds.length} ảnh xác nhận hoàn cọc. Nhấn vào ảnh để xem đầy đủ.</p><EvidenceGallery ids={refund.proofPhotoIds} label="Chứng minh chuyển khoản hoàn cọc" /></> : <p>Shop chưa gửi ảnh chứng minh chuyển khoản hoàn cọc.</p>}</> : null}
+          </div>)}
         </section>
       ) : null}
 

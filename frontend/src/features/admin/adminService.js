@@ -83,6 +83,11 @@ export async function updateAdminRefundStatus(refundId, status, transactionCode,
   return response.data?.data;
 }
 
+export async function publishRefundProof(refundId, photoIds) {
+  const response = await api.put(`/api/admin/refunds/${encodeURIComponent(refundId)}/proof-photos`, { photoIds });
+  return response.data?.data;
+}
+
 export async function fetchInspectionAssets(orderId) {
   const response = await api.get(`/api/admin/orders/${encodeURIComponent(orderId)}/inspection-assets`);
   return response.data?.data || [];
