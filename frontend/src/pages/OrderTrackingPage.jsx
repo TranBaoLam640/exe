@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import EvidenceGallery from '../components/EvidenceGallery.jsx';
+import ReturnPhotoPicker from '../components/ReturnPhotoPicker.jsx';
 import { uploadEvidencePhotos } from '../features/orders/evidenceApi.js';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { imageUrl } from '../assets/imageUrl.js';
@@ -82,6 +83,17 @@ function TrackingActions({ order, onOrderUpdated }) {
   const [returnFiles, setReturnFiles] = useState([]);
   const [returnPhotoIds, setReturnPhotoIds] = useState([]);
 
+  function changeReturnFiles(files) {
+    setRequestReturnError('');
+    if (files.length > 10) { setRequestReturnError('Bạn có thể chọn tối đa 10 ảnh. Hãy xóa bớt ảnh trước khi thêm.'); return; }
+    if (files.some((file) => !['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 5 * 1024 * 1024)) {
+      setRequestReturnError('Vui lòng chọn ảnh JPEG, PNG hoặc WebP, tối đa 5 MB mỗi ảnh.');
+      return;
+    }
+    setReturnFiles(files);
+    setReturnPhotoIds([]);
+  }
+
   async function handleConfirmDelivery() {
     setConfirmingDelivery(true);
     setConfirmDeliveryError('');
@@ -146,21 +158,18 @@ function TrackingActions({ order, onOrderUpdated }) {
         {confirmDeliveryError ? <div className="checkout-error" style={{ display: 'block' }}>{confirmDeliveryError}</div> : null}
         {returnDialogOpen ? (
           <div className="tracking-return-backdrop" role="presentation">
-            <form aria-modal="true" className="tracking-return-dialog" onSubmit={handleRequestReturnSubmit} role="dialog">
-              <div>
+            <form aria-modal="true" aria-labelledby="tracking-return-title" className="tracking-return-dialog" onSubmit={handleRequestReturnSubmit} role="dialog">
+              <div className="tracking-return-header">
                 <span className="tracking-return-kicker">Yêu cầu trả hàng</span>
-                <h3>Xác nhận gửi yêu cầu cho shop?</h3>
-                <p>Shop sẽ nhận thông báo và sắp xếp bước trả hàng tiếp theo cho đơn <b>{order.code || order.id}</b>.</p>
+                <h3 id="tracking-return-title">Gửi yêu cầu trả hàng</h3>
+                <p>Thêm ảnh tình trạng hàng để shop kiểm tra và sắp xếp nhận lại.</p>
+                <div className="tracking-return-order"><span>Đơn hàng</span><strong>{order.code || order.id}</strong></div>
               </div>
-              {order.backendOrder ? <label>Ảnh tình trạng hàng khi trả (ít nhất 2 ảnh, tối đa 10 ảnh, 5 MB/ảnh)
-                <input accept="image/jpeg,image/png,image/webp" disabled={requestingReturn} multiple onChange={(event) => { setReturnFiles(Array.from(event.target.files || [])); setReturnPhotoIds([]); }} type="file" />
-                <small>Đã chọn {returnFiles.length} ảnh. Chụp rõ mặt trước, mặt sau và các hư hỏng nếu có.</small>
-                <EvidenceGallery ids={returnPhotoIds} label="Ảnh trả hàng" />
-              </label> : null}
-              {requestReturnError ? <div className="checkout-error" style={{ display: 'block' }}>{requestReturnError}</div> : null}
+              {order.backendOrder ? <ReturnPhotoPicker files={returnFiles} onChange={changeReturnFiles} disabled={requestingReturn} /> : null}
+              {requestReturnError ? <div className="tracking-return-error" role="alert">{requestReturnError}</div> : null}
               <div className="tracking-return-dialog-actions">
                 <button className="tracking-return-cancel" disabled={requestingReturn} onClick={() => setReturnDialogOpen(false)} type="button">Hủy</button>
-                <button className="tracking-return-submit" disabled={requestingReturn || (order.backendOrder && returnFiles.length < 2)} type="submit">{requestingReturn ? 'Đang gửi...' : 'OK'}</button>
+                <button className="tracking-return-submit" disabled={requestingReturn || (order.backendOrder && returnFiles.length < 2)} type="submit">{requestingReturn ? 'Đang gửi ảnh...' : 'Gửi yêu cầu'}</button>
               </div>
             </form>
           </div>

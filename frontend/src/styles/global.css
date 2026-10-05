@@ -4234,12 +4234,14 @@ a {
 
 .tracking-return-dialog {
   display: grid;
-  width: min(440px, 100%);
-  gap: 18px;
-  padding: 24px;
+  width: min(540px, 100%);
+  max-height: calc(100dvh - 40px);
+  overflow-y: auto;
+  gap: 24px;
+  padding: 30px;
   background: #fff;
   border: 1px solid rgba(224, 95, 138, 0.18);
-  border-radius: 12px;
+  border-radius: 20px;
   box-shadow: 0 22px 70px rgba(0, 0, 0, 0.24);
 }
 
@@ -4255,7 +4257,9 @@ a {
 .tracking-return-dialog h3 {
   margin: 0 0 8px;
   color: #111;
-  font-size: 1.12rem;
+  font-size: 1.4rem;
+  line-height: 1.35;
+  text-transform: none;
 }
 
 .tracking-return-dialog p {
@@ -4270,6 +4274,8 @@ a {
   flex-wrap: wrap;
   gap: 10px;
   justify-content: flex-end;
+  border-top: 1px solid #f0e8ed;
+  padding-top: 20px;
 }
 
 .tracking-return-cancel,
@@ -4298,6 +4304,42 @@ a {
 .tracking-return-submit:disabled {
   cursor: not-allowed;
   opacity: 0.65;
+}
+
+.tracking-return-order { display: grid; gap: 5px; margin-top: 16px; padding: 12px 14px; background: #faf7f9; border-radius: 10px; font-size: 0.82rem; }
+.tracking-return-order > span { color: #82717d; }
+.tracking-return-order strong { color: #493440; overflow-wrap: anywhere; }
+.return-photo-picker { display: grid; gap: 14px; min-width: 0; }
+.return-photo-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.return-photo-heading h4 { margin: 0 0 5px; color: #35272f; font-size: 0.98rem; }
+.return-photo-heading p { font-size: 0.8rem; color: #82717d; }
+.return-photo-count { flex-shrink: 0; padding: 5px 9px; border-radius: 999px; background: #f5edf2; color: #8f4776; font-size: 0.75rem; font-weight: 700; }
+.return-photo-count.is-ready { color: #28734c; background: #eaf6ee; }
+.return-photo-upload { position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 24px 16px; border: 1.5px dashed #dcb3cc; border-radius: 14px; background: #fffbfd; text-align: center; cursor: pointer; transition: background 0.15s, border-color 0.15s; }
+.return-photo-upload:hover { background: #fff3f8; border-color: #8f4776; }
+.return-photo-upload:focus-within { outline: 3px solid #ebc8dc; outline-offset: 3px; }
+.return-photo-upload.is-disabled { opacity: 0.6; cursor: not-allowed; }
+.return-photo-input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.return-photo-upload-icon { display: grid; place-items: center; width: 42px; height: 42px; background: #f8e9f2; color: #8f4776; border-radius: 12px; }
+.return-photo-upload-icon svg { width: 24px; height: 24px; }
+.return-photo-upload strong { color: #713b5e; font-size: 0.9rem; }
+.return-photo-upload > span:last-child { color: #8c7986; font-size: 0.75rem; }
+.return-photo-previews { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.return-photo-preview { position: relative; min-width: 0; border: 1px solid #eee5eb; border-radius: 10px; overflow: hidden; background: #faf7f9; }
+.return-photo-preview img { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; }
+.return-photo-preview > span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 7px 8px; font-size: 0.7rem; color: #82717d; }
+.return-photo-remove { position: absolute; top: 6px; right: 6px; display: grid; place-items: center; width: 28px; height: 28px; padding: 0; border: 1px solid #eee5eb; border-radius: 50%; background: #fff; color: #713b5e; font-size: 1.2rem; cursor: pointer; box-shadow: 0 2px 8px #0002; }
+.return-photo-remove:disabled { cursor: not-allowed; opacity: 0.6; }
+.return-photo-requirement { display: flex; align-items: center; gap: 7px; color: #82717d; font-size: 0.78rem; line-height: 1.5; }
+.return-photo-requirement.is-ready { color: #28734c; }
+.tracking-return-error { padding: 11px 14px; border: 1px solid #f2c9d0; border-radius: 10px; background: #fff4f5; color: #a3374b; font-size: 0.83rem; line-height: 1.5; }
+
+@media (max-width: 480px) {
+  .tracking-return-backdrop { padding: 12px; }
+  .tracking-return-dialog { padding: 22px 18px; gap: 20px; max-height: calc(100dvh - 24px); }
+  .tracking-return-dialog h3 { font-size: 1.2rem; }
+  .tracking-return-dialog-actions { flex-wrap: nowrap; }
+  .tracking-return-dialog-actions button { flex: 1; min-width: 0; padding: 12px 10px; }
 }
 
 .tracking-info-line {
