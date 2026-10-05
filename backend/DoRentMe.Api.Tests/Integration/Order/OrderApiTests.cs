@@ -136,7 +136,7 @@ public class OrderApiTests : IDisposable
         Assert.Equal(HttpStatusCode.OK, (await _client.PutAsJsonAsync($"/api/shipper/shipments/{outboundId}/status", new { status = "shipping" })).StatusCode);
         Assert.Equal(HttpStatusCode.OK, (await _client.PutAsJsonAsync($"/api/shipper/shipments/{outboundId}/status", new { status = "delivered" })).StatusCode);
         await LoginAsync(_client, CustomerEmail);
-        Assert.Equal(HttpStatusCode.OK, (await _client.PutAsJsonAsync($"/api/orders/{orderId}/status", new { status = "return_requested" })).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await _client.PostAsync($"/api/orders/{orderId}/request-return", null)).StatusCode);
 
         await LoginAsync(_client, AdminEmail);
         var returnShipment = await _client.PostAsJsonAsync($"/api/admin/orders/{orderId}/return-shipment", new { provider = "manual", trackingCode = "RETURN-1", assignedShipperUserId = shipper.Id });
