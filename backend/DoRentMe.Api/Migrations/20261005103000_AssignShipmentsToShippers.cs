@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace DoRentMe.Api.Migrations
 {
+    [Migration("20261005103000_AssignShipmentsToShippers")]
     public partial class AssignShipmentsToShippers : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)

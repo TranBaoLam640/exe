@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace DoRentMe.Api.Migrations
 {
     /// <inheritdoc />
+    [Migration("20261005090000_AddShipperRole")]
     public partial class AddShipperRole : Migration
     {
         /// <inheritdoc />
