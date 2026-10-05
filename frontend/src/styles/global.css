@@ -4365,6 +4365,19 @@ a {
 .admin-transfer-proof-previews img { width: 120px; height: 120px; object-fit: cover; border-radius: 10px; }
 .admin-refund-evidence-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
 
+.deposit-return-progress { margin: 20px 0; padding: 20px; border: 1px solid #eadce5; border-radius: 14px; background: #fffafd; }
+.deposit-return-progress h3 { margin: 0 0 16px; color: #713b5e; }
+.deposit-return-progress ol { display: grid; gap: 12px; list-style: none; padding: 0; margin: 0; }
+.deposit-return-progress li { display: flex; align-items: center; gap: 10px; color: #82717d; font-size: 0.85rem; }
+.deposit-return-progress li > span { display: grid; place-items: center; flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%; background: #f2eaf0; }
+.deposit-return-progress .is-current { color: #713b5e; font-weight: 700; }
+.deposit-return-progress .is-current > span { background: #8f4776; color: #fff; }
+.deposit-return-progress .is-done { color: #28734c; }
+.deposit-return-progress .is-done > span { background: #eaf6ee; }
+.deposit-return-progress p { margin: 16px 0 0; font-size: 0.87rem; line-height: 1.6; color: #713b5e; }
+.deposit-return-progress.is-complete { border-color: #c9e2d2; background: #f6fcf8; }
+.tracking-refund-refresh { display: flex; gap: 12px; justify-content: space-between; align-items: center; flex-wrap: wrap; margin: 16px 0; }
+
 .tracking-info-line {
   margin-bottom: 8px;
   color: #555;

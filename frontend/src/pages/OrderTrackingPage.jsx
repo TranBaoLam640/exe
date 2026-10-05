@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 import EvidenceGallery from '../components/EvidenceGallery.jsx';
 import ReturnPhotoPicker from '../components/ReturnPhotoPicker.jsx';
+import DepositReturnProgress from '../components/DepositReturnProgress.jsx';
+import { depositProgress } from '../features/orders/depositProgress.js';
 import { uploadEvidencePhotos } from '../features/orders/evidenceApi.js';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { imageUrl } from '../assets/imageUrl.js';
 import { getSession } from '../features/auth/authService.js';
 import { formatVnd, parsePrice } from '../features/cart/cartService.js';
-import { confirmBackendDelivery, createPayOsPayment, fetchCustomerInspections, fetchCustomerPayment, fetchCustomerPaymentTransactions, fetchCustomerRefunds, fetchCustomerShipments, requestBackendReturn } from '../features/orders/orderApi.js';
+import { confirmBackendDelivery, createPayOsPayment, fetchBackendOrder, fetchCustomerInspections, fetchCustomerPayment, fetchCustomerPaymentTransactions, fetchCustomerRefunds, fetchCustomerShipments, requestBackendReturn } from '../features/orders/orderApi.js';
 import {
   confirmDelivery,
   formatOrderDate,
@@ -29,13 +31,19 @@ const returnStatuses = new Set(['return_requested', 'return_processing', 'return
 
 function timelineSteps(order) {
   const isReturnFlow = returnStatuses.has(order.status);
-  return steps.map((step) => (step.key === 3
+  const result = steps.map((step) => (step.key === 3
     ? { ...step, icon: isReturnFlow ? '↩' : '🏁', label: isReturnFlow ? 'Trả hàng / Hoàn tất' : 'Hoàn tất' }
     : step));
+  if (order.backendOrder && isReturnFlow && Number(order.totals?.deposit) > 0) {
+    result[3] = { key: 3, icon: '↩', label: 'Hàng trả về shop' };
+    result.push({ key: 4, icon: '✓', label: 'Hoàn cọc và bằng chứng' });
+  }
+  return result;
 }
 
-function stepIndex(order) {
+function stepIndex(order, refunds) {
   const status = order.status;
+  if (order.backendOrder && Number(order.totals?.deposit) > 0 && depositProgress(order, refunds).complete) return 4;
   if (status === 'delivered' && order.deliveryConfirmed) return 3;
   return {
     pending_confirmation: 0,
@@ -47,7 +55,7 @@ function stepIndex(order) {
   }[status] ?? 0;
 }
 
-function StatusBanner({ order }) {
+function StatusBanner({ order, refunds }) {
   if (order.status === 'pending_confirmation') {
     return <div className="tracking-status-banner warn">⏳ Đơn đang chờ shop xác nhận giao dịch chuyển khoản. Thường mất 15-30 phút trong giờ hành chính.</div>;
   }
@@ -69,6 +77,9 @@ function StatusBanner({ order }) {
     return <div className="tracking-status-banner info">📦 Shop đang sắp xếp đến lấy đồ trả.</div>;
   }
   if (order.status === 'returned') {
+    if (order.backendOrder && Number(order.totals?.deposit) > 0 && !depositProgress(order, refunds).complete) {
+      return <div className="tracking-status-banner info">Hàng đã về shop. Đang chờ hoàn cọc và ảnh chứng minh chuyển khoản.</div>;
+    }
     return <div className="tracking-status-banner success">🎉 Đơn hàng đã hoàn tất! Cảm ơn bạn đã thuê đồ tại DoRentMe.</div>;
   }
   return null;
@@ -203,31 +214,55 @@ export default function OrderTrackingPage() {
   const [payOsLoading, setPayOsLoading] = useState(false);
   const [payOsError, setPayOsError] = useState('');
   const [paymentLoadError, setPaymentLoadError] = useState('');
+  const [refundLoadError, setRefundLoadError] = useState('');
+  const [trackingLoading, setTrackingLoading] = useState(false);
+  const [refreshVersion, setRefreshVersion] = useState(0);
   useOrders();
   const order = session ? backendOrder.order : effectiveOrderId ? getOrderById(effectiveOrderId) : null;
   useEffect(() => {
+    setPayment(null); setRefunds([]); setInspections([]); setTransactions([]); setShipments([]);
+    setPaymentLoadError(''); setRefundLoadError('');
+  }, [effectiveOrderId, session?.token]);
+  useEffect(() => {
     let active = true;
+    let inFlight = false;
     if (!session?.token || !effectiveOrderId) {
-      setPayment(null);
-      setRefunds([]);
-      setInspections([]);
-      setTransactions([]);
-      setShipments([]);
-      setPaymentLoadError('');
+      setPayment(null); setRefunds([]); setInspections([]); setTransactions([]); setShipments([]);
+      setPaymentLoadError(''); setRefundLoadError(''); setTrackingLoading(false);
       return () => { active = false; };
     }
-    setPaymentLoadError('');
-    Promise.all([
-      fetchCustomerPayment(effectiveOrderId),
-      fetchCustomerRefunds(effectiveOrderId).catch(() => []),
-      fetchCustomerInspections(effectiveOrderId).catch(() => []),
-      fetchCustomerPaymentTransactions(effectiveOrderId).catch(() => []),
-      fetchCustomerShipments(effectiveOrderId).catch(() => []),
-    ])
-      .then(([paymentResult, refundResult, inspectionResult, transactionResult, shipmentResult]) => { if (active) { setPayment(paymentResult); setRefunds(refundResult); setInspections(inspectionResult); setTransactions(transactionResult); setShipments(shipmentResult); } })
-      .catch((requestError) => { if (active) { setPayment(null); setRefunds([]); setInspections([]); setTransactions([]); setShipments([]); setPaymentLoadError(getApiErrorMessage(requestError, 'Khong tai duoc thong tin thanh toan.')); } });
-    return () => { active = false; };
-  }, [effectiveOrderId, session?.token]);
+    async function loadTracking() {
+      if (inFlight || !active) return;
+      inFlight = true;
+      setTrackingLoading(true);
+      const results = await Promise.allSettled([
+        fetchBackendOrder(effectiveOrderId),
+        fetchCustomerPayment(effectiveOrderId),
+        fetchCustomerRefunds(effectiveOrderId),
+        fetchCustomerInspections(effectiveOrderId),
+        fetchCustomerPaymentTransactions(effectiveOrderId),
+        fetchCustomerShipments(effectiveOrderId),
+      ]);
+      if (active) {
+        const [orderResult, paymentResult, refundResult, inspectionResult, transactionResult, shipmentResult] = results;
+        if (orderResult.status === 'fulfilled') backendOrder.replaceOrder(orderResult.value);
+        if (paymentResult.status === 'fulfilled') { setPayment(paymentResult.value); setPaymentLoadError(''); }
+        else setPaymentLoadError(getApiErrorMessage(paymentResult.reason, 'Unable to load payment.'));
+        if (refundResult.status === 'fulfilled') { setRefunds(refundResult.value); setRefundLoadError(''); }
+        else setRefundLoadError(getApiErrorMessage(refundResult.reason, 'Unable to load deposit refund proof. Please refresh.'));
+        if (inspectionResult.status === 'fulfilled') setInspections(inspectionResult.value);
+        if (transactionResult.status === 'fulfilled') setTransactions(transactionResult.value);
+        if (shipmentResult.status === 'fulfilled') setShipments(shipmentResult.value);
+        setTrackingLoading(false);
+      }
+      inFlight = false;
+    }
+    const refreshVisible = () => { if (document.visibilityState === 'visible') loadTracking(); };
+    loadTracking();
+    const timer = window.setInterval(refreshVisible, 30000);
+    window.addEventListener('focus', refreshVisible);
+    return () => { active = false; window.clearInterval(timer); window.removeEventListener('focus', refreshVisible); };
+  }, [effectiveOrderId, session?.token, refreshVersion, backendOrder.replaceOrder]);
 
   async function startPayOsPayment() {
     setPayOsLoading(true);
@@ -273,9 +308,9 @@ export default function OrderTrackingPage() {
   }
 
   const items = Array.isArray(order.items) ? order.items : [];
-  const idx = stepIndex(order);
+  const idx = stepIndex(order, refunds);
   const visibleSteps = timelineSteps(order);
-  const fillPct = [8, 36, 64, 92][idx];
+  const fillPct = 8 + (84 * idx) / (visibleSteps.length - 1);
 
   return (
     <div className="order-tracking-page">
@@ -323,6 +358,11 @@ export default function OrderTrackingPage() {
 
       {order.returnPhotoIds?.length ? <section className="tracking-card"><h3>Ảnh tình trạng hàng khi trả</h3><EvidenceGallery ids={order.returnPhotoIds} label="Ảnh trả hàng" /></section> : null}
 
+      {order.backendOrder && Number(order.totals?.deposit) > 0 && returnStatuses.has(order.status) ? <>
+        <DepositReturnProgress order={order} refunds={refunds} />
+        <div className="tracking-refund-refresh"><span>Thông tin hoàn cọc tự cập nhật mỗi 30 giây.</span><button className="tracking-return-cancel" disabled={trackingLoading} onClick={() => setRefreshVersion((value) => value + 1)} type="button">{trackingLoading ? 'Đang cập nhật...' : 'Cập nhật hoàn cọc'}</button></div>
+        {refundLoadError ? <div className="tracking-return-error" role="alert">{refundLoadError}</div> : null}
+      </> : null}
       {refunds.length > 0 ? (
         <section className="tracking-card">
           <h3>Hoan tien va tien coc</h3>
@@ -356,7 +396,7 @@ export default function OrderTrackingPage() {
             </div>
           ))}
         </div>
-        <div className="tracking-banner-wrap"><StatusBanner order={order} /></div>
+        <div className="tracking-banner-wrap"><StatusBanner order={order} refunds={refunds} /></div>
         <TrackingActions order={order} onOrderUpdated={backendOrder.replaceOrder} />
       </section>
 

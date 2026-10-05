@@ -1,4 +1,5 @@
 import AdminRefundEvidence from '../components/AdminRefundEvidence.jsx';
+import DepositReturnProgress from '../components/DepositReturnProgress.jsx';
 import EvidenceGallery from '../components/EvidenceGallery.jsx';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -199,6 +200,7 @@ function OrderDetail({ order, payment, transactions, shipment, returnShipment, r
           <div className="admin-refund-evidence-heading"><h3>Ảnh khách gửi khi trả hàng</h3><span>{order.returnPhotoIds?.length || 0} ảnh</span></div>
           {order.returnPhotoIds?.length ? <><p>Kiểm tra tình trạng hàng qua ảnh của khách trước khi xử lý trả hàng. Nhấn vào ảnh để xem bản đầy đủ.</p><EvidenceGallery ids={order.returnPhotoIds} label="Ảnh khách gửi khi trả hàng" /></> : <p>Đơn hàng này chưa có ảnh trả hàng được gửi thành công.</p>}
         </section>
+        {Number(order.totals?.deposit) > 0 && ['return_requested', 'return_processing', 'returned'].includes(order.status) ? <DepositReturnProgress order={order} refunds={refunds} admin /> : null}
         {payment ? <>
           <h3>Payment</h3>
           <div className="admin-detail-grid">
