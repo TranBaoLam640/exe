@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { AI_PACKAGES, purchaseAiPackage } from './aiPackages.js';
 
 export default function AiPricingModal({ isOpen, onClose, onPackagePurchased, initialSelectedPackageId }) {
@@ -98,6 +99,13 @@ export default function AiPricingModal({ isOpen, onClose, onPackagePurchased, in
                   </div>
                 );
               })}
+            </div>
+
+            <div className="ai-pricing-new-user-box">
+              <span>🎁 Bạn chưa có tài khoản? </span>
+              <Link to="/register" onClick={onClose}>
+                Đăng ký tài khoản ngay để nhận 2 lượt thử đồ AI miễn phí!
+              </Link>
             </div>
           </>
         ) : (

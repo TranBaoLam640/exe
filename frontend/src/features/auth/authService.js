@@ -90,6 +90,15 @@ export async function register({ name, email, phone, password, role }, options =
     const user = authData?.user ?? authData;
 
     const session = setSession(user, options);
+
+    // Cấp 2 lượt thử đồ AI miễn phí cho tài khoản mới tạo
+    try {
+      const sessStorage = options.sessionStorage || getBrowserStorage('sessionStorage');
+      sessStorage?.setItem('dorentme_tryon_count', '0');
+    } catch {
+      // Bỏ qua nếu môi trường không hỗ trợ storage
+    }
+
     syncGuestCartToServer(options).catch((error) => {
       console.warn('CART SYNC ERROR:', error);
     });

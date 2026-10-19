@@ -60,7 +60,7 @@ export default function RegisterPage() {
       return;
     }
 
-    setMessage({ type: 'success', text: 'Đăng ký thành công! Đang chuyển hướng...' });
+    setMessage({ type: 'success', text: 'Đăng ký thành công! Bạn nhận được 2 lượt thử đồ AI miễn phí. Đang chuyển hướng...' });
     window.setTimeout(() => {
       window.location.href = redirectTo;
     }, 700);
@@ -72,6 +72,10 @@ export default function RegisterPage() {
         <div className="auth-card-icon">✨</div>
         <h1>Tạo tài khoản DoRentMe</h1>
         <p className="auth-sub">Đăng ký để lưu thông tin nhận đồ & theo dõi lịch sử thuê dễ dàng hơn.</p>
+
+        <div className="auth-tryon-benefit-pill">
+          🎁 <strong>Ưu đãi thành viên mới:</strong> Tạo tài khoản để nhận ngay <strong>2 lượt Thử Đồ Bằng AI miễn phí</strong>!
+        </div>
 
         {message ? <div className={`auth-form-msg ${message.type}`}>{message.text}</div> : null}
 

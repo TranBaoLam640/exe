@@ -6912,6 +6912,42 @@ a {
   background: #e5e7eb;
 }
 
+.ai-pricing-new-user-box {
+  margin-top: 18px;
+  padding: 12px 16px;
+  background: #fdf2f8;
+  border: 1px dashed #f472b6;
+  border-radius: 10px;
+  text-align: center;
+  font-size: 0.88rem;
+  color: #831843;
+}
+
+.ai-pricing-new-user-box a {
+  color: #be185d;
+  font-weight: 700;
+  text-decoration: underline;
+  margin-left: 4px;
+}
+
+.tryon-register-incentive {
+  margin-top: 10px;
+  padding: 10px 14px;
+  background: #fdf2f8;
+  border: 1px dashed #f472b6;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 0.85rem;
+  color: #831843;
+}
+
+.tryon-register-incentive a {
+  color: #be185d;
+  font-weight: 700;
+  text-decoration: underline;
+  margin-left: 4px;
+}
+
 /* CHECKOUT PANEL INSIDE MODAL */
 .ai-checkout-panel {
   max-width: 520px;

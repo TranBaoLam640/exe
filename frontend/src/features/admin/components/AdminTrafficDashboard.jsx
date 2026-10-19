@@ -49,7 +49,7 @@ export default function AdminTrafficDashboard() {
       {/* Top Header & Quick Actions */}
       <div className="admin-traffic-head">
         <div>
-          <span className="admin-kicker">Analytics & Traffic</span>
+          <span className="admin-kicker">Thống kê & Lưu lượng</span>
           <h2>Thống kê Lượt truy cập & Google Analytics</h2>
           <p>Giám sát lưu lượng truy cập thực tế của khách hàng trên toàn bộ hệ thống DoRentMe.</p>
         </div>
@@ -71,13 +71,13 @@ export default function AdminTrafficDashboard() {
         <div className="admin-ga-info">
           <div className="admin-ga-status-indicator">
             <span className="pulse-dot" />
-            <strong>Google Analytics 4: Đang kích hoạt</strong>
+            <strong>Google Analytics 4: Đang hoạt động</strong>
           </div>
           <div className="admin-ga-id-pill">
-            <span>Measurement ID:</span> <code>{measurementId}</code>
+            <span>Mã đo lường (Measurement ID):</span> <code>{measurementId}</code>
           </div>
           <p>
-            Mã theo dõi GA4 (gtag.js) đang tự động thu thập Pageview trên từng route và các sự kiện thử đồ AI (AI Try-on).
+            Mã theo dõi GA4 (gtag.js) đang tự động thu thập lượt xem trang (Pageview) và các sự kiện thử đồ AI (AI Try-on).
           </p>
         </div>
         <div className="admin-ga-links">
@@ -87,7 +87,7 @@ export default function AdminTrafficDashboard() {
             rel="noreferrer"
             className="admin-ga-external-btn"
           >
-            Mở Google Analytics Console ↗
+            Mở trang quản trị Google Analytics ↗
           </a>
         </div>
       </div>
@@ -164,17 +164,18 @@ export default function AdminTrafficDashboard() {
         <div className="admin-devices-box">
           <div className="admin-box-head">
             <h3>Thiết bị truy cập</h3>
-            <span className="chart-badge">Platform</span>
+            <span className="chart-badge">Nền tảng</span>
           </div>
           <div className="admin-devices-list">
             {analytics.deviceBreakdown.map((dev) => {
               const icon = dev.device === 'Mobile' ? '📱' : dev.device === 'Desktop' ? '💻' : '📟';
+              const devName = dev.device === 'Mobile' ? 'Điện thoại' : dev.device === 'Desktop' ? 'Máy tính' : dev.device === 'Tablet' ? 'Máy tính bảng' : dev.device;
               return (
                 <div key={dev.device} className="device-item">
                   <div className="device-info">
                     <span className="device-icon" aria-hidden="true">{icon}</span>
                     <div>
-                      <strong>{dev.device}</strong>
+                      <strong>{devName}</strong>
                       <small>{dev.count.toLocaleString('vi-VN')} lượt</small>
                     </div>
                   </div>
@@ -279,6 +280,14 @@ export default function AdminTrafficDashboard() {
                     month: '2-digit',
                   });
 
+                  const devName = visit.device === 'Mobile' ? 'Điện thoại' : visit.device === 'Desktop' ? 'Máy tính' : visit.device === 'Tablet' ? 'Máy tính bảng' : visit.device;
+                  const roleLabel =
+                    visit.role === 'ADMIN' ? 'Quản trị viên' :
+                    visit.role === 'LENDER' ? 'Chủ shop' :
+                    visit.role === 'SHIPPER' ? 'Shipper' :
+                    visit.role === 'CUSTOMER' ? 'Khách thuê' :
+                    'Khách xem';
+
                   return (
                     <tr key={visit.id}>
                       <td>
@@ -292,11 +301,11 @@ export default function AdminTrafficDashboard() {
                       <td>
                         <code>{visit.visitorId}</code>
                       </td>
-                      <td>{visit.device}</td>
+                      <td>{devName}</td>
                       <td>{visit.browser}</td>
                       <td>
                         <span className={`admin-status-pill ${visit.role === 'ADMIN' ? 'delivered' : 'pending_confirmation'}`}>
-                          {visit.role}
+                          {roleLabel}
                         </span>
                       </td>
                     </tr>

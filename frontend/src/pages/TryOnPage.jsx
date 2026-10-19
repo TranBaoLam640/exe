@@ -290,6 +290,10 @@ export default function TryOnPage() {
             >
               ✨ Bảng giá Gói AI: 1k / lượt · 10k / ngày · 50k / tháng
             </button>
+            <div className="tryon-register-incentive">
+              <span>🎁 Chưa có tài khoản? </span>
+              <Link to="/register">Đăng ký ngay để nhận 2 lượt thử đồ AI miễn phí!</Link>
+            </div>
             <p className="tryon-hint">Mỗi lần thử mất khoảng 20-60 giây và tốn một khoản phí xử lý AI nhỏ, vui lòng thử vừa đủ nhu cầu.</p>
           </section>
         </div>

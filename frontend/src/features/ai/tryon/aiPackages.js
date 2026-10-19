@@ -144,8 +144,8 @@ export function getAiAccessStatus(
       planId: 'free',
       planName: 'Thử nghiệm miễn phí',
       remainingFree,
-      badge: `Thử miễn phí (${remainingFree}/${MAX_TRIES_PER_SESSION})`,
-      description: `Bạn còn ${remainingFree} lượt thử miễn phí trong phiên này`,
+      badge: `Thử miễn phí (còn ${remainingFree}/${MAX_TRIES_PER_SESSION} lượt)`,
+      description: `Bạn còn ${remainingFree} lượt thử đồ AI miễn phí`,
     };
   }
 
@@ -154,9 +154,9 @@ export function getAiAccessStatus(
     allowed: false,
     mode: 'quota_exceeded',
     planId: null,
-    planName: 'Hết lượt thử',
-    badge: 'Hết lượt',
-    description: 'Bạn đã sử dụng hết lượt thử miễn phí. Vui lòng đăng ký gói AI từ 1k để tiếp tục.',
+    planName: 'Hết lượt thử miễn phí',
+    badge: 'Hết lượt thử',
+    description: 'Bạn đã sử dụng hết 2 lượt thử miễn phí. Vui lòng đăng ký gói AI từ 1.000đ hoặc tạo tài khoản mới để tiếp tục.',
   };
 }
 

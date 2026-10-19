@@ -48,7 +48,7 @@ assert.equal(pkg50k.durationDays, 30, '50k package must be 30 days');
 // Test 2: AI Subscription & Purchase Flow
 // -------------------------------------------------------------
 const memLocal = createMemoryStorage();
-const memSession = createMemoryStorage({ dorentme_tryon_count: '5' }); // maxed free trial
+const memSession = createMemoryStorage({ dorentme_tryon_count: '2' }); // maxed free trial (2 lượt)
 
 // With maxed free trial and no packages, access is disallowed
 const statusQuotaExceeded = getAiAccessStatus(memLocal, memSession);
