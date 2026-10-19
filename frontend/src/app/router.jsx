@@ -217,6 +217,15 @@ export const router = createBrowserRouter([
     errorElement: <RouteErrorPage />,
   },
   {
+    path: '/admin/analytics',
+    element: (
+      <RequireRole allowedRoles={['ADMIN']}>
+        <AdminPage defaultTab="traffic" />
+      </RequireRole>
+    ),
+    errorElement: <RouteErrorPage />,
+  },
+  {
     path: '/admin/inventory',
     element: (
       <RequireRole allowedRoles={['ADMIN', 'LENDER']}>

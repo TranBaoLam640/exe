@@ -9,6 +9,9 @@ import { pollTryOnStatus } from '../features/ai/tryon/tryOnPolling.js';
 import { addProductToActiveCart } from '../features/cart/cartService.js';
 import { fetchProducts } from '../features/catalog/services/catalogService.js';
 import { useDocumentTitle } from '../hooks/useDocumentTitle.js';
+import { consumeAiTryOn, getAiAccessStatus } from '../features/ai/tryon/aiPackages.js';
+import AiPlanBanner from '../features/ai/tryon/AiPlanBanner.jsx';
+import AiPricingModal from '../features/ai/tryon/AiPricingModal.jsx';
 
 const initialStatus = { type: 'idle', message: '' };
 
@@ -108,6 +111,7 @@ export default function TryOnPage() {
   const [status, setStatus] = useState(initialStatus);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [cartMessage, setCartMessage] = useState('');
+  const [pricingModalOpen, setPricingModalOpen] = useState(false);
   const fileInputRef = useRef(null);
   const resultRef = useRef(null);
   const abortRef = useRef(null);
@@ -175,8 +179,13 @@ export default function TryOnPage() {
   async function startTryOn() {
     if (!product || !uploadedDataUrl || isSubmitting) return;
 
-    if (!canUseTryOn()) {
-      setStatus({ type: 'error', message: `Bạn đã thử tối đa ${MAX_TRIES_PER_SESSION} lần trong phiên này. Vui lòng mở phiên mới để tiếp tục.` });
+    const access = getAiAccessStatus();
+    if (!access.allowed) {
+      setPricingModalOpen(true);
+      setStatus({
+        type: 'error',
+        message: 'Bạn đã dùng hết lượt thử miễn phí. Vui lòng chọn một gói AI (từ 1k) để tiếp tục trải nghiệm!',
+      });
       return;
     }
 
@@ -198,7 +207,7 @@ export default function TryOnPage() {
         { signal: controller.signal },
       );
 
-      bumpTryOnCount();
+      consumeAiTryOn();
       const result = await pollTryOnStatus(requestId, {
         getStatus: getTryOnStatus,
         signal: controller.signal,
@@ -230,6 +239,7 @@ export default function TryOnPage() {
         <span className="tryon-badge">AI thử đồ</span>
         <h1>Thử Đồ <span>Bằng AI</span> Trước Khi Thuê</h1>
         <p>Tải lên 1 tấm ảnh của bạn, AI sẽ ghép thử trang phục lên người để xem trước khi đặt thuê.</p>
+        <AiPlanBanner onOpenPricingModal={() => setPricingModalOpen(true)} />
       </section>
 
       <div className="tryon-body">
@@ -273,6 +283,13 @@ export default function TryOnPage() {
             <button className="tryon-btn-generate" type="button" onClick={startTryOn} disabled={!canGenerate}>
               Thử đồ ngay
             </button>
+            <button
+              type="button"
+              className="tryon-open-packages-btn"
+              onClick={() => setPricingModalOpen(true)}
+            >
+              ✨ Bảng giá Gói AI: 1k / lượt · 10k / ngày · 50k / tháng
+            </button>
             <p className="tryon-hint">Mỗi lần thử mất khoảng 20-60 giây và tốn một khoản phí xử lý AI nhỏ, vui lòng thử vừa đủ nhu cầu.</p>
           </section>
         </div>
@@ -289,6 +306,14 @@ export default function TryOnPage() {
           />
         </div>
       </div>
+
+      <AiPricingModal
+        isOpen={pricingModalOpen}
+        onClose={() => setPricingModalOpen(false)}
+        onPackagePurchased={() => {
+          setStatus(initialStatus);
+        }}
+      />
     </div>
   );
 }

@@ -16,6 +16,7 @@ export function readArrayValue(storage, key) {
 }
 
 export function writeJsonValue(storage, key, value) {
+  if (!storage) return;
   storage.setItem(key, JSON.stringify(value));
 }
 

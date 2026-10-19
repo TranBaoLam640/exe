@@ -1,6 +1,6 @@
 import { dispatchAppEvent, getBrowserStorage, readArrayValue, readJsonValue, writeJsonValue } from '../../utils/browserStorage.js';
 import { getApiErrorMessage as getSharedApiErrorMessage } from '../../utils/apiError.js';
-import api from "../../config/api";
+import api from "../../config/api.js";
 import { syncGuestCartToServer } from '../cart/cartService.js';
 export const USERS_KEY = 'dorentme_users';
 export const SESSION_KEY = 'dorentme_session';

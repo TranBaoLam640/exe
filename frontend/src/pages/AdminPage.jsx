@@ -3,7 +3,7 @@ import AdminRefundEvidence from '../components/AdminRefundEvidence.jsx';
 import DepositReturnProgress from '../components/DepositReturnProgress.jsx';
 import EvidenceGallery from '../components/EvidenceGallery.jsx';
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { imageUrl } from '../assets/imageUrl.js';
 import { createAdminReturnShipment, createAdminShipment, createDepositSettlement, createInspection, fetchAdminOrder, fetchAdminOrders, fetchAdminPayment, fetchAdminPaymentTransactions, fetchAdminRefunds, fetchAdminSession, fetchAdminShipments, fetchAdminShippers, fetchInspectionAssets, fetchInspectionSummary, updateAdminPaymentStatus, updateAdminRefundStatus, updateAdminShipment, updateInspection } from '../features/admin/adminService.js';
 import { clearSession } from '../features/auth/authService.js';
@@ -12,6 +12,7 @@ import { formatOrderDate, STATUS_LABELS } from '../features/orders/orderCreation
 import { updateBackendOrderStatus } from '../features/orders/orderApi.js';
 import { getApiErrorMessage } from '../utils/apiError.js';
 import { useDocumentTitle } from '../hooks/useDocumentTitle.js';
+import AdminTrafficDashboard from '../features/admin/components/AdminTrafficDashboard.jsx';
 
 const STATUSES = ['pending_confirmation', 'shipping', 'delivered', 'return_requested', 'return_processing', 'returned', 'cancelled'];
 const NEXT_STATUSES = {
@@ -232,8 +233,12 @@ function OrderDetail({ order, payment, transactions, shipment, returnShipment, r
   );
 }
 
-export default function AdminPage() {
-  useDocumentTitle('Admin Orders | DoRentMe');
+export default function AdminPage({ defaultTab = 'orders' }) {
+  useDocumentTitle('Admin Dashboard | DoRentMe');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const currentTab = searchParams.get('tab') || defaultTab;
+  const isTrafficTab = currentTab === 'traffic' || currentTab === 'analytics';
+
   const [orders, setOrders] = useState([]);
   const [filters, setFilters] = useState({ search: '', status: '' });
   const [loading, setLoading] = useState(true);
@@ -286,13 +291,56 @@ export default function AdminPage() {
 
   return (
     <div className="admin-page">
-      <header className="admin-header"><div className="admin-brand"><img alt="DoRentMe" src={imageUrl('Logo.png')} /><h1>DoRentMe Admin Orders</h1></div><div className="inventory-admin-links"><Link to="/admin/inventory">Inventory</Link><span>JWT Admin</span></div></header>
-      <main className="admin-body admin-orders-page">
-        <div className="admin-page-heading"><div><span className="admin-kicker">Operations</span><h2>Orders</h2><p>Manage orders persisted by checkout.</p></div><button className="admin-secondary-button" disabled={loading} onClick={() => loadOrders()} type="button">Refresh</button></div>
-        <div className="admin-order-filters"><label>Search<input onChange={(event) => changeFilter('search', event.target.value)} placeholder="Code, customer or email" value={filters.search} /></label><label>Status<select onChange={(event) => changeFilter('status', event.target.value)} value={filters.status}><option value="">All statuses</option>{STATUSES.map((status) => <option key={status} value={status}>{statusLabel(status)}</option>)}</select></label></div>
-        {error ? <div className="admin-error-message">{error}</div> : null}
-        {loading ? <div className="admin-empty">Loading orders...</div> : orders.length === 0 ? <div className="admin-empty">No database orders match these filters.</div> : <div className="admin-orders-table-wrap"><table className="admin-orders-table"><thead><tr><th>Order</th><th>Customer</th><th>Shop</th><th>Items</th><th>Rental period</th><th>Total</th><th>Status</th><th /></tr></thead><tbody>{orders.map((order) => <tr key={order.id}><td><strong>{order.orderCode}</strong><small>{formatOrderDate(order.createdAt)}</small></td><td><strong>{order.customerName}</strong><small>{order.customerEmail || '-'}</small></td><td>{order.shopName || '-'}</td><td>{order.itemCount}</td><td>{order.startDate} - {order.endDate}</td><td>{formatVnd(order.total)}</td><td><span className={`admin-status-pill ${order.status}`}>{statusLabel(order.status)}</span></td><td><button className="admin-secondary-button" onClick={() => openDetail(order.id)} type="button">View</button></td></tr>)}</tbody></table></div>}
-      </main>
+      <header className="admin-header">
+        <div className="admin-brand">
+          <img alt="DoRentMe" src={imageUrl('Logo.png')} />
+          <h1>DoRentMe Admin Dashboard</h1>
+        </div>
+        <div className="admin-nav-tabs">
+          <button
+            type="button"
+            className={`admin-tab-btn ${!isTrafficTab ? 'active' : ''}`}
+            onClick={() => setSearchParams({ tab: 'orders' })}
+          >
+            📦 Quản lý Đơn hàng
+          </button>
+          <button
+            type="button"
+            className={`admin-tab-btn ${isTrafficTab ? 'active' : ''}`}
+            onClick={() => setSearchParams({ tab: 'traffic' })}
+          >
+            📊 Thống kê Lượt truy cập & GA
+          </button>
+        </div>
+        <div className="inventory-admin-links">
+          <Link to="/admin/inventory">Kho hàng</Link>
+          <span>JWT Admin</span>
+        </div>
+      </header>
+
+      {isTrafficTab ? (
+        <main className="admin-body">
+          <AdminTrafficDashboard />
+        </main>
+      ) : (
+        <main className="admin-body admin-orders-page">
+          <div className="admin-page-heading">
+            <div>
+              <span className="admin-kicker">Operations</span>
+              <h2>Orders</h2>
+              <p>Manage orders persisted by checkout.</p>
+            </div>
+            <button className="admin-secondary-button" disabled={loading} onClick={() => loadOrders()} type="button">Refresh</button>
+          </div>
+          <div className="admin-order-filters">
+            <label>Search<input onChange={(event) => changeFilter('search', event.target.value)} placeholder="Code, customer or email" value={filters.search} /></label>
+            <label>Status<select onChange={(event) => changeFilter('status', event.target.value)} value={filters.status}><option value="">All statuses</option>{STATUSES.map((status) => <option key={status} value={status}>{statusLabel(status)}</option>)}</select></label>
+          </div>
+          {error ? <div className="admin-error-message">{error}</div> : null}
+          {loading ? <div className="admin-empty">Loading orders...</div> : orders.length === 0 ? <div className="admin-empty">No database orders match these filters.</div> : <div className="admin-orders-table-wrap"><table className="admin-orders-table"><thead><tr><th>Order</th><th>Customer</th><th>Shop</th><th>Items</th><th>Rental period</th><th>Total</th><th>Status</th><th /></tr></thead><tbody>{orders.map((order) => <tr key={order.id}><td><strong>{order.orderCode}</strong><small>{formatOrderDate(order.createdAt)}</small></td><td><strong>{order.customerName}</strong><small>{order.customerEmail || '-'}</small></td><td>{order.shopName || '-'}</td><td>{order.itemCount}</td><td>{order.startDate} - {order.endDate}</td><td>{formatVnd(order.total)}</td><td><span className={`admin-status-pill ${order.status}`}>{statusLabel(order.status)}</span></td><td><button className="admin-secondary-button" onClick={() => openDetail(order.id)} type="button">View</button></td></tr>)}</tbody></table></div>}
+        </main>
+      )}
+
       {selectedId ? (detailLoading ? <div className="admin-modal-backdrop"><section className="admin-modal admin-empty">Loading order detail...</section></div> : selectedOrder ? <OrderDetail inspectionAssets={selectedInspectionAssets} inspectionSummary={selectedInspectionSummary} onClose={() => { setSelectedId(null); setSelectedOrder(null); setSelectedPayment(null); setSelectedShipment(null); setSelectedReturnShipment(null); setSelectedTransactions([]); setSelectedRefunds([]); setSelectedInspectionAssets([]); setSelectedInspectionSummary(null); }} onInspectionUpdated={refreshInspection} onPaymentUpdated={refreshPayment} onShipmentUpdated={refreshShipment} onReturnShipmentUpdated={refreshReturnShipment} onRefundsUpdated={setSelectedRefunds} onUpdated={refreshAfterUpdate} order={selectedOrder} payment={selectedPayment} refunds={selectedRefunds} returnShipment={selectedReturnShipment} shipment={selectedShipment} shippers={shippers} transactions={selectedTransactions} /> : null) : null}
     </div>
   );
