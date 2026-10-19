@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { register } from '../features/auth/authService.js';
 import { useDocumentTitle } from '../hooks/useDocumentTitle.js';
+import GoogleAuthButton from '../features/auth/GoogleAuthButton.jsx';
 
 const initialForm = {
   name: '',
@@ -41,6 +42,22 @@ export default function RegisterPage() {
     }));
   }
 
+  function handleGoogleSuccess(result) {
+    setMessage({
+      type: 'success',
+      text: result.isNewUser
+        ? `Đăng ký tài khoản Google thành công (${result.user.email})! Bạn nhận được 2 lượt thử đồ AI miễn phí.`
+        : `Đăng nhập Google thành công (${result.user.email})! Đang chuyển hướng...`,
+    });
+    window.setTimeout(() => {
+      window.location.href = redirectTo;
+    }, 700);
+  }
+
+  function handleGoogleError(errorText) {
+    setMessage({ type: 'error', text: errorText });
+  }
+
   async function submit(event) {
     event.preventDefault();
     setInvalidConfirm(false);
@@ -78,6 +95,21 @@ export default function RegisterPage() {
         </div>
 
         {message ? <div className={`auth-form-msg ${message.type}`}>{message.text}</div> : null}
+
+        <GoogleAuthButton
+          mode="register"
+          onSuccess={handleGoogleSuccess}
+          onError={handleGoogleError}
+          disabled={submitting}
+        />
+
+        <div className="auth-antispam-pill">
+          🛡️ <strong>Chống Spam:</strong> Đăng ký bằng Google sử dụng email thật đã xác thực, nhận ngay 2 lượt thử đồ AI miễn phí.
+        </div>
+
+        <div className="auth-divider">
+          <span>HOẶC ĐĂNG KÝ BẰNG BIỂU MẪU</span>
+        </div>
 
         <form onSubmit={submit}>
           <div className="auth-form-row">
