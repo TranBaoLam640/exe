@@ -35,6 +35,23 @@ export default function AiPricingModal({ isOpen, onClose, onPackagePurchased, in
     }, 600);
   }
 
+  const bankName = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_PAYOS_BANK_NAME) || 'MBBank (Quân Đội)';
+  const bankId = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_PAYOS_BANK_ID) || 'MB';
+  const accountNumber = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_PAYOS_ACCOUNT_NUMBER) || '9876543210';
+  const accountHolder = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_PAYOS_ACCOUNT_NAME) || 'NGUYEN DUC DUONG';
+  const payOsPaymentLink = typeof import.meta !== 'undefined'
+    ? (currentPkg.id === 'ai_single'
+      ? import.meta.env?.VITE_PAYOS_LINK_1K
+      : currentPkg.id === 'ai_day_pass'
+      ? import.meta.env?.VITE_PAYOS_LINK_10K
+      : import.meta.env?.VITE_PAYOS_LINK_50K) || ''
+    : '';
+
+  const transferContent = `DORENTME AI ${currentPkg.price / 1000}K`;
+  const qrUrl = accountNumber && accountNumber !== '9876543210'
+    ? `https://img.vietqr.io/image/${bankId}-${accountNumber}-compact2.png?amount=${currentPkg.price}&addInfo=${encodeURIComponent(transferContent)}&accountName=${encodeURIComponent(accountHolder)}`
+    : `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(`2|99|${accountNumber}|${accountHolder}||0|0|${currentPkg.price}|${transferContent}`)}`;
+
   return (
     <div
       className="admin-modal-backdrop"
@@ -163,21 +180,45 @@ export default function AiPricingModal({ isOpen, onClose, onPackagePurchased, in
 
                 <div className="ai-payment-options">
                   <div className="ai-qr-box">
-                    <h4>Quét mã QR để thanh toán (VietQR)</h4>
+                    <h4>Quét mã QR thanh toán (VietQR / PayOS)</h4>
                     <div className="ai-qr-img-wrap">
                       <img
-                        src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=DORENTME_AI_${currentPkg.id}_${currentPkg.price}`}
+                        src={qrUrl}
                         alt="QR thanh toán gói AI"
                         width="180"
                         height="180"
                       />
                     </div>
                     <div className="ai-bank-info">
-                      <div>Ngân hàng: <b>MBBank (Quân Đội)</b></div>
-                      <div>Số TK: <b>9876543210</b></div>
-                      <div>Chủ TK: <b>DORENTME FASHION RENTAL</b></div>
-                      <div>Nội dung: <b>DORENTME AI {currentPkg.price / 1000}K</b></div>
+                      <div>Ngân hàng: <b>{bankName}</b></div>
+                      <div>Số TK: <b>{accountNumber}</b></div>
+                      <div>Chủ TK: <b>{accountHolder}</b></div>
+                      <div>Nội dung: <b>{transferContent}</b></div>
                     </div>
+                    {payOsPaymentLink ? (
+                      <div style={{ marginTop: '12px' }}>
+                        <a
+                          href={payOsPaymentLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="btn-payos-link"
+                          style={{
+                            display: 'inline-block',
+                            width: '100%',
+                            textAlign: 'center',
+                            padding: '10px 14px',
+                            background: '#2563eb',
+                            color: '#ffffff',
+                            borderRadius: '8px',
+                            fontWeight: '600',
+                            textDecoration: 'none',
+                            fontSize: '0.9rem',
+                          }}
+                        >
+                          Mở cổng thanh toán PayOS →
+                        </a>
+                      </div>
+                    ) : null}
                   </div>
 
                   <div className="ai-checkout-actions">
