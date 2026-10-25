@@ -3,7 +3,7 @@
  * Provides automatic pageview tracking, custom event dispatching, and graceful fallbacks.
  */
 
-const DEFAULT_MEASUREMENT_ID = 'G-52LB2QXQQM';
+const DEFAULT_MEASUREMENT_ID = 'G-K493KPVLTV';
 
 export function getGaMeasurementId() {
   return (typeof import.meta !== 'undefined' && import.meta.env?.VITE_GA_MEASUREMENT_ID) || DEFAULT_MEASUREMENT_ID;
