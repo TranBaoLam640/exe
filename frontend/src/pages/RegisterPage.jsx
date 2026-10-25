@@ -50,7 +50,7 @@ export default function RegisterPage() {
         : `Đăng nhập Google thành công (${result.user.email})! Đang chuyển hướng...`,
     });
     window.setTimeout(() => {
-      window.location.href = redirectTo;
+      window.location.href = '/';
     }, 700);
   }
 
