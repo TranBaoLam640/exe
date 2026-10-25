@@ -111,7 +111,7 @@ assert.equal(emptyStore.getItem('dorentme_session'), null);
 api.post = originalPost;
 
 console.log('Testing Google button configuration and script retry...');
-assert.notEqual(getGoogleClientId(), '1058284729182-demo.apps.googleusercontent.com');
+assert.equal(getGoogleClientId(), '356052637766-9tl1crog9a91769chl1f109uil8cagck.apps.googleusercontent.com');
 assert.equal((await loginWithGoogle({ email: testEmail, email_verified: true }, options)).ok, false);
 assert.equal((await loginWithGoogle('', options)).ok, false);
 let initialized;

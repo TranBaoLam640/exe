@@ -36,6 +36,8 @@ The root legacy static site still uses local image files. Local assets are inten
 
 ## Google sign-in configuration
 
+The project Web Client ID is configured by default in the frontend helper and backend appsettings. Environment values can override it; keep the frontend and backend IDs identical. Client IDs are public configuration.
+
 1. In Google Cloud Console, configure the OAuth consent screen and create an OAuth Client ID of type **Web application**.
 2. Add `https://dorentme.wdchocopie.id.vn` to **Authorized JavaScript origins**. For local development, also add the exact Vite origin (for example `http://localhost:5173`). The GIS popup callback does not require an application redirect URL. If the consent screen is in Testing, add the intended Google accounts as test users.
 3. Locally set `VITE_GOOGLE_CLIENT_ID` in the frontend environment, and set `GoogleAuth__ClientId` in the backend environment to the same Web Client ID.

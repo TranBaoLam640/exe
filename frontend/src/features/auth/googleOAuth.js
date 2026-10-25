@@ -10,7 +10,7 @@
  */
 export function getGoogleClientId() {
   const envId = typeof import.meta !== 'undefined' && import.meta.env?.VITE_GOOGLE_CLIENT_ID;
-  const clientId = typeof envId === 'string' ? envId.trim() : '';
+  const clientId = (typeof envId === 'string' && envId.trim()) || '356052637766-9tl1crog9a91769chl1f109uil8cagck.apps.googleusercontent.com';
   return /^\d+-[a-z0-9]+\.apps\.googleusercontent\.com$/i.test(clientId) && !clientId.includes('-demo.') ? clientId : '';
 }
 
