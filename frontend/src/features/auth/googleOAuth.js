@@ -3,14 +3,15 @@
  * Manages Google Sign-In script loading, JWT decoding, and OAuth authentication flow.
  */
 
-const DEFAULT_GOOGLE_CLIENT_ID = '1058284729182-demo.apps.googleusercontent.com';
+
 
 /**
  * Get configured Google OAuth Client ID
  */
 export function getGoogleClientId() {
   const envId = typeof import.meta !== 'undefined' && import.meta.env?.VITE_GOOGLE_CLIENT_ID;
-  return (envId && envId.trim()) || DEFAULT_GOOGLE_CLIENT_ID;
+  const clientId = typeof envId === 'string' ? envId.trim() : '';
+  return /^\d+-[a-z0-9]+\.apps\.googleusercontent\.com$/i.test(clientId) && !clientId.includes('-demo.') ? clientId : '';
 }
 
 /**
@@ -47,36 +48,40 @@ export function parseGoogleJwt(token) {
  * Load Google Identity Services script dynamically
  * @returns {Promise<boolean>}
  */
+let identityScriptPromise;
+
 export function loadGoogleIdentityScript() {
-  if (typeof window === 'undefined' || typeof document === 'undefined') {
-    return Promise.resolve(false);
-  }
+  if (typeof window === 'undefined' || typeof document === 'undefined') return Promise.resolve(false);
+  if (window.google?.accounts?.id) return Promise.resolve(true);
+  if (identityScriptPromise) return identityScriptPromise;
 
-  // Already loaded
-  if (window.google?.accounts?.id) {
-    return Promise.resolve(true);
-  }
-
-  const existingScript = document.querySelector('script[src*="accounts.google.com/gsi/client"]');
-  if (existingScript) {
-    return new Promise((resolve) => {
-      existingScript.addEventListener('load', () => resolve(true), { once: true });
-      existingScript.addEventListener('error', () => resolve(false), { once: true });
-    });
-  }
-
-  return new Promise((resolve) => {
-    const script = document.createElement('script');
-    script.src = 'https://accounts.google.com/gsi/client';
-    script.async = true;
-    script.defer = true;
-    script.onload = () => resolve(true);
-    script.onerror = () => {
-      console.warn('[Google OAuth] Could not load Google Identity Services script.');
-      resolve(false);
+  identityScriptPromise = new Promise((resolve) => {
+    let script = document.querySelector('script[src*="accounts.google.com/gsi/client"]');
+    const existing = Boolean(script);
+    if (!script) {
+      script = document.createElement('script');
+      script.src = 'https://accounts.google.com/gsi/client?hl=vi';
+      script.async = true;
+      script.defer = true;
+    }
+    const finish = (loaded) => {
+      clearTimeout(timer);
+      script.removeEventListener('load', onLoad);
+      script.removeEventListener('error', onError);
+      if (!loaded) {
+        script.remove();
+        identityScriptPromise = undefined;
+      }
+      resolve(loaded);
     };
-    document.head.appendChild(script);
+    const onLoad = () => finish(Boolean(window.google?.accounts?.id));
+    const onError = () => finish(false);
+    const timer = setTimeout(() => finish(false), 15000);
+    script.addEventListener('load', onLoad, { once: true });
+    script.addEventListener('error', onError, { once: true });
+    if (!existing) document.head.appendChild(script);
   });
+  return identityScriptPromise;
 }
 
 /**
@@ -92,8 +97,9 @@ export function initGoogleIdentityServices({
   onCredential,
   buttonElement,
   promptOneTap = false,
+  buttonText = 'signin_with',
 }) {
-  if (typeof window === 'undefined' || !window.google?.accounts?.id) {
+  if (!clientId || typeof window === 'undefined' || !window.google?.accounts?.id) {
     return false;
   }
 
@@ -114,10 +120,10 @@ export function initGoogleIdentityServices({
         type: 'standard',
         shape: 'rectangular',
         theme: 'outline',
-        text: 'signin_with',
+        text: buttonText,
         size: 'large',
         logo_alignment: 'left',
-        width: buttonElement.offsetWidth || 350,
+        width: Math.min(400, buttonElement.offsetWidth || 350),
         locale: 'vi',
       });
     }

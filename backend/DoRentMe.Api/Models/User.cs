@@ -7,6 +7,7 @@ public class User
     public string Name { get; set; } = null!;
     public string Email { get; set; } = null!;
     public string? Phone { get; set; }
+    public string? GoogleSubject { get; set; }
     public string PasswordHash { get; set; } = null!;
     public int LoyaltyPoints { get; set; }
     public bool IsActive { get; set; } = true;

@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { imageUrl } from '../assets/imageUrl.js';
 import { fetchShipperShipments, updateShipperShipmentStatus } from '../features/shipper/shipperService.js';
 import { formatOrderDate } from '../features/orders/orderCreation.js';
 import { getApiErrorMessage } from '../utils/apiError.js';
@@ -70,7 +72,19 @@ export default function ShipperPage() {
 
   return (
     <div className="admin-page">
-      <header className="admin-header"><div className="admin-brand"><h1>Giao Vận DoRentMe</h1></div><button className="admin-secondary-button" disabled={loading} onClick={() => loadShipments()} type="button">Làm mới</button></header>
+      <header className="admin-header">
+        <div className="admin-brand">
+          <Link to="/" title="Về trang chủ DoRentMe">
+            <img alt="DoRentMe" src={imageUrl('Logo.png')} />
+          </Link>
+          <h1>Giao Vận DoRentMe</h1>
+        </div>
+        <div className="inventory-admin-links">
+          <Link to="/admin">📦 Quản trị</Link>
+          <Link to="/">🌐 Xem Website</Link>
+          <button className="admin-secondary-button" disabled={loading} onClick={() => loadShipments()} type="button">Làm mới</button>
+        </div>
+      </header>
       <main className="admin-body admin-orders-page">
         <div className="admin-page-heading"><div><span className="admin-kicker">Vận chuyển</span><h2>Đơn hàng được phân công</h2><p>Cập nhật trạng thái cho các đơn hàng được giao cho bạn.</p></div></div>
         {error ? <div className="admin-error-message">{error}</div> : null}

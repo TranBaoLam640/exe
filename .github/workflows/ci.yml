@@ -120,6 +120,7 @@ jobs:
         working-directory: frontend
 
     env:
+      VITE_GOOGLE_CLIENT_ID: ${{ vars.GOOGLE_CLIENT_ID }}
       VITE_API_BASE_URL: https://api-dorentme.wdchocopie.id.vn
       VITE_ASSET_BASE_URL: https://pub-6ea0ae14ead64cf8bcaaea62c246f5d9.r2.dev
 
@@ -182,6 +183,7 @@ jobs:
           context: ./frontend
           push: true
           build-args: |
+            VITE_GOOGLE_CLIENT_ID=${{ vars.GOOGLE_CLIENT_ID }}
             VITE_API_BASE_URL=https://api-dorentme.wdchocopie.id.vn
             VITE_ASSET_BASE_URL=https://pub-6ea0ae14ead64cf8bcaaea62c246f5d9.r2.dev
           tags: ${{ steps.frontend-meta.outputs.tags }}

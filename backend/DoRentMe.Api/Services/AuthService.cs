@@ -16,15 +16,18 @@ public class AuthService : IAuthService
     private readonly DoRentMeDbContext _context;
     private readonly IConfiguration _configuration;
     private readonly ILogger<AuthService> _logger;
+    private readonly IGoogleTokenValidator _googleTokens;
 
     public AuthService(
         DoRentMeDbContext context,
         IConfiguration configuration,
-        ILogger<AuthService> logger)
+        ILogger<AuthService> logger,
+        IGoogleTokenValidator googleTokens)
     {
         _context = context;
         _configuration = configuration;
         _logger = logger;
+        _googleTokens = googleTokens;
     }
 
     public async Task<AuthResponse> RegisterAsync(RegisterRequest request)
@@ -184,6 +187,57 @@ public class AuthService : IAuthService
             Phone = user.Phone,
             Role = user.Role.Code,
             Token = token,
+            LoyaltyPoints = user.LoyaltyPoints
+        };
+    }
+
+    public async Task<AuthResponse> LoginWithGoogleAsync(GoogleLoginRequest request)
+    {
+        var identity = await _googleTokens.ValidateAsync(request.IdToken);
+        var user = await _context.Users.Include(u => u.Role)
+            .SingleOrDefaultAsync(u => u.GoogleSubject == identity.Subject);
+        if (user == null)
+        {
+            user = await _context.Users.Include(u => u.Role)
+                .SingleOrDefaultAsync(u => u.Email == identity.Email);
+            if (user != null && (!identity.CanLinkByEmail || user.GoogleSubject != null))
+                throw new ApiException("GOOGLE_ACCOUNT_LINK_REQUIRED", "Please sign in with your password for this account.", 409);
+        }
+        if (user != null && !user.IsActive)
+            throw new ApiException(ErrorCodes.AccountDisabled, "Account has been disabled", 403);
+
+        if (user == null)
+        {
+            var role = await FindOrCreatePublicRoleAsync("CUSTOMER")
+                ?? throw new ApiException(ErrorCodes.InvalidRole, "Customer role is unavailable", 503);
+            user = new User
+            {
+                Name = identity.Name,
+                Email = identity.Email,
+                GoogleSubject = identity.Subject,
+                // Google-only accounts have no user-known password; keep the existing required hash contract.
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(Convert.ToHexString(System.Security.Cryptography.RandomNumberGenerator.GetBytes(32))),
+                RoleId = role.Id,
+                Role = role,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow
+            };
+            _context.Users.Add(user);
+        }
+        else if (user.GoogleSubject == null)
+        {
+            user.GoogleSubject = identity.Subject;
+            user.UpdatedAt = DateTime.UtcNow;
+        }
+        await _context.SaveChangesAsync();
+        return new AuthResponse
+        {
+            UserId = user.Id,
+            Name = user.Name,
+            Email = user.Email,
+            Phone = user.Phone,
+            Role = user.Role.Code,
+            Token = GenerateJwtToken(user),
             LoyaltyPoints = user.LoyaltyPoints
         };
     }

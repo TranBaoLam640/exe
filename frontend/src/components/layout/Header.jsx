@@ -76,16 +76,34 @@ export default function Header() {
         <Link className="orders-link" to="/orders" title="Đơn hàng của tôi" aria-label="Đơn hàng của tôi">
           {hasOrders ? '🚚' : '📦'}
         </Link>
-        {canManageInventory ? (
-          <Link className="inventory-nav-link" to="/admin/inventory" title="Inventory management" aria-label="Inventory management">
-            Inventory
-          </Link>
-        ) : null}
-        {canManageShipments ? (
-          <Link className="inventory-nav-link" to="/shipper" title="Assigned shipments" aria-label="Assigned shipments">
-            Shipper
-          </Link>
-        ) : null}
+        {role === 'ADMIN' ? (
+          <div className="nav-item">
+            <Link className="admin-nav-trigger" to="/admin" title="Trang quản trị DoRentMe">
+              ⚙️ Quản trị ▾
+            </Link>
+            <div className="dropdown-menu">
+              <div className="dropdown-inner">
+                <Link to="/admin">📦 Quản lý Đơn hàng</Link>
+                <Link to="/admin/analytics">📊 Thống kê & Analytics</Link>
+                <Link to="/admin/inventory">👗 Quản lý Kho hàng</Link>
+                <Link to="/shipper">🚚 Giám sát Giao hàng</Link>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <>
+            {canManageInventory ? (
+              <Link className="inventory-nav-link" to="/admin/inventory" title="Quản lý kho hàng" aria-label="Quản lý kho hàng">
+                Kho hàng
+              </Link>
+            ) : null}
+            {canManageShipments ? (
+              <Link className="inventory-nav-link" to="/shipper" title="Đơn vận chuyển" aria-label="Đơn vận chuyển">
+                Giao hàng
+              </Link>
+            ) : null}
+          </>
+        )}
         {session ? (
           <>
             <span className="auth-greeting">👋 {session.name}</span>

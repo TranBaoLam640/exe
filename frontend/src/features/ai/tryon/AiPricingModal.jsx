@@ -7,6 +7,7 @@ export default function AiPricingModal({ isOpen, onClose, onPackagePurchased, in
   const [isCheckout, setIsCheckout] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [purchaseSuccess, setPurchaseSuccess] = useState(null);
+  const [copiedField, setCopiedField] = useState('');
 
   if (!isOpen) return null;
 
@@ -35,10 +36,36 @@ export default function AiPricingModal({ isOpen, onClose, onPackagePurchased, in
     }, 600);
   }
 
-  const bankName = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_PAYOS_BANK_NAME) || 'MBBank (Quân Đội)';
-  const bankId = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_PAYOS_BANK_ID) || 'MB';
-  const accountNumber = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_PAYOS_ACCOUNT_NUMBER) || '9876543210';
-  const accountHolder = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_PAYOS_ACCOUNT_NAME) || 'NGUYEN DUC DUONG';
+  function copyText(text, field) {
+    if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(text).then(() => {
+        setCopiedField(field);
+        setTimeout(() => setCopiedField(''), 2500);
+      }).catch(() => {});
+    }
+  }
+
+  function handlePayOsConfirm() {
+    setIsProcessing(true);
+    setTimeout(() => {
+      try {
+        const result = purchaseAiPackage(currentPkg.id, 'payos');
+        setIsProcessing(false);
+        setPurchaseSuccess(result);
+        if (onPackagePurchased) {
+          onPackagePurchased(result);
+        }
+      } catch (err) {
+        setIsProcessing(false);
+        alert(err.message || 'Lỗi kích hoạt gói.');
+      }
+    }, 600);
+  }
+
+  const bankName = ((typeof import.meta !== 'undefined' && import.meta.env?.VITE_PAYOS_BANK_NAME) || 'MBBank (Quân Đội)').trim();
+  const bankId = ((typeof import.meta !== 'undefined' && import.meta.env?.VITE_PAYOS_BANK_ID) || 'MB').trim();
+  const accountNumber = ((typeof import.meta !== 'undefined' && import.meta.env?.VITE_PAYOS_ACCOUNT_NUMBER) || '0394692818').trim();
+  const accountHolder = ((typeof import.meta !== 'undefined' && import.meta.env?.VITE_PAYOS_ACCOUNT_NAME) || 'NGUYEN DUC DUONG').trim();
   const payOsPaymentLink = typeof import.meta !== 'undefined'
     ? (currentPkg.id === 'ai_single'
       ? import.meta.env?.VITE_PAYOS_LINK_1K
@@ -48,9 +75,7 @@ export default function AiPricingModal({ isOpen, onClose, onPackagePurchased, in
     : '';
 
   const transferContent = `DORENTME AI ${currentPkg.price / 1000}K`;
-  const qrUrl = accountNumber && accountNumber !== '9876543210'
-    ? `https://img.vietqr.io/image/${bankId}-${accountNumber}-compact2.png?amount=${currentPkg.price}&addInfo=${encodeURIComponent(transferContent)}&accountName=${encodeURIComponent(accountHolder)}`
-    : `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(`2|99|${accountNumber}|${accountHolder}||0|0|${currentPkg.price}|${transferContent}`)}`;
+  const qrUrl = `https://img.vietqr.io/image/${bankId}-${accountNumber}-compact2.png?amount=${currentPkg.price}&addInfo=${encodeURIComponent(transferContent)}&accountName=${encodeURIComponent(accountHolder)}`;
 
   return (
     <div
@@ -136,7 +161,7 @@ export default function AiPricingModal({ isOpen, onClose, onPackagePurchased, in
                 </p>
                 <div className="ai-success-details">
                   <span>Trạng thái: <b>Đang hoạt động</b></span>
-                  <span>Phương thức: <b>Thanh toán nhanh</b></span>
+                  <span>Phương thức: <b>{purchaseSuccess.record?.paymentMethod === 'payos' ? `Cổng thanh toán PayOS (STK: ${accountNumber} - ${bankName})` : 'Thanh toán trực tiếp'}</b></span>
                 </div>
                 <button
                   type="button"
@@ -160,7 +185,7 @@ export default function AiPricingModal({ isOpen, onClose, onPackagePurchased, in
                   >
                     ← Quay lại chọn gói
                   </button>
-                  <h3>Thanh toán gói AI</h3>
+                  <h3>Thanh toán gói AI qua PayOS</h3>
                 </div>
 
                 <div className="ai-checkout-summary">
@@ -180,21 +205,72 @@ export default function AiPricingModal({ isOpen, onClose, onPackagePurchased, in
 
                 <div className="ai-payment-options">
                   <div className="ai-qr-box">
-                    <h4>Quét mã QR thanh toán (VietQR / PayOS)</h4>
+                    <div>
+                      <span className="payos-pill">Cổng thanh toán PayOS / VietQR</span>
+                      <h4>Quét mã QR để thanh toán tự động</h4>
+                    </div>
                     <div className="ai-qr-img-wrap">
                       <img
                         src={qrUrl}
-                        alt="QR thanh toán gói AI"
+                        alt="QR PayOS thanh toán gói AI"
                         width="180"
                         height="180"
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(`2|99|${accountNumber}|${accountHolder}||0|0|${currentPkg.price}|${transferContent}`)}`;
+                        }}
                       />
                     </div>
                     <div className="ai-bank-info">
-                      <div>Ngân hàng: <b>{bankName}</b></div>
-                      <div>Số TK: <b>{accountNumber}</b></div>
-                      <div>Chủ TK: <b>{accountHolder}</b></div>
-                      <div>Nội dung: <b>{transferContent}</b></div>
+                      <div className="ai-bank-info-row">
+                        <span>Ngân hàng:</span>
+                        <b>{bankName}</b>
+                      </div>
+                      <div className="ai-bank-info-row">
+                        <span>Số TK:</span>
+                        <div className="copyable-val">
+                          <b>{accountNumber}</b>
+                          <button
+                            type="button"
+                            className="btn-copy-small"
+                            onClick={() => copyText(accountNumber, 'stk')}
+                          >
+                            {copiedField === 'stk' ? '✓ Đã chép' : 'Sao chép'}
+                          </button>
+                        </div>
+                      </div>
+                      <div className="ai-bank-info-row">
+                        <span>Chủ TK:</span>
+                        <b>{accountHolder}</b>
+                      </div>
+                      <div className="ai-bank-info-row">
+                        <span>Số tiền:</span>
+                        <div className="copyable-val">
+                          <b style={{ color: '#059669' }}>{currentPkg.priceDisplay}</b>
+                          <button
+                            type="button"
+                            className="btn-copy-small"
+                            onClick={() => copyText(String(currentPkg.price), 'amount')}
+                          >
+                            {copiedField === 'amount' ? '✓ Đã chép' : 'Sao chép'}
+                          </button>
+                        </div>
+                      </div>
+                      <div className="ai-bank-info-row">
+                        <span>Nội dung CK:</span>
+                        <div className="copyable-val">
+                          <b>{transferContent}</b>
+                          <button
+                            type="button"
+                            className="btn-copy-small"
+                            onClick={() => copyText(transferContent, 'memo')}
+                          >
+                            {copiedField === 'memo' ? '✓ Đã chép' : 'Sao chép'}
+                          </button>
+                        </div>
+                      </div>
                     </div>
+
                     {payOsPaymentLink ? (
                       <div style={{ marginTop: '12px' }}>
                         <a
@@ -215,23 +291,29 @@ export default function AiPricingModal({ isOpen, onClose, onPackagePurchased, in
                             fontSize: '0.9rem',
                           }}
                         >
-                          Mở cổng thanh toán PayOS →
+                          💳 Mở cổng thanh toán PayOS →
                         </a>
                       </div>
                     ) : null}
                   </div>
 
                   <div className="ai-checkout-actions">
-                    <p className="ai-instant-hint">
-                      💡 Bạn có thể bấm kích hoạt tức thì bên dưới để trải nghiệm ngay không cần chờ đối soát.
-                    </p>
+                    <div className="ai-payos-instructions">
+                      <strong>Hướng dẫn thanh toán PayOS:</strong>
+                      <ol>
+                        <li>Mở ứng dụng ngân hàng hoặc ví điện tử (MB, Momo, Vietcombank, v.v.).</li>
+                        <li>Quét mã QR PayOS ở trên hoặc chuyển khoản đúng số TK <strong>{accountNumber}</strong> và nội dung.</li>
+                        <li>Sau khi chuyển khoản thành công, nhấn nút xác nhận bên dưới để hệ thống kích hoạt gói ngay lập tức!</li>
+                      </ol>
+                    </div>
+
                     <button
                       type="button"
                       className="tryon-btn-generate"
                       disabled={isProcessing}
-                      onClick={handleDirectActivate}
+                      onClick={handlePayOsConfirm}
                     >
-                      {isProcessing ? 'Đang kích hoạt...' : `Kích hoạt ngay (${currentPkg.priceDisplay})`}
+                      {isProcessing ? 'Đang kích hoạt...' : `✅ Xác nhận đã thanh toán PayOS (${currentPkg.priceDisplay})`}
                     </button>
                   </div>
                 </div>

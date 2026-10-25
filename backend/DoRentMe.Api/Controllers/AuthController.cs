@@ -30,6 +30,13 @@ public class AuthController : ApiControllerBase
         return Ok(ApiResponse<AuthResponse>.Ok(result));
     }
 
+    [HttpPost("google")]
+    public async Task<ActionResult<ApiResponse<AuthResponse>>> GoogleLogin([FromBody] GoogleLoginRequest request)
+    {
+        var result = await _authService.LoginWithGoogleAsync(request);
+        return Ok(ApiResponse<AuthResponse>.Ok(result));
+    }
+
     [HttpPost("logout")]
     [Authorize]
     public ActionResult<ApiResponse<string>> Logout()

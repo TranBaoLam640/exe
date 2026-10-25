@@ -99,6 +99,8 @@ public class DoRentMeDbContext : DbContext
             entity.Property(x => x.Name).HasMaxLength(100).IsRequired();
             entity.Property(x => x.Email).HasMaxLength(150).IsRequired();
             entity.Property(x => x.Phone).HasMaxLength(20);
+            entity.Property(x => x.GoogleSubject).HasMaxLength(255);
+            entity.HasIndex(x => x.GoogleSubject).IsUnique();
             entity.Property(x => x.PasswordHash).HasMaxLength(255).IsRequired();
             entity.HasIndex(x => x.Email).IsUnique();
             entity.HasIndex(x => x.RoleId);

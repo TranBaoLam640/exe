@@ -3,7 +3,6 @@ import { getApiErrorMessage as getSharedApiErrorMessage } from '../../utils/apiE
 import api from "../../config/api.js";
 import { syncGuestCartToServer } from '../cart/cartService.js';
 import { isDisposableEmail } from './disposableEmailBlocklist.js';
-import { parseGoogleJwt } from './googleOAuth.js';
 
 export const USERS_KEY = 'dorentme_users';
 export const SESSION_KEY = 'dorentme_session';
@@ -88,95 +87,24 @@ export function handleTrialQuotaOnLogin(email, options = {}) {
   }
 }
 
-export async function loginWithGoogle(profileOrCredential, options = {}) {
-  let profile = profileOrCredential;
-  if (typeof profileOrCredential === 'string') {
-    profile = parseGoogleJwt(profileOrCredential);
+export async function loginWithGoogle(credential, options = {}) {
+  if (typeof credential !== 'string' || !credential.trim()) {
+    return { ok: false, error: 'Vui lòng xác thực bằng tài khoản Google.' };
   }
-
-  if (!profile || !profile.email) {
-    return { ok: false, error: 'Không thể xác thực thông tin tài khoản Google.' };
-  }
-
-  const cleanEmail = normalizeEmail(profile.email);
-
-  if (isDisposableEmail(cleanEmail)) {
-    return { ok: false, error: 'Email không hợp lệ. Vui lòng sử dụng tài khoản Google với email thật.' };
-  }
-
-  if (profile.email_verified === false) {
-    return { ok: false, error: 'Tài khoản Google này chưa được xác thực email. Vui lòng kiểm tra lại.' };
-  }
-
-  const cleanName = (profile.name || cleanEmail.split('@')[0] || 'Khách hàng').trim();
-  const avatar = profile.picture || null;
-  const googleId = profile.sub || `g_${Date.now()}`;
-  const isFirstClaim = !hasClaimedFreeTrial(cleanEmail, options.storage || getBrowserStorage('localStorage'));
-
   try {
-    const response = await api.post('/api/auth/google', {
-      email: cleanEmail,
-      name: cleanName,
-      googleId,
-      avatar,
-      idToken: typeof profileOrCredential === 'string' ? profileOrCredential : null,
-    });
-
+    const response = await api.post('/api/auth/google', { idToken: credential });
     const authData = response.data?.data;
     const user = authData?.user ?? authData;
-    const session = setSession(user, options);
-
-    handleTrialQuotaOnLogin(cleanEmail, options);
-    syncGuestCartToServer(options).catch(() => {});
-
-    return {
-      ok: true,
-      user: session,
-      auth: authData,
-      isNewUser: isFirstClaim,
-    };
-  } catch {
-    // Client-side fallback for prototype/standalone environments
-    const storage = options.storage || getBrowserStorage('localStorage');
-    const users = getUsers(storage);
-    let existingUser = users.find((u) => normalizeEmail(u.email) === cleanEmail);
-    const isNewUser = !existingUser;
-
-    if (!existingUser) {
-      existingUser = {
-        userId: `google_${googleId}`,
-        name: cleanName,
-        email: cleanEmail,
-        phone: '',
-        role: 'CUSTOMER',
-        avatar,
-        authProvider: 'google',
-        createdAt: new Date().toISOString(),
-      };
-      users.push(existingUser);
-      saveUsers(users, storage);
+    if (response.data?.success === false || !user?.userId || !user?.email || !user?.token) {
+      return { ok: false, error: 'Máy chủ chưa xác thực được tài khoản Google.' };
     }
-
-    const sessionUser = {
-      userId: existingUser.userId || `google_${googleId}`,
-      name: existingUser.name || cleanName,
-      email: cleanEmail,
-      phone: existingUser.phone || '',
-      role: existingUser.role || 'CUSTOMER',
-      token: `oauth_google_${Date.now()}`,
-      avatar: avatar || existingUser.avatar,
-      authProvider: 'google',
-    };
-
-    const session = setSession(sessionUser, options);
-    handleTrialQuotaOnLogin(cleanEmail, options);
+    const isNewUser = !hasClaimedFreeTrial(user.email, options.storage || getBrowserStorage('localStorage'));
+    const session = setSession({ ...user, authProvider: 'google' }, options);
+    handleTrialQuotaOnLogin(user.email, options);
     syncGuestCartToServer(options).catch(() => {});
-
-    return {
-      ok: true,
-      user: session,
-      isNewUser,
-    };
+    return { ok: true, user: session, auth: authData, isNewUser };
+  } catch (error) {
+    return { ok: false, error: getApiErrorMessage(error, 'Không thể đăng nhập Google. Vui lòng thử lại.') };
   }
 }
 
