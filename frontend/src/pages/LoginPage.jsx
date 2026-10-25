@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { login } from '../features/auth/authService.js';
 import { useDocumentTitle } from '../hooks/useDocumentTitle.js';
+import GoogleAuthButton from '../features/auth/GoogleAuthButton.jsx';
 
 export default function LoginPage() {
   useDocumentTitle('Đăng Nhập | DoRentMe');
@@ -13,6 +14,20 @@ export default function LoginPage() {
   const [submitting, setSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const redirectTo = searchParams.get('redirect') || '/';
+
+  function handleGoogleSuccess(result) {
+    setMessage({
+      type: 'success',
+      text: `Đăng nhập Google thành công (${result.user.email})! Đang chuyển hướng...`,
+    });
+    window.setTimeout(() => {
+      window.location.href = redirectTo;
+    }, 600);
+  }
+
+  function handleGoogleError(errorText) {
+    setMessage({ type: 'error', text: errorText });
+  }
 
   async function submit(event) {
     event.preventDefault();
@@ -42,6 +57,17 @@ export default function LoginPage() {
         <p className="auth-sub">Đăng nhập để tiếp tục theo dõi đơn hàng & thông tin của bạn.</p>
 
         {message ? <div className={`auth-form-msg ${message.type}`}>{message.text}</div> : null}
+
+        <GoogleAuthButton
+          mode="login"
+          onSuccess={handleGoogleSuccess}
+          onError={handleGoogleError}
+          disabled={submitting}
+        />
+
+        <div className="auth-divider">
+          <span>HOẶC ĐĂNG NHẬP BẰNG EMAIL</span>
+        </div>
 
         <form onSubmit={submit}>
           <div className={`auth-form-row ${invalid ? 'invalid' : ''}`}>

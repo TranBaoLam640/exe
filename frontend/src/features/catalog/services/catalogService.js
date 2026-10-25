@@ -34,7 +34,7 @@ export function normalizeProduct(apiProduct = {}) {
     price3day: formatVnd(price3Day),
     priceTag: apiProduct.priceTag ? formatVnd(Number(apiProduct.priceTag)) : '',
     priceDeposit: formatVnd(priceDeposit),
-    priceExtra: `Them ngay: ${formatVnd(extraDayPrice)}/ngay`,
+    priceExtra: `Thêm ngày: ${formatVnd(extraDayPrice)}/ngày`,
     availableStock: apiProduct.availableStock || 0,
   };
 }

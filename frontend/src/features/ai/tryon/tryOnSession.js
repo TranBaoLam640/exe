@@ -1,7 +1,7 @@
 import { getBrowserStorage } from '../../../utils/browserStorage.js';
 
 export const TRYON_COUNT_KEY = 'dorentme_tryon_count';
-export const MAX_TRIES_PER_SESSION = 5;
+export const MAX_TRIES_PER_SESSION = 2;
 
 export function getTryOnCount(storage = getBrowserStorage('sessionStorage')) {
   return Number.parseInt(storage?.getItem(TRYON_COUNT_KEY) || '0', 10) || 0;

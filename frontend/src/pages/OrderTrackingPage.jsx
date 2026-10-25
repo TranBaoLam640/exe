@@ -325,33 +325,33 @@ export default function OrderTrackingPage() {
 
       {payment ? (
         <section className="tracking-card">
-          <h3>Thanh toan</h3>
-          <div className="tracking-info-line">Trang thai: <b>{payment.status}</b></div>
-          <div className="tracking-info-line">Tien thue: <b>{formatVnd(payment.rentalAmount)}</b></div>
-          <div className="tracking-info-line">Tien coc: <b>{formatVnd(payment.depositAmount)}</b></div>
-          <div className="tracking-info-line total">Tong thanh toan: <b>{formatVnd(payment.amount)}</b></div>
+          <h3>Thanh toán</h3>
+          <div className="tracking-info-line">Trạng thái: <b>{payment.status}</b></div>
+          <div className="tracking-info-line">Tiền thuê: <b>{formatVnd(payment.rentalAmount)}</b></div>
+          <div className="tracking-info-line">Tiền cọc: <b>{formatVnd(payment.depositAmount)}</b></div>
+          <div className="tracking-info-line total">Tổng thanh toán: <b>{formatVnd(payment.amount)}</b></div>
           {payment.status === 'pending' && payment.bankAccountNo ? (
             <div className="tracking-payment-instructions">
-              <div>Phuong thuc: <b>{payment.method}</b></div>
-              <div>Ngan hang: <b>{payment.bankName || '-'}</b></div>
-              <div>So tai khoan: <b>{payment.bankAccountNo}</b></div>
-              <div>Chu tai khoan: <b>{payment.bankAccountName || '-'}</b></div>
-              <div>Noi dung chuyen khoan: <b>{payment.transferContent || '-'}</b></div>
-              <small>Payment chi duoc cap nhat thanh da thanh toan sau khi Admin xac nhan giao dich.</small>
+              <div>Phương thức: <b>{payment.method}</b></div>
+              <div>Ngân hàng: <b>{payment.bankName || '-'}</b></div>
+              <div>Số tài khoản: <b>{payment.bankAccountNo}</b></div>
+              <div>Chủ tài khoản: <b>{payment.bankAccountName || '-'}</b></div>
+              <div>Nội dung chuyển khoản: <b>{payment.transferContent || '-'}</b></div>
+              <small>Trạng thái thanh toán sẽ được cập nhật thành đã thanh toán sau khi quản trị viên xác nhận giao dịch.</small>
             </div>
           ) : null}
           {payment.status === 'pending' && payment.method === 'payos' ? <button className="btn-confirm-pay" disabled={payOsLoading} onClick={startPayOsPayment} type="button">{payOsLoading ? 'Đang mở PayOS...' : 'Thanh toán bằng PayOS'}</button> : null}
           {payment.status === 'pending' && payment.method === 'bank_transfer' ? <button className="btn-confirm-pay" disabled={payOsLoading} onClick={startPayOsPayment} type="button">{payOsLoading ? 'Đang mở PayOS...' : 'Thanh toán online bằng PayOS'}</button> : null}
           {payOsError ? <div className="checkout-error" style={{ display: 'block' }}>{payOsError}</div> : null}
           {transactions.length > 0 ? <div className="tracking-payment-instructions"><div>Giao dịch gần nhất: <b>{transactions[0].status}</b></div></div> : null}
-          {payment.transactionCode ? <div className="tracking-info-line">Ma giao dich: <b>{payment.transactionCode}</b></div> : null}
-          {payment.paidAt ? <div className="tracking-info-line">Da thanh toan luc: <b>{formatOrderDate(payment.paidAt)}</b></div> : null}
+          {payment.transactionCode ? <div className="tracking-info-line">Mã giao dịch: <b>{payment.transactionCode}</b></div> : null}
+          {payment.paidAt ? <div className="tracking-info-line">Đã thanh toán lúc: <b>{formatOrderDate(payment.paidAt)}</b></div> : null}
         </section>
       ) : null}
 
       {!payment && paymentLoadError ? (
         <section className="tracking-card">
-          <h3>Thanh toan</h3>
+          <h3>Thanh toán</h3>
           <div className="checkout-error" style={{ display: 'block' }}>{paymentLoadError}</div>
         </section>
       ) : null}
@@ -365,7 +365,7 @@ export default function OrderTrackingPage() {
       </> : null}
       {refunds.length > 0 ? (
         <section className="tracking-card">
-          <h3>Hoan tien va tien coc</h3>
+          <h3>Hoàn tiền và tiền cọc</h3>
           {refunds.map((refund) => <div className="tracking-refund" key={refund.id}>
             <div className="tracking-info-line">{refund.type === 'deposit' ? 'Hoàn tiền cọc' : 'Hoàn tiền hủy đơn'}: <b>{formatVnd(refund.amount)}</b></div>
             <div className="tracking-info-line">Trạng thái: <b>{refund.status}</b></div>
@@ -380,8 +380,8 @@ export default function OrderTrackingPage() {
 
       {inspections.length > 0 ? (
         <section className="tracking-card">
-          <h3>Ket qua kiem tra sau khi tra</h3>
-          {inspections.map((inspection) => <div className="tracking-refund" key={inspection.id}><div className="tracking-info-line">Tai san: <b>{inspection.assetCode}</b> · {inspection.productName}</div><div className="tracking-info-line">Tinh trang: <b>{inspection.conditionAfterReturn}</b></div>{inspection.hasDamage ? <div className="tracking-info-line">Damage: {inspection.damageDescription || '-'}</div> : <div className="tracking-info-line">Khong ghi nhan hu hong</div>}{inspection.recommendedDeduction > 0 ? <div className="tracking-info-line">Khau tru de xuat: <b>{formatVnd(inspection.recommendedDeduction)}</b></div> : null}</div>)}
+          <h3>Kết quả kiểm tra sau khi trả đồ</h3>
+          {inspections.map((inspection) => <div className="tracking-refund" key={inspection.id}><div className="tracking-info-line">Tài sản: <b>{inspection.assetCode}</b> · {inspection.productName}</div><div className="tracking-info-line">Tình trạng: <b>{inspection.conditionAfterReturn}</b></div>{inspection.hasDamage ? <div className="tracking-info-line">Lỗi hư hỏng: {inspection.damageDescription || '-'}</div> : <div className="tracking-info-line">Không ghi nhận hư hỏng</div>}{inspection.recommendedDeduction > 0 ? <div className="tracking-info-line">Khấu trừ đề xuất: <b>{formatVnd(inspection.recommendedDeduction)}</b></div> : null}</div>)}
         </section>
       ) : null}
 
