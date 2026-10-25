@@ -272,10 +272,31 @@ export default function InventoryPage() {
     <div className="admin-page inventory-page">
       <header className="admin-header">
         <div className="admin-brand">
-          <img alt="DoRentMe" src={imageUrl('Logo.png')} />
+          <Link to="/" title="Về trang chủ DoRentMe">
+            <img alt="DoRentMe" src={imageUrl('Logo.png')} />
+          </Link>
           <h1>Quản Lý Kho Hàng</h1>
         </div>
-        <span>{session?.role === 'ADMIN' ? 'Quản trị viên' : session?.role === 'LENDER' ? 'Chủ shop' : session?.role || 'Quản trị viên'}</span>
+        {String(session?.role || '').toUpperCase() === 'ADMIN' ? (
+          <div className="admin-nav-tabs">
+            <Link to="/admin" className="admin-tab-btn">
+              📦 Quản lý Đơn hàng
+            </Link>
+            <Link to="/admin/analytics" className="admin-tab-btn">
+              📊 Thống kê Lượt truy cập & GA
+            </Link>
+            <Link to="/admin/inventory" className="admin-tab-btn active">
+              👗 Quản lý Kho hàng
+            </Link>
+            <Link to="/shipper" className="admin-tab-btn">
+              🚚 Giám sát Giao hàng
+            </Link>
+          </div>
+        ) : null}
+        <div className="inventory-admin-links">
+          <Link to="/">🌐 Xem Website</Link>
+          <span>{session?.role === 'ADMIN' ? 'Quản trị viên' : session?.role === 'LENDER' ? 'Chủ shop' : session?.role || 'Quản trị viên'}</span>
+        </div>
       </header>
 
       <main className="admin-body inventory-body">

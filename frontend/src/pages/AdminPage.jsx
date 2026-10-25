@@ -293,7 +293,9 @@ export default function AdminPage({ defaultTab = 'orders' }) {
     <div className="admin-page">
       <header className="admin-header">
         <div className="admin-brand">
-          <img alt="DoRentMe" src={imageUrl('Logo.png')} />
+          <Link to="/" title="Về trang chủ DoRentMe">
+            <img alt="DoRentMe" src={imageUrl('Logo.png')} />
+          </Link>
           <h1>Bảng Điều Khiển Quản Trị DoRentMe</h1>
         </div>
         <div className="admin-nav-tabs">
@@ -311,9 +313,15 @@ export default function AdminPage({ defaultTab = 'orders' }) {
           >
             📊 Thống kê Lượt truy cập & GA
           </button>
+          <Link to="/admin/inventory" className="admin-tab-btn">
+            👗 Quản lý Kho hàng
+          </Link>
+          <Link to="/shipper" className="admin-tab-btn">
+            🚚 Giám sát Giao hàng
+          </Link>
         </div>
         <div className="inventory-admin-links">
-          <Link to="/admin/inventory">Kho hàng</Link>
+          <Link to="/">🌐 Xem Website</Link>
           <span>Quản trị viên</span>
         </div>
       </header>
