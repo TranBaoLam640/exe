@@ -7,6 +7,7 @@ export default function AiPricingModal({ isOpen, onClose, onPackagePurchased, in
   const [isCheckout, setIsCheckout] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [purchaseSuccess, setPurchaseSuccess] = useState(null);
+  const [copiedField, setCopiedField] = useState('');
 
   if (!isOpen) return null;
 
@@ -34,8 +35,6 @@ export default function AiPricingModal({ isOpen, onClose, onPackagePurchased, in
       }
     }, 600);
   }
-
-  const [copiedField, setCopiedField] = useState('');
 
   function copyText(text, field) {
     if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
