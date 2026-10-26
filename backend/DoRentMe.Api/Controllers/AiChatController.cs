@@ -2,11 +2,13 @@ using System.Text.Json;
 using DoRentMe.Api.Contracts.Ai;
 using DoRentMe.Api.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace DoRentMe.Api.Controllers;
 
 [ApiController]
 [Route("api/chat")]
+[EnableRateLimiting("chat-policy")]
 public sealed class AiChatController : ControllerBase
 {
     private readonly IAiGatewayService _aiGatewayService;

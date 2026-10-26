@@ -163,6 +163,68 @@ public class AiApiTests : IDisposable
                 .GetString());
     }
 
+    [Fact]
+    public async Task TryOn_QuotaEndpoint_ReturnsAllowedState()
+    {
+        var response = await _client.GetAsync("/api/tryon/quota");
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        using var json = await ReadJsonAsync(response);
+        Assert.True(json.RootElement.GetProperty("allowed").GetBoolean());
+        Assert.True(json.RootElement.GetProperty("remainingQuota").GetInt32() >= 0);
+    }
+
+    [Fact]
+    public async Task TryOnCreate_WhenDeviceExceedsFreeQuota_ReturnsForbidden()
+    {
+        _aiGatewayService.CreateTryOnResult = new AiGatewayResult(
+            StatusCodes.Status200OK,
+            """{"requestId":"req_test"}""");
+
+        var deviceId = "device-test-" + Guid.NewGuid();
+
+        using var request1 = new HttpRequestMessage(HttpMethod.Post, "/api/tryon")
+        {
+            Content = JsonContent.Create(new
+            {
+                humanImage = "data:image/jpeg;base64,abc",
+                garmentImageUrl = "https://assets.example.com/p1.jpg"
+            })
+        };
+        request1.Headers.Add("X-Device-Fingerprint", deviceId);
+        var res1 = await _client.SendAsync(request1);
+        Assert.Equal(HttpStatusCode.OK, res1.StatusCode);
+
+        using var request2 = new HttpRequestMessage(HttpMethod.Post, "/api/tryon")
+        {
+            Content = JsonContent.Create(new
+            {
+                humanImage = "data:image/jpeg;base64,abc",
+                garmentImageUrl = "https://assets.example.com/p2.jpg"
+            })
+        };
+        request2.Headers.Add("X-Device-Fingerprint", deviceId);
+        var res2 = await _client.SendAsync(request2);
+        Assert.Equal(HttpStatusCode.OK, res2.StatusCode);
+
+        // Third attempt exceeds quota (limit is 2)
+        using var request3 = new HttpRequestMessage(HttpMethod.Post, "/api/tryon")
+        {
+            Content = JsonContent.Create(new
+            {
+                humanImage = "data:image/jpeg;base64,abc",
+                garmentImageUrl = "https://assets.example.com/p3.jpg"
+            })
+        };
+        request3.Headers.Add("X-Device-Fingerprint", deviceId);
+        var res3 = await _client.SendAsync(request3);
+        Assert.Equal(HttpStatusCode.Forbidden, res3.StatusCode);
+
+        using var json3 = await ReadJsonAsync(res3);
+        var err = json3.RootElement.GetProperty("error");
+        Assert.Equal("DEVICE_QUOTA_EXCEEDED", err.GetProperty("code").GetString());
+    }
+
     private static async Task<JsonDocument> ReadJsonAsync(
         HttpResponseMessage response)
     {

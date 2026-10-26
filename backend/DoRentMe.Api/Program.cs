@@ -105,6 +105,97 @@ builder.Services.AddHttpClient<IAiGatewayService, AiGatewayService>();
 builder.Services.Configure<PayOsOptions>(builder.Configuration.GetSection("PayOS"));
 builder.Services.AddScoped<IPaymentGateway, PayOsPaymentGateway>();
 builder.Services.AddScoped<IPaymentTransactionService, PaymentTransactionService>();
+
+// Configure Distributed Cache (Redis for Production/K8s, In-Memory fallback for Development/Testing)
+var redisConn = builder.Configuration.GetConnectionString("Redis");
+var useRedis = builder.Configuration.GetValue("USE_REDIS", false) || (!builder.Environment.IsDevelopment() && !string.IsNullOrWhiteSpace(redisConn));
+
+if (useRedis && !string.IsNullOrWhiteSpace(redisConn))
+{
+    builder.Services.AddStackExchangeRedisCache(options =>
+    {
+        options.Configuration = redisConn;
+        options.InstanceName = "DoRentMe:";
+    });
+}
+else
+{
+    builder.Services.AddDistributedMemoryCache();
+}
+builder.Services.AddSingleton<ICacheService, CacheService>();
+builder.Services.AddScoped<ITryOnQuotaService, TryOnQuotaService>();
+
+// Configure ASP.NET Core Rate Limiting
+var tryOnRpm = builder.Configuration.GetValue("RateLimiting:TryOnRpm", 5);
+var authRpm = builder.Configuration.GetValue("RateLimiting:AuthRpm", 10);
+var chatRpm = builder.Configuration.GetValue("RateLimiting:ChatRpm", 20);
+var generalRpm = builder.Configuration.GetValue("RateLimiting:GeneralRpm", 60);
+
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.OnRejected = async (context, token) =>
+    {
+        context.HttpContext.Response.ContentType = "application/json";
+        await context.HttpContext.Response.WriteAsync(
+            "{\"error\":{\"code\":\"TOO_MANY_REQUESTS\",\"message\":\"Bạn đã gửi quá nhiều yêu cầu trong thời gian ngắn. Vui lòng thử lại sau giây lát.\"}}",
+            token);
+    };
+
+    options.AddPolicy("tryon-policy", httpContext =>
+    {
+        var clientKey = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+            ?? httpContext.Request.Headers["X-Device-Fingerprint"].FirstOrDefault()
+            ?? httpContext.Connection.RemoteIpAddress?.ToString()
+            ?? "anonymous";
+
+        return System.Threading.RateLimiting.RateLimitPartition.GetSlidingWindowLimiter(clientKey, _ => new System.Threading.RateLimiting.SlidingWindowRateLimiterOptions
+        {
+            PermitLimit = tryOnRpm,
+            Window = TimeSpan.FromMinutes(1),
+            SegmentsPerWindow = 4,
+            QueueLimit = 0
+        });
+    });
+
+    options.AddPolicy("auth-policy", httpContext =>
+    {
+        var clientIp = httpContext.Connection.RemoteIpAddress?.ToString() ?? "anonymous";
+        return System.Threading.RateLimiting.RateLimitPartition.GetFixedWindowLimiter(clientIp, _ => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions
+        {
+            PermitLimit = authRpm,
+            Window = TimeSpan.FromMinutes(1),
+            QueueLimit = 0
+        });
+    });
+
+    options.AddPolicy("chat-policy", httpContext =>
+    {
+        var clientKey = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+            ?? httpContext.Connection.RemoteIpAddress?.ToString()
+            ?? "anonymous";
+
+        return System.Threading.RateLimiting.RateLimitPartition.GetSlidingWindowLimiter(clientKey, _ => new System.Threading.RateLimiting.SlidingWindowRateLimiterOptions
+        {
+            PermitLimit = chatRpm,
+            Window = TimeSpan.FromMinutes(1),
+            SegmentsPerWindow = 2,
+            QueueLimit = 0
+        });
+    });
+
+    options.GlobalLimiter = System.Threading.RateLimiting.PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
+    {
+        var clientIp = httpContext.Connection.RemoteIpAddress?.ToString() ?? "global";
+        return System.Threading.RateLimiting.RateLimitPartition.GetFixedWindowLimiter(clientIp, _ => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions
+        {
+            PermitLimit = generalRpm,
+            Window = TimeSpan.FromMinutes(1),
+            QueueLimit = 2
+        });
+    });
+});
+
 builder.Services.AddApiControllers();
 builder.Services.AddOpenApiDocumentation();
 builder.Services.AddFrontendCors(builder.Configuration);
@@ -120,6 +211,7 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseCors("Frontend");
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 

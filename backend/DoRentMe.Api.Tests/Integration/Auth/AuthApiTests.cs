@@ -210,6 +210,30 @@ public class AuthApiTests : IDisposable
     }
 
     [Fact]
+    public async Task Register_WithDisposableEmail_ReturnsBadRequest()
+    {
+        var request = new
+        {
+            name = "Spam Bot",
+            email = "spammer@mailinator.com",
+            phone = "0901234568",
+            password = "Password123!"
+        };
+
+        var response = await _client.PostAsJsonAsync(
+            "/api/auth/register",
+            request);
+
+        Assert.Equal(
+            HttpStatusCode.BadRequest,
+            response.StatusCode);
+
+        using var json = await ReadJsonAsync(response);
+        var err = json.RootElement.GetProperty("error");
+        Assert.Equal("DISPOSABLE_EMAIL_NOT_ALLOWED", err.GetProperty("code").GetString());
+    }
+
+    [Fact]
     public async Task Register_WithLenderRole_ReturnsOkAndStoresLenderRole()
     {
         var request = new

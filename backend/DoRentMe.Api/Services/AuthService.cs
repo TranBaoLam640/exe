@@ -32,9 +32,19 @@ public class AuthService : IAuthService
 
     public async Task<AuthResponse> RegisterAsync(RegisterRequest request)
     {
+        var normalizedEmail = request.Email.Trim().ToLowerInvariant();
+
+        if (IsDisposableEmail(normalizedEmail))
+        {
+            throw new ApiException(
+                "DISPOSABLE_EMAIL_NOT_ALLOWED",
+                "Hệ thống không chấp nhận email tạm thời. Vui lòng sử dụng email chính thức để đăng ký.",
+                400);
+        }
+
         // Check if email already exists
         var existingUser = await _context.Users
-            .FirstOrDefaultAsync(u => u.Email == request.Email);
+            .FirstOrDefaultAsync(u => u.Email == normalizedEmail);
 
         if (existingUser != null)
         {
@@ -289,5 +299,22 @@ public class AuthService : IAuthService
         );
 
         return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+
+    private static readonly HashSet<string> DisposableEmailDomains = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "mailinator.com", "10minutemail.com", "tempmail.com", "guerrillamail.com",
+        "trashmail.com", "fakemailgenerator.com", "yopmail.com", "dispostable.com",
+        "sharklasers.com", "throwawaymail.com", "getnada.com", "mohmal.com",
+        "crazymailing.com", "mytemp.email", "generator.email"
+    };
+
+    private static bool IsDisposableEmail(string email)
+    {
+        if (string.IsNullOrWhiteSpace(email)) return false;
+        var parts = email.Split('@');
+        if (parts.Length != 2) return false;
+        var domain = parts[1].Trim().ToLowerInvariant();
+        return DisposableEmailDomains.Contains(domain) || DisposableEmailDomains.Any(d => domain.EndsWith("." + d));
     }
 }

@@ -1,3 +1,5 @@
+import { getDeviceFingerprint } from './deviceFingerprint.js';
+
 const TRYON_API_URL = '/api/tryon';
 
 export function getApiErrorMessage(data, fallback = 'Không gửi được yêu cầu tới AI. Vui lòng thử lại.') {
@@ -19,9 +21,13 @@ async function readJsonResponse(response, fallback) {
 }
 
 export async function createTryOn({ humanImage, garmentImageUrl }, { signal, fetcher = fetch } = {}) {
+  const deviceFingerprint = getDeviceFingerprint();
   const response = await fetcher(TRYON_API_URL, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Device-Fingerprint': deviceFingerprint,
+    },
     body: JSON.stringify({ humanImage, garmentImageUrl }),
     signal,
   });

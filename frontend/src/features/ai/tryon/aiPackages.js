@@ -156,7 +156,7 @@ export function getAiAccessStatus(
     planId: null,
     planName: 'Hết lượt thử miễn phí',
     badge: 'Hết lượt thử',
-    description: 'Bạn đã sử dụng hết 2 lượt thử miễn phí. Vui lòng đăng ký gói AI từ 1.000đ hoặc tạo tài khoản mới để tiếp tục.',
+    description: 'Bạn đã sử dụng hết 2 lượt thử miễn phí trên thiết bị này. Vui lòng đăng ký gói AI từ 1.000đ để tiếp tục trải nghiệm.',
   };
 }
 

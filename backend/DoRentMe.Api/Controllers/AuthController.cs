@@ -4,9 +4,12 @@ using DoRentMe.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using Microsoft.AspNetCore.RateLimiting;
+
 namespace DoRentMe.Api.Controllers;
 
 [Route("api/[controller]")]
+[EnableRateLimiting("auth-policy")]
 public class AuthController : ApiControllerBase
 {
     private readonly IAuthService _authService;

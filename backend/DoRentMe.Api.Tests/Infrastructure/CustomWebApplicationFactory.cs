@@ -29,6 +29,9 @@ public class CustomWebApplicationFactory
             services.RemoveAll<IEvidenceStorage>();
             services.AddSingleton<IEvidenceStorage, FakeEvidenceStorage>();
 
+            services.RemoveAll<Microsoft.Extensions.Caching.Distributed.IDistributedCache>();
+            services.AddDistributedMemoryCache();
+
             services.AddDbContext<DoRentMeDbContext>(options =>
             {
                 options.UseInMemoryDatabase(_databaseName);

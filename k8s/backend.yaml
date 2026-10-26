@@ -40,6 +40,10 @@ spec:
             - secretRef:
                 name: backend-secret
 
+          env:
+            - name: ConnectionStrings__Redis
+              value: "redis:6379,abortConnect=false"
+
           resources:
             requests:
               cpu: 100m
