@@ -20,12 +20,18 @@ export default function NewsPage() {
   }
 
   return (
-    <div className="news-page news-wrapper">
-      <div className="page-heading"><h1>Tin Tức</h1><div className="underline" /></div>
-      <div className="news-grid">
-        {slice.map((article, index) => <NewsCard article={article} index={start + index} key={article.title} />)}
+    <div className="news-page">
+      <section className="page-hero">
+        <span className="page-hero-badge">✦ Tin tức & Xu hướng</span>
+        <h1>Tin Tức <span>Thời Trang</span></h1>
+        <p>Cập nhật những xu hướng thời trang mới nhất, phong cách nổi bật và câu chuyện từ DoRentMe.</p>
+      </section>
+      <div className="news-wrapper" style={{ maxWidth: '1100px', margin: '0 auto', padding: '40px 20px 60px' }}>
+        <div className="news-grid">
+          {slice.map((article, index) => <NewsCard article={article} index={start + index} key={article.title} />)}
+        </div>
+        <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={goPage} />
       </div>
-      <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={goPage} />
     </div>
   );
 }

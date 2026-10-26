@@ -30,7 +30,7 @@ export default function Header() {
   const location = useLocation();
   const [scrolled, setScrolled] = useState(false);
   const { session, cartQuantity, hasOrders } = useLegacyHeaderState();
-  const transparent = location.pathname === '/' || location.pathname === '/shop' || location.pathname === '/about' || location.pathname === '/contact';
+  const transparent = location.pathname === '/';
   const activeLabel = location.pathname.startsWith('/product/') ? 'Dịch vụ' : reactNav.get(location.pathname);
   const role = String(session?.role || '').toUpperCase();
   const canManageInventory = role === 'ADMIN' || role === 'LENDER';

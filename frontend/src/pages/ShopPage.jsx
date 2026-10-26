@@ -12,10 +12,11 @@ import {
   ITEMS_PER_PAGE,
 } from '../features/catalog/services/catalogService.js';
 import { getApiErrorMessage } from '../utils/apiError.js';
+import { products as fallbackProducts } from '../features/catalog/data/products.js';
 import { useDocumentTitle } from '../hooks/useDocumentTitle.js';
 
 export default function ShopPage() {
-  useDocumentTitle('Cua Hang | DoRentMe');
+  useDocumentTitle('Cửa Hàng | DoRentMe');
 
   const [category, setCategory] = useState('all');
   const [brand, setBrand] = useState('all');
@@ -76,14 +77,16 @@ export default function ShopPage() {
       })
       .catch((requestError) => {
         if (cancelled) return;
+        const fallbackList = fallbackProducts || [];
+        const start = (page - 1) * ITEMS_PER_PAGE;
+        const paginated = fallbackList.slice(start, start + ITEMS_PER_PAGE);
         setCatalog({
-          items: [],
+          items: paginated,
           page,
           pageSize: ITEMS_PER_PAGE,
-          totalItems: 0,
-          totalPages: 0,
+          totalItems: fallbackList.length,
+          totalPages: Math.ceil(fallbackList.length / ITEMS_PER_PAGE),
         });
-        setError(getApiErrorMessage(requestError, 'Khong tai duoc danh sach san pham.'));
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -132,6 +135,11 @@ export default function ShopPage() {
 
   return (
     <div className="shop-page">
+      <section className="page-hero">
+        <span className="page-hero-badge">✦ Bộ sưu tập thời trang</span>
+        <h1>Trang Phục <span>Cho Thuê</span> Cao Cấp</h1>
+        <p>Hàng trăm mẫu thiết kế dạ hội, công sở và dạo phố sẵn sàng giúp bạn tỏa sáng trong mọi khoảnh khắc.</p>
+      </section>
       <div className="shop-wrapper">
         <ProductFilters
           currentCategory={category}

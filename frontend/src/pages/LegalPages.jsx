@@ -124,13 +124,13 @@ const terms = [
   },
 ];
 
-function PageTitle({ title, children }) {
+function PageTitle({ title, children, badge = '✦ Quy định & Điều khoản' }) {
   return (
-    <div className="page-title">
+    <section className="page-hero">
+      <span className="page-hero-badge">{badge}</span>
       <h1>{title}</h1>
       <p>{children}</p>
-      <div className="divider" />
-    </div>
+    </section>
   );
 }
 
@@ -139,9 +139,9 @@ export function PolicyPage() {
 
   return (
     <div className="legal-page policy-page">
+      <PageTitle title="Chính Sách Thuê Đồ" badge="✦ Quy định thuê">Các quy định và chính sách bảo quản trang phục tại DoRentMe</PageTitle>
       <div className="page-wrapper">
         <div className="page-inner">
-          <PageTitle title="Chính Sách">Các quy định và điều khoản thuê trang phục tại DoRentMe</PageTitle>
           {policyBlocks.map((block) => (
             <div className="policy-block" key={block.title}>
               <h2>{block.title}</h2>
@@ -167,9 +167,9 @@ export function TermsPage() {
 
   return (
     <div className="legal-page terms-page">
+      <PageTitle title="Điều Khoản Sử Dụng" badge="✦ Điều khoản">Vui lòng đọc kỹ trước khi sử dụng dịch vụ của DoRentMe</PageTitle>
       <div className="page-wrapper">
         <div className="page-inner">
-          <PageTitle title="Điều Khoản Sử Dụng">Vui lòng đọc kỹ trước khi sử dụng dịch vụ của DoRentMe</PageTitle>
           <p className="updated">Cập nhật lần cuối: tháng 6, 2026</p>
           {terms.map((term, index) => (
             <div className="term-block" key={term.title}>

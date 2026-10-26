@@ -293,15 +293,16 @@ export default function OrderTrackingPage() {
   if (!order) {
     return (
       <div className="order-tracking-page">
-        <div className="tracking-head">
-          <div className="stateful-breadcrumb"><Link to="/">Trang chủ</Link> › <Link to="/orders">Đơn hàng</Link> › <span>Theo dõi</span></div>
-          <h1>📦 Theo dõi đơn hàng</h1>
-        </div>
-        <div className="tracking-card not-found">
-          <div className="not-found-icon">🔎</div>
+        <section className="page-hero">
+          <span className="page-hero-badge">✦ Thông báo</span>
+          <h1>Chi Tiết <span>Đơn Hàng</span></h1>
+          <p>Không tìm thấy mã đơn hàng yêu cầu.</p>
+        </section>
+        <div className="tracking-card not-found" style={{ maxWidth: '600px', margin: '40px auto', textAlign: 'center' }}>
+          <div className="not-found-icon">👗</div>
           <h2>Không tìm thấy đơn hàng</h2>
           <p>Mã đơn không tồn tại hoặc đã bị xoá khỏi trình duyệt này.</p>
-          <Link to="/orders">Xem tất cả đơn hàng →</Link>
+          <Link to="/orders" className="catalog-btn-rent" style={{ maxWidth: '240px', margin: '20px auto 0' }}>Xem tất cả đơn hàng →</Link>
         </div>
       </div>
     );
@@ -314,9 +315,16 @@ export default function OrderTrackingPage() {
 
   return (
     <div className="order-tracking-page">
-      <div className="tracking-head">
-        <div className="stateful-breadcrumb"><Link to="/">Trang chủ</Link> › <Link to="/orders">Đơn hàng</Link> › <span>Theo dõi</span></div>
-        <h1>📦 Theo dõi đơn hàng</h1>
+      <section className="page-hero">
+        <span className="page-hero-badge">✦ Chi tiết đơn hàng</span>
+        <h1>Theo Dõi <span>Đơn Hàng</span></h1>
+        <p>Mã đơn: {order.id} · Đặt lúc {formatOrderDate(order.createdAt)}</p>
+      </section>
+
+      <div style={{ maxWidth: '900px', margin: '0 auto', padding: '30px 20px 0' }}>
+        <div className="stateful-breadcrumb">
+          <Link to="/">Trang chủ</Link> › <Link to="/orders">Đơn hàng</Link> › <span>Theo dõi</span>
+        </div>
       </div>
 
       <section className="tracking-card">

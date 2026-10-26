@@ -76,9 +76,9 @@ function ChatMessage({ message }) {
 function WelcomeScreen({ onPrompt }) {
   return (
     <div className="chatbot-welcome-screen">
-      <div className="chatbot-welcome-icon" aria-hidden="true">AI</div>
-      <h1>Xin chào! Tôi là DoStyle AI</h1>
-      <p>Trợ lý thời trang thông minh của DoRentMe. Tôi có thể giúp bạn tư vấn phối đồ, gợi ý trang phục thuê phù hợp với từng dịp, vóc dáng và phong cách cá nhân.</p>
+      <div className="chatbot-welcome-icon" aria-hidden="true">👗</div>
+      <h1>Xin chào! Tôi là Trợ Lý Thời Trang DoRentMe</h1>
+      <p>Tôi có thể giúp bạn tư vấn phối đồ, gợi ý trang phục thuê phù hợp với từng dịp, vóc dáng và phong cách cá nhân.</p>
       <div className="chatbot-quick-chips">
         {welcomePrompts.map((prompt) => (
           <button className="chatbot-chip" type="button" onClick={() => onPrompt(prompt)} key={prompt}>

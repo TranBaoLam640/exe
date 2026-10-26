@@ -235,10 +235,10 @@ export default function TryOnPage() {
 
   return (
     <div className="tryon-page">
-      <section className="tryon-mini-hero">
-        <span className="tryon-badge">AI thử đồ</span>
-        <h1>Thử Đồ <span>Bằng AI</span> Trước Khi Thuê</h1>
-        <p>Tải lên 1 tấm ảnh của bạn, AI sẽ ghép thử trang phục lên người để xem trước khi đặt thuê.</p>
+      <section className="page-hero">
+        <span className="page-hero-badge">✦ Phòng thử đồ trực tuyến</span>
+        <h1>Thử Đồ Trực Tuyến <span>Trước Khi Thuê</span></h1>
+        <p>Tải lên 1 tấm ảnh của bạn để xem trước phom dáng và cách phối trang phục một cách chân thực nhất.</p>
         <AiPlanBanner onOpenPricingModal={() => setPricingModalOpen(true)} />
       </section>
 
@@ -258,7 +258,7 @@ export default function TryOnPage() {
                 onDragLeave={(event) => event.currentTarget.classList.remove('dragover')}
                 onDrop={onDrop}
               >
-                <div className="tryon-upload-icon" aria-hidden="true">↑</div>
+                <div className="tryon-upload-icon" aria-hidden="true">👗</div>
                 <p>Kéo thả ảnh vào đây hoặc bấm để chọn<br /><span>Nên là ảnh đứng thẳng, nhìn thẳng, rõ dáng</span></p>
                 <label className="sr-only" htmlFor="tryon-file-input">Chọn ảnh của bạn</label>
                 <input
@@ -288,13 +288,13 @@ export default function TryOnPage() {
               className="tryon-open-packages-btn"
               onClick={() => setPricingModalOpen(true)}
             >
-              ✨ Bảng giá Gói AI: 1k / lượt · 10k / ngày · 50k / tháng
+              💎 Bảng giá Gói Dịch Vụ: 1k / lượt · 10k / ngày · 50k / tháng
             </button>
             <div className="tryon-register-incentive">
-              <span>🎁 Chưa có tài khoản? </span>
-              <Link to="/register">Đăng ký ngay để nhận 2 lượt thử đồ AI miễn phí!</Link>
+              <span>Chưa có tài khoản? </span>
+              <Link to="/register">Đăng ký ngay để nhận 2 lượt thử đồ miễn phí!</Link>
             </div>
-            <p className="tryon-hint">Mỗi lần thử mất khoảng 20-60 giây và tốn một khoản phí xử lý AI nhỏ, vui lòng thử vừa đủ nhu cầu.</p>
+            <p className="tryon-hint">Hệ thống phân tích phom dáng trang phục trong khoảng 20-40 giây.</p>
           </section>
         </div>
 

@@ -4,16 +4,16 @@ import { useFadeIn } from '../hooks/useFadeIn.js';
 
 const techCards = [
   {
-    title: 'Trợ lý AI Thông Minh',
-    text: 'Trò chuyện với chatbot AI stylist, được đào tạo để hiểu phong cách, hoàn cảnh và tủ đồ của bạn để đưa ra gợi ý tức thì.',
+    title: 'Stylist Thời Trang Cá Nhân',
+    text: 'Tư vấn phối đồ thông minh theo vóc dáng, sở thích và sự kiện. Nhận gợi ý trang phục hoàn hảo chỉ trong vài giây.',
   },
   {
-    title: 'Tủ Đồ Số 4.0',
-    text: 'Số hóa toàn bộ quần áo của bạn. Hệ thống của chúng tôi giúp bạn phân loại, theo dõi trạng thái và quản lý mọi món đồ bạn sở hữu.',
+    title: 'Bộ Sưu Tập Trang Phục Đa Dạng',
+    text: 'Hàng nghìn thiết kế cao cấp từ dạ hội, công sở đến dạo phố được tuyển chọn kỹ lưỡng và luôn sẵn sàng cho bạn.',
   },
   {
-    title: 'Thử Đồ Ảo (Giả Lập)',
-    text: 'Xem trước các bộ đồ trông như thế nào trên avatar của bạn, giúp bạn ra quyết định nhanh hơn mà không cần thử trực tiếp.',
+    title: 'Trải Nghiệm Thử Đồ Trực Tuyến',
+    text: 'Xem trước hình ảnh trang phục trên vóc dáng thực tế của bạn trước khi quyết định thuê, tự tin trong mọi lựa chọn.',
   },
 ];
 
@@ -79,12 +79,10 @@ export default function AboutPage() {
 
   return (
     <div className="about-page">
-      <section className="hero">
-        <div className="hero-icon">
-          <PeopleIcon />
-        </div>
-        <h1>Về DoRentMe</h1>
-        <p>Chúng tôi tin rằng mọi người đều xứng đáng có một stylist cá nhân. Chúng tôi tạo ra stylist đó bằng AI.</p>
+      <section className="page-hero">
+        <span className="page-hero-badge">✦ Về DoRentMe</span>
+        <h1>Thời Trang Cao Cấp <span>Cho Mọi Người</span></h1>
+        <p>Chúng tôi tin rằng mọi người đều xứng đáng sở hữu phong cách hoàn hảo và tự tin tỏa sáng với chi phí tối ưu nhất.</p>
       </section>
 
       <section className="mission">

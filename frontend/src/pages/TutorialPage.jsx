@@ -116,11 +116,11 @@ export default function TutorialPage() {
   return (
     <div className="tutorial-page">
       <div className="page-wrapper">
-        <div className="hero-strip">
-          <h1>Hướng Dẫn Thuê Trang Phục</h1>
+        <section className="page-hero">
+          <span className="page-hero-badge">✦ Quy trình tiện lợi</span>
+          <h1>Hướng Dẫn <span>Thuê Trang Phục</span></h1>
           <p>Chọn hình thức thuê phù hợp — đặt lịch nhanh, nhận đồ đẹp, trả dễ dàng.</p>
-          <div className="divider" />
-        </div>
+        </section>
 
         <div className="page-inner">
           <div className="section-title">3 Hình Thức Thuê</div>

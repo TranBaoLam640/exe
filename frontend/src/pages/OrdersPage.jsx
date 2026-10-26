@@ -17,22 +17,26 @@ export default function OrdersPage() {
 
   return (
     <div className="orders-page">
-      <div className="orders-head">
-        <div className="stateful-breadcrumb"><Link to="/">Trang chủ</Link> › <span>Đơn hàng của tôi</span></div>
-        <h1>📦 Đơn hàng của tôi</h1>
+      <section className="page-hero">
+        <span className="page-hero-badge">✦ Lịch sử đơn thuê</span>
+        <h1>Đơn Hàng <span>Của Bạn</span></h1>
         <p>
           {session
-            ? `Xin chào ${session.name}, đây là các đơn hàng của bạn.`
-            : 'Bạn đang xem với tư cách khách. Đăng nhập để lưu & xem đầy đủ lịch sử đơn hàng.'}
+            ? `Xin chào ${session.name}, theo dõi tiến độ giao nhận và lịch trả đồ của bạn.`
+            : 'Theo dõi tiến độ giao nhận, lịch thuê và quản lý các đơn đặt đồ của bạn.'}
         </p>
+      </section>
+
+      <div style={{ maxWidth: '900px', margin: '0 auto', padding: '30px 20px 0' }}>
+        <div className="stateful-breadcrumb"><Link to="/">Trang chủ</Link> › <span>Đơn hàng của tôi</span></div>
       </div>
 
       {orders.length === 0 ? (
         <div className="empty-orders">
-          <div className="empty-orders-icon">📦</div>
+          <div className="empty-orders-icon">👗</div>
           <h2>Bạn chưa có đơn hàng nào</h2>
-          <p>Đặt thuê trang phục đầu tiên của bạn ngay hôm nay!</p>
-          <Link to="/shop">Khám phá Shop →</Link>
+          <p>Đặt thuê trang phục đầu tiên của bạn ngay hôm nay để tỏa sáng!</p>
+          <Link to="/shop" className="catalog-btn-rent" style={{ maxWidth: '240px', margin: '20px auto 0' }}>Khám phá bộ sưu tập →</Link>
         </div>
       ) : (
         orders.map((order) => {

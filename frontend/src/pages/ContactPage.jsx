@@ -84,10 +84,10 @@ export default function ContactPage() {
 
   return (
     <div className="contact-page">
-      <section className="hero">
-        <span className="hero-badge">✉ Luôn sẵn sàng hỗ trợ</span>
-        <h1>Liên Hệ</h1>
-        <p>Đội ngũ DoRentMe luôn sẵn sàng lắng nghe và hỗ trợ bạn bất cứ lúc nào.</p>
+      <section className="page-hero">
+        <span className="page-hero-badge">✦ Hỗ trợ tận tâm</span>
+        <h1>Liên Hệ <span>Với Chúng Tôi</span></h1>
+        <p>Đội ngũ DoRentMe luôn sẵn sàng lắng nghe, tư vấn phong cách và hỗ trợ bạn trong mọi đơn thuê.</p>
       </section>
 
       <div className="contact-body">

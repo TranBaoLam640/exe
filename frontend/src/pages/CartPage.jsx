@@ -73,11 +73,11 @@ export default function CartPage() {
   if (loading) {
     return (
       <div className="cart-page">
-        <div className="cart-head">
-          <div className="stateful-breadcrumb"><Link to="/">Trang chủ</Link> › <Link to="/shop">Shop</Link> › <span>Giỏ hàng</span></div>
-          <h1>🛒 Giỏ hàng của bạn</h1>
-          <p>Đang tải giỏ hàng...</p>
-        </div>
+        <section className="page-hero">
+          <span className="page-hero-badge">✦ Giỏ hàng</span>
+          <h1>Giỏ Hàng <span>Của Bạn</span></h1>
+          <p>Đang tải giỏ hàng của bạn...</p>
+        </section>
       </div>
     );
   }
@@ -85,16 +85,16 @@ export default function CartPage() {
   if (state.items.length === 0) {
     return (
       <div className="cart-page">
-        <div className="cart-head">
-          <div className="stateful-breadcrumb"><Link to="/">Trang chủ</Link> › <Link to="/shop">Shop</Link> › <span>Giỏ hàng</span></div>
-          <h1>🛒 Giỏ hàng của bạn</h1>
-          <p>Giỏ hàng đang trống.</p>
-        </div>
+        <section className="page-hero">
+          <span className="page-hero-badge">✦ Giỏ hàng</span>
+          <h1>Giỏ Hàng <span>Của Bạn</span></h1>
+          <p>Kiểm tra các trang phục bạn đã chọn để chuẩn bị xuất hiện thật nổi bật.</p>
+        </section>
         <div className="cart-empty">
-          <div className="cart-empty-icon">🧺</div>
+          <div className="cart-empty-icon">👗</div>
           <h2>Chưa có sản phẩm nào trong giỏ</h2>
-          <p>Hãy khám phá bộ sưu tập và thêm những bộ trang phục bạn yêu thích.</p>
-          <Link to="/shop">Bắt đầu mua sắm →</Link>
+          <p>Hãy khám phá bộ sưu tập và chọn những bộ trang phục bạn yêu thích.</p>
+          <Link to="/shop" className="catalog-btn-rent" style={{ maxWidth: '240px', margin: '20px auto 0' }}>Khám phá bộ sưu tập →</Link>
         </div>
       </div>
     );
@@ -102,11 +102,14 @@ export default function CartPage() {
 
   return (
     <div className="cart-page">
-      <div className="cart-head">
+      <section className="page-hero">
+        <span className="page-hero-badge">✦ Giỏ hàng</span>
+        <h1>Giỏ Hàng <span>Của Bạn</span></h1>
+        <p>Bạn đang có {state.count} trang phục trong giỏ hàng.</p>
+      </section>
+
+      <div className="cart-body-wrap" style={{ maxWidth: '1100px', margin: '0 auto', padding: '30px 20px' }}>
         <div className="stateful-breadcrumb"><Link to="/">Trang chủ</Link> › <Link to="/shop">Shop</Link> › <span>Giỏ hàng</span></div>
-        <h1>🛒 Giỏ hàng của bạn</h1>
-        <p>Bạn có {state.count} sản phẩm trong giỏ.</p>
-      </div>
 
       <div className="cart-layout">
         <div className="cart-items">
@@ -154,6 +157,7 @@ export default function CartPage() {
           <Link className="btn-checkout" to="/checkout">Tiến hành đặt thuê</Link>
           <button className="btn-clear" type="button" onClick={clearAll}>Xóa toàn bộ giỏ</button>
         </aside>
+      </div>
       </div>
     </div>
   );
