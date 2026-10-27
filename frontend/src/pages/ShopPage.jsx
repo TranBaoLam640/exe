@@ -25,8 +25,8 @@ export default function ShopPage() {
   const [sortBy, setSortBy] = useState('createdAt');
   const [sortDirection, setSortDirection] = useState('desc');
   const [inStock, setInStock] = useState(false);
-  const [categories, setCategories] = useState([{ value: 'all', label: 'Tat ca' }]);
-  const [brands, setBrands] = useState([{ value: 'all', label: 'Tat ca' }]);
+  const [categories, setCategories] = useState([{ value: 'all', label: 'Tất cả' }]);
+  const [brands, setBrands] = useState([{ value: 'all', label: 'Tất cả' }]);
   const [catalog, setCatalog] = useState({
     items: [],
     page: 1,
@@ -48,7 +48,7 @@ export default function ShopPage() {
       })
       .catch((requestError) => {
         if (cancelled) return;
-        setError(getApiErrorMessage(requestError, 'Khong tai duoc bo loc san pham.'));
+        setError(getApiErrorMessage(requestError, 'Không tải được bộ lọc sản phẩm.'));
       });
 
     return () => {
@@ -126,12 +126,12 @@ export default function ShopPage() {
   }
 
   const resultLabel = loading
-    ? 'Dang tai san pham'
+    ? 'Đang tải sản phẩm...'
     : catalog.totalItems === 0
-      ? 'Khong co ket qua'
+      ? 'Không có kết quả'
       : query
-        ? `Tim thay ${catalog.totalItems} ket qua cho "${query}"`
-        : `Hien thi tat ca ${catalog.totalItems} ket qua`;
+        ? `Tìm thấy ${catalog.totalItems} kết quả cho "${query}"`
+        : `Hiển thị tất cả ${catalog.totalItems} kết quả`;
 
   return (
     <div className="shop-page">
@@ -151,43 +151,45 @@ export default function ShopPage() {
         />
         <main className="shop-main">
           <div className="catalog-breadcrumb">
-            <Link to="/">Trang chu</Link> &rsaquo; <span>{categoryLabel}</span>
+            <Link to="/">Trang chủ</Link> &rsaquo; <span>{categoryLabel}</span>
           </div>
           <div className="shop-toolbar">
             <div className="catalog-result-count">{resultLabel}</div>
-            <ProductSearch query={query} onQueryChange={changeQuery} />
-            <div className="catalog-sort-controls" aria-label="Sap xep san pham">
-              <label className="catalog-sort-control">
-                <span>Sap xep</span>
-                <select value={sortBy} onChange={(event) => { setSortBy(event.target.value); setPage(1); }}>
-                  <option value="createdAt">Moi nhat</option>
-                  <option value="name">Ten</option>
-                  <option value="price1Day">Gia 1 ngay</option>
-                </select>
-              </label>
-              <label className="catalog-sort-control">
-                <span>Thu tu</span>
-                <select value={sortDirection} onChange={(event) => { setSortDirection(event.target.value); setPage(1); }}>
-                  <option value="desc">Giam dan</option>
-                  <option value="asc">Tang dan</option>
-                </select>
+            <div className="catalog-toolbar-filters">
+              <ProductSearch query={query} onQueryChange={changeQuery} />
+              <div className="catalog-sort-controls" aria-label="Sắp xếp sản phẩm">
+                <label className="catalog-sort-control">
+                  <span>Sắp xếp</span>
+                  <select value={sortBy} onChange={(event) => { setSortBy(event.target.value); setPage(1); }}>
+                    <option value="createdAt">Mới nhất</option>
+                    <option value="name">Tên</option>
+                    <option value="price1Day">Giá 1 ngày</option>
+                  </select>
+                </label>
+                <label className="catalog-sort-control">
+                  <span>Thứ tự</span>
+                  <select value={sortDirection} onChange={(event) => { setSortDirection(event.target.value); setPage(1); }}>
+                    <option value="desc">Giảm dần</option>
+                    <option value="asc">Tăng dần</option>
+                  </select>
+                </label>
+              </div>
+              <label className="catalog-stock-toggle">
+                <input
+                  type="checkbox"
+                  checked={inStock}
+                  onChange={(event) => {
+                    setInStock(event.target.checked);
+                    setPage(1);
+                  }}
+                />
+                <span className="catalog-stock-switch" aria-hidden="true"></span>
+                <span>Còn hàng</span>
               </label>
             </div>
-            <label className="catalog-stock-toggle">
-              <input
-                type="checkbox"
-                checked={inStock}
-                onChange={(event) => {
-                  setInStock(event.target.checked);
-                  setPage(1);
-                }}
-              />
-              <span className="catalog-stock-switch" aria-hidden="true"></span>
-              <span>Con hang</span>
-            </label>
           </div>
           {error ? <div className="catalog-empty-state"><p>{error}</p></div> : null}
-          {loading ? <div className="catalog-empty-state"><p>Dang tai san pham...</p></div> : null}
+          {loading ? <div className="catalog-empty-state"><p>Đang tải sản phẩm...</p></div> : null}
           {!loading && !error ? (
             <>
               <ProductGrid products={catalog.items || []} onAdd={(product) => addProductToActiveCart(product, 1)} />

@@ -5,12 +5,59 @@ export const ITEMS_PER_PAGE = 15;
 
 const fallbackImage = 'image/vay_du_tiec/jolie_loft_vay_luoi_molly_dress_nau.jpg';
 
+export const VIETNAMESE_CATEGORY_MAP = {
+  'tat ca': 'Tất cả',
+  'all': 'Tất cả',
+  'ao dai': 'Áo dài',
+  'ao-dai': 'Áo dài',
+  'vay di bien': 'Váy đi biển',
+  'vay-di-bien': 'Váy đi biển',
+  'vay du tiec': 'Váy dự tiệc',
+  'vay-du-tiec': 'Váy dự tiệc',
+  'phu kien': 'Phụ kiện',
+  'phu-kien': 'Phụ kiện',
+  'vay lua': 'Váy lụa',
+  'vay-lua': 'Váy lụa',
+  'thanh ly': 'Thanh lý',
+  'thanh-ly': 'Thanh lý',
+};
+
+export const VIETNAMESE_BRAND_MAP = {
+  'tat ca': 'Tất cả',
+  'all': 'Tất cả',
+  'khac': 'Khác',
+};
+
+export function formatCategoryName(name, slug = '') {
+  if (!name && !slug) return '';
+  const slugKey = String(slug || '').trim().toLowerCase();
+  const nameKey = String(name || '')
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+
+  return VIETNAMESE_CATEGORY_MAP[slugKey] || VIETNAMESE_CATEGORY_MAP[nameKey] || name;
+}
+
+export function formatBrandName(name, slug = '') {
+  if (!name && !slug) return '';
+  const slugKey = String(slug || '').trim().toLowerCase();
+  const nameKey = String(name || '')
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+
+  return VIETNAMESE_BRAND_MAP[slugKey] || VIETNAMESE_BRAND_MAP[nameKey] || name;
+}
+
 export const categoryOptions = [
-  { value: 'all', label: 'Tat ca' },
+  { value: 'all', label: 'Tất cả' },
 ];
 
 export const brandOptions = [
-  { value: 'all', label: 'Tat ca' },
+  { value: 'all', label: 'Tất cả' },
 ];
 
 export function normalizeProduct(apiProduct = {}) {
@@ -21,12 +68,17 @@ export function normalizeProduct(apiProduct = {}) {
   const extraDayPrice = Number(apiProduct.extraDayPrice) || 0;
   const priceDeposit = Number(apiProduct.priceDeposit) || 0;
 
+  const categorySlug = category?.slug || apiProduct.category || '';
+  const rawCategoryLabel = category?.name || apiProduct.categoryLabel || '';
+  const categoryLabel = formatCategoryName(rawCategoryLabel, categorySlug) || rawCategoryLabel;
+  const brand = formatBrandName(apiProduct.brandName || apiProduct.brand || '');
+
   return {
     ...apiProduct,
     image: primaryImage?.imageUrl || fallbackImage,
-    category: category?.slug || '',
-    categoryLabel: category?.name || '',
-    brand: apiProduct.brandName || '',
+    category: categorySlug,
+    categoryLabel,
+    brand,
     likes: apiProduct.likeCount || 0,
     rating: apiProduct.rating || 5,
     reviews: apiProduct.reviews || 0,
@@ -60,10 +112,10 @@ export async function fetchProductById(id) {
 export async function fetchCategories() {
   const response = await api.get('/api/categories');
   return [
-    { value: 'all', label: 'Tat ca' },
+    { value: 'all', label: 'Tất cả' },
     ...(response.data?.data || []).map((category) => ({
       value: String(category.id),
-      label: category.name,
+      label: formatCategoryName(category.name, category.slug),
       slug: category.slug,
     })),
   ];
@@ -72,10 +124,10 @@ export async function fetchCategories() {
 export async function fetchBrands() {
   const response = await api.get('/api/brands');
   return [
-    { value: 'all', label: 'Tat ca' },
+    { value: 'all', label: 'Tất cả' },
     ...(response.data?.data || []).map((brand) => ({
       value: String(brand.id),
-      label: brand.name,
+      label: formatBrandName(brand.name, brand.slug),
       slug: brand.slug,
     })),
   ];

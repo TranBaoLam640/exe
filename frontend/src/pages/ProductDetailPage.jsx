@@ -53,7 +53,7 @@ export default function ProductDetailPage() {
       })
       .catch((requestError) => {
         if (cancelled) return;
-        setError(getApiErrorMessage(requestError, 'Khong tai duoc san pham.'));
+        setError(getApiErrorMessage(requestError, 'Không tải được sản phẩm.'));
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -66,7 +66,7 @@ export default function ProductDetailPage() {
 
   const stars = useMemo(() => {
     const count = Math.round(product.rating || 5);
-    return '*'.repeat(count) + '-'.repeat(5 - count);
+    return '★'.repeat(count) + '☆'.repeat(5 - count);
   }, [product.rating]);
 
   const hasAvailableVariant = useMemo(
@@ -82,11 +82,11 @@ export default function ProductDetailPage() {
 
     try {
       await addProductToActiveCart(product, quantity);
-      setCartActionMessage('Da them san pham vao gio hang.');
+      setCartActionMessage('Đã thêm sản phẩm vào giỏ hàng.');
     } catch (requestError) {
       const message = requestError?.response?.status === 401
-        ? 'Phien dang nhap da het han. Vui long dang nhap lai de them san pham vao gio.'
-        : getApiErrorMessage(requestError, 'Khong them duoc san pham vao gio.');
+        ? 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại để thêm sản phẩm vào giỏ.'
+        : getApiErrorMessage(requestError, 'Không thêm được sản phẩm vào giỏ.');
       setCartActionError(message);
     } finally {
       setCartActionLoading('');
@@ -103,8 +103,8 @@ export default function ProductDetailPage() {
       navigate('/cart');
     } catch (requestError) {
       const message = requestError?.response?.status === 401
-        ? 'Phien dang nhap da het han. Vui long dang nhap lai de thue san pham.'
-        : getApiErrorMessage(requestError, 'Khong thue duoc san pham nay.');
+        ? 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại để thuê sản phẩm.'
+        : getApiErrorMessage(requestError, 'Không thuê được sản phẩm này.');
       setCartActionError(message);
     } finally {
       setCartActionLoading('');
@@ -113,7 +113,7 @@ export default function ProductDetailPage() {
 
   async function toggleFavorite() {
     if (!session?.token) {
-      setFavoriteError('Vui long dang nhap de yeu thich san pham.');
+      setFavoriteError('Vui lòng đăng nhập để yêu thích sản phẩm.');
       return;
     }
 
@@ -124,7 +124,7 @@ export default function ProductDetailPage() {
         : await favoriteProduct(product.id);
       setProduct(nextProduct);
     } catch (requestError) {
-      setFavoriteError(getApiErrorMessage(requestError, 'Khong cap nhat duoc yeu thich.'));
+      setFavoriteError(getApiErrorMessage(requestError, 'Không cập nhật được yêu thích.'));
     }
   }
 
@@ -132,7 +132,7 @@ export default function ProductDetailPage() {
     return (
       <div className="product-detail-page">
         <div className="product-detail-wrapper">
-          <div className="catalog-empty-state"><p>Dang tai san pham...</p></div>
+          <div className="catalog-empty-state"><p>Đang tải sản phẩm...</p></div>
         </div>
       </div>
     );
@@ -152,9 +152,9 @@ export default function ProductDetailPage() {
     <div className="product-detail-page">
       <div className="product-detail-wrapper">
         <div className="product-breadcrumb">
-          <Link to="/">Trang chu</Link>
+          <Link to="/">Trang chủ</Link>
           <span className="sep">&rsaquo;</span>
-          <Link to="/shop">{product.categoryLabel || 'San pham'}</Link>
+          <Link to="/shop">{product.categoryLabel || 'Sản phẩm'}</Link>
           <span className="sep">&rsaquo;</span>
           <span>{product.name}</span>
         </div>
@@ -170,13 +170,13 @@ export default function ProductDetailPage() {
                 type="button"
                 onClick={toggleFavorite}
               >
-                <span className="heart">{product.isFavorited ? 'liked' : 'like'}</span>
-                <span>{product.isFavorited ? 'Da thich' : 'Yeu thich'}</span>
+                <span className="heart" aria-hidden="true">{product.isFavorited ? '♥' : '♡'}</span>
+                <span>{product.isFavorited ? 'Đã thích' : 'Yêu thích'}</span>
                 <strong>{product.likeCount || 0}</strong>
               </button>
               <div className="product-share-btns">
-                <a href="#" className="product-share-btn zalo" title="Chia se Zalo">Z</a>
-                <a href="#" className="product-share-btn fb" title="Chia se Facebook">f</a>
+                <a href="#" className="product-share-btn zalo" title="Chia sẻ Zalo">Z</a>
+                <a href="#" className="product-share-btn fb" title="Chia sẻ Facebook">f</a>
               </div>
             </div>
             {favoriteError ? <div className="catalog-empty-state"><p>{favoriteError}</p></div> : null}
@@ -190,11 +190,11 @@ export default function ProductDetailPage() {
                 <span className="product-rating-num">{Number(product.rating || 5).toFixed(1)}</span>
               </div>
               <span className="divider-dot">/</span>
-              <span className="product-review-count"><strong>{product.reviews || 0}</strong> danh gia</span>
+              <span className="product-review-count"><strong>{product.reviews || 0}</strong> đánh giá</span>
               <span className="divider-dot">/</span>
               <span className="product-like-count">
-                <span className="heart">like</span>
-                <strong>{product.likeCount || 0}</strong> luot thich
+                <span className="heart" aria-hidden="true">♥</span>
+                <strong>{product.likeCount || 0}</strong> lượt thích
               </span>
             </div>
 
@@ -202,19 +202,19 @@ export default function ProductDetailPage() {
             <hr className="product-info-divider" />
 
             <div className="product-info-row">
-              <span className="product-info-row-label">Ton kho</span>
+              <span className="product-info-row-label">Tồn kho</span>
               <div className="product-info-row-content">
-                {product.availableStock || 0} san pham kha dung
+                {product.availableStock || 0} sản phẩm khả dụng
               </div>
             </div>
 
             <hr className="product-info-divider" />
             <div className="product-info-row">
-              <span className="product-info-row-label">Bien the</span>
+              <span className="product-info-row-label">Biến thể</span>
               <div className="product-info-row-content">
                 {(product.variants || []).map((variant) => (
                   <span className="product-discount-chip" key={variant.id}>
-                    {variant.size} / {variant.color} / {variant.availableStock} con
+                    {variant.size} / {variant.color} / {variant.availableStock} còn
                   </span>
                 ))}
               </div>
@@ -222,7 +222,7 @@ export default function ProductDetailPage() {
 
             <hr className="product-info-divider" />
             <div className="product-info-row align-center">
-              <span className="product-info-row-label">So luong</span>
+              <span className="product-info-row-label">Số lượng</span>
               <div className="product-info-row-content">
                 <QuantitySelector value={quantity} onChange={setQuantity} />
               </div>
@@ -230,15 +230,15 @@ export default function ProductDetailPage() {
 
             <div className="product-action-btns">
               <button className="product-btn-cart" type="button" onClick={addToCart} disabled={!canAddToCart}>
-                {cartActionLoading === 'cart' ? 'Dang them...' : 'Them vao gio'}
+                {cartActionLoading === 'cart' ? 'Đang thêm...' : 'Thêm vào giỏ'}
               </button>
               <button className="product-btn-rent-now" type="button" onClick={rentNow} disabled={!canAddToCart}>
-                {cartActionLoading === 'rent' ? 'Dang xu ly...' : 'Thue ngay'}
+                {cartActionLoading === 'rent' ? 'Đang xử lý...' : 'Thuê ngay'}
               </button>
             </div>
             {cartActionError ? <div className="product-action-message error">{cartActionError}</div> : null}
             {cartActionMessage ? <div className="product-action-message success">{cartActionMessage}</div> : null}
-            <Link to={buildTryOnProductUrl(product)} className="product-btn-tryon">Thu do AI voi san pham nay</Link>
+            <Link to={buildTryOnProductUrl(product)} className="product-btn-tryon">Thử đồ AI với sản phẩm này</Link>
           </div>
         </div>
       </div>

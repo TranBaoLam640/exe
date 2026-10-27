@@ -650,38 +650,67 @@
 
 .shop-page .shop-toolbar {
   display: flex;
-  gap: 12px;
+  flex-wrap: wrap;
+  gap: 16px;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
+  padding: 12px 18px;
+  background: white;
+  border: 1px solid #eef2ef;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
 }
 
 .catalog-result-count {
-  color: #666;
-  font-size: 0.85rem;
+  color: #475569;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.catalog-toolbar-filters {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .catalog-search-box {
-  display: flex;
-  align-items: center;
+  display: inline-flex;
+  align-items: stretch;
+  height: 38px;
+  box-sizing: border-box;
   overflow: hidden;
   background: white;
-  border: 1.5px solid #ddd;
+  border: 1px solid #e2e8f0;
   border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.catalog-search-box:focus-within {
+  border-color: #55b689;
+  box-shadow: 0 0 0 3px rgba(85, 182, 137, 0.18);
 }
 
 .catalog-search-box input {
-  width: 240px;
-  padding: 8px 14px;
+  width: 190px;
+  height: 100%;
+  padding: 0 12px;
   font: inherit;
-  font-size: 0.88rem;
+  font-size: 0.85rem;
   color: #333;
   border: 0;
   outline: none;
+  background: transparent;
 }
 
 .catalog-search-box button {
-  padding: 8px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 14px;
+  height: 100%;
   color: white;
   font-size: 0.9rem;
   cursor: pointer;
@@ -695,19 +724,21 @@
 }
 
 .catalog-sort-controls {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+  display: inline-flex;
   align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
 }
 
 .catalog-sort-control {
   position: relative;
-  display: flex;
+  display: inline-flex;
   gap: 8px;
   align-items: center;
+  height: 38px;
   min-height: 38px;
-  padding: 0 34px 0 12px;
+  box-sizing: border-box;
+  padding: 0 30px 0 12px;
   color: #475569;
   font-size: 0.78rem;
   font-weight: 700;
@@ -759,13 +790,16 @@
   display: inline-flex;
   gap: 9px;
   align-items: center;
+  height: 38px;
   min-height: 38px;
+  box-sizing: border-box;
   padding: 0 12px;
   color: #172033;
   font-size: 0.82rem;
   font-weight: 700;
   cursor: pointer;
   user-select: none;
+  white-space: nowrap;
   background: #fff;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
@@ -820,10 +854,13 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 20px;
+  align-items: stretch;
 }
 
 .catalog-product-card--shop {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
   overflow: hidden;
   cursor: pointer;
   background: white;
@@ -844,17 +881,38 @@
   aspect-ratio: 3 / 4;
   object-fit: cover;
   object-position: top;
+  flex-shrink: 0;
 }
 
 .catalog-card-info {
-  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 14px 16px 16px;
   text-align: center;
+}
+
+.catalog-product-card--shop .catalog-card-name {
+  min-height: 2.8em;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.4;
+  margin-bottom: 8px;
+  color: #111;
+  font-size: 0.88rem;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  text-align: center;
+  text-transform: uppercase;
 }
 
 .catalog-card-price {
   color: #333;
   font-size: 0.8rem;
   line-height: 1.8;
+  margin-bottom: 12px;
 }
 
 .catalog-card-price .extra {
@@ -867,9 +925,25 @@
 }
 
 .catalog-card-add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   gap: 6px;
-  margin-top: 12px;
+  margin-top: auto;
   font-size: 0.82rem;
+  padding: 10px 16px;
+  background: #55b689;
+  color: white;
+  border: 0;
+  border-radius: 6px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+  width: 100%;
+}
+
+.catalog-card-add:hover {
+  background: #449a72;
 }
 
 .catalog-empty-state {
@@ -1006,6 +1080,12 @@
   color: #e05f8a;
   background: #fff0f5;
   border-color: #e05f8a;
+}
+
+.product-like-btn .heart {
+  color: #e05f8a;
+  font-size: 1.1rem;
+  line-height: 1;
 }
 
 .product-share-btns {

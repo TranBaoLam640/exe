@@ -7,7 +7,7 @@ export default function ProductSearch({ query, onQueryChange }) {
         placeholder="Tìm theo tên bộ váy..."
         onChange={(event) => onQueryChange(event.target.value)}
       />
-      <button type="button" onClick={() => onQueryChange(query)}>🔍</button>
+      <button type="button" onClick={() => onQueryChange(query)} aria-label="Tìm kiếm">🔍</button>
     </div>
   );
 }
