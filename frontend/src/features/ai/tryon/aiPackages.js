@@ -220,6 +220,15 @@ export function purchaseAiPackage(packageId, paymentMethod = 'instant', options 
   const now = Date.now();
 
   let nextExpiresAt = sub.expiresAt && sub.expiresAt > now ? sub.expiresAt : now;
+  const orderCode = options.orderCode ? String(options.orderCode) : null;
+
+  // A verified PayOS order may only activate a package once on this device.
+  if (orderCode && Array.isArray(sub.history)) {
+    const existing = sub.history.find((record) => record.orderCode === orderCode);
+    if (existing) {
+      return { success: true, package: targetPackage, subscription: sub, record: existing, alreadyActivated: true };
+    }
+  }
 
   if (targetPackage.type === 'turns') {
     sub.remainingTurns = (sub.remainingTurns || 0) + (targetPackage.turnsCount || 1);
@@ -247,6 +256,7 @@ export function purchaseAiPackage(packageId, paymentMethod = 'instant', options 
     packageName: targetPackage.name,
     price: targetPackage.price,
     paymentMethod,
+    orderCode,
     purchasedAt: new Date().toISOString(),
   };
 

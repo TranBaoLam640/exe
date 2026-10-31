@@ -112,11 +112,17 @@ export default function TryOnPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [cartMessage, setCartMessage] = useState('');
   const [pricingModalOpen, setPricingModalOpen] = useState(false);
+  const aiReturnOrderCode = params.get('aiPayment') === 'return' ? params.get('aiOrderCode') : null;
   const fileInputRef = useRef(null);
   const resultRef = useRef(null);
   const abortRef = useRef(null);
 
   useEffect(() => () => abortRef.current?.abort(), []);
+
+  // Returning from the PayOS checkout page: reopen the modal to verify and auto-activate.
+  useEffect(() => {
+    if (aiReturnOrderCode) setPricingModalOpen(true);
+  }, [aiReturnOrderCode]);
 
   useEffect(() => {
     let cancelled = false;
@@ -314,6 +320,7 @@ export default function TryOnPage() {
       <AiPricingModal
         isOpen={pricingModalOpen}
         onClose={() => setPricingModalOpen(false)}
+        resumeOrderCode={aiReturnOrderCode}
         onPackagePurchased={() => {
           setStatus(initialStatus);
         }}

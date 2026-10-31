@@ -105,6 +105,7 @@ builder.Services.AddHttpClient<IAiGatewayService, AiGatewayService>();
 builder.Services.Configure<PayOsOptions>(builder.Configuration.GetSection("PayOS"));
 builder.Services.AddScoped<IPaymentGateway, PayOsPaymentGateway>();
 builder.Services.AddScoped<IPaymentTransactionService, PaymentTransactionService>();
+builder.Services.AddScoped<IAiPackagePaymentService, AiPackagePaymentService>();
 
 // Configure Distributed Cache (Redis for Production/K8s, In-Memory fallback for Development/Testing)
 var redisConn = builder.Configuration.GetConnectionString("Redis");

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { register } from '../features/auth/authService.js';
+import { resolvePostLoginRedirect } from '../features/auth/postLoginRedirect.js';
 import { useDocumentTitle } from '../hooks/useDocumentTitle.js';
 import GoogleAuthButton from '../features/auth/GoogleAuthButton.jsx';
 
@@ -79,7 +80,7 @@ export default function RegisterPage() {
 
     setMessage({ type: 'success', text: 'Đăng ký thành công! Bạn nhận được 2 lượt thử đồ AI miễn phí. Đang chuyển hướng...' });
     window.setTimeout(() => {
-      window.location.href = redirectTo;
+      window.location.href = resolvePostLoginRedirect(redirectTo, result.user?.role);
     }, 700);
   }
 
