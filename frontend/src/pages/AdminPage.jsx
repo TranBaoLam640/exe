@@ -311,7 +311,7 @@ export default function AdminPage({ defaultTab = 'orders' }) {
             className={`admin-tab-btn ${isTrafficTab ? 'active' : ''}`}
             onClick={() => setSearchParams({ tab: 'traffic' })}
           >
-            📊 Thống kê Lượt truy cập & GA
+            📊 Thống kê Truy cập & Gói AI
           </button>
           <Link to="/admin/inventory" className="admin-tab-btn">
             👗 Quản lý Kho hàng

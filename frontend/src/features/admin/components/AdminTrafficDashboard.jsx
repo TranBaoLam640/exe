@@ -1,15 +1,19 @@
 import { useEffect, useState } from 'react';
 import { getTrafficAnalytics, recordVisit, resetTrafficAnalytics, TRAFFIC_UPDATED_EVENT } from '../../analytics/visitTracker.js';
 import { getGaMeasurementId } from '../../../utils/analytics.js';
+import { getAiPurchasesSummary, AI_PURCHASE_UPDATED_EVENT } from '../../ai/tryon/aiPurchaseHistory.js';
 
 export default function AdminTrafficDashboard() {
   const [analytics, setAnalytics] = useState(() => getTrafficAnalytics());
+  const [aiPurchases, setAiPurchases] = useState(() => getAiPurchasesSummary());
   const [activeRange, setActiveRange] = useState('7d');
   const [filterPage, setFilterPage] = useState('');
+  const [filterAiAccount, setFilterAiAccount] = useState('');
   const measurementId = getGaMeasurementId();
 
   function reload() {
     setAnalytics(getTrafficAnalytics());
+    setAiPurchases(getAiPurchasesSummary());
   }
 
   useEffect(() => {
@@ -17,10 +21,12 @@ export default function AdminTrafficDashboard() {
       reload();
     }
     document.addEventListener(TRAFFIC_UPDATED_EVENT, handleUpdate);
+    document.addEventListener(AI_PURCHASE_UPDATED_EVENT, handleUpdate);
     window.addEventListener('storage', handleUpdate);
 
     return () => {
       document.removeEventListener(TRAFFIC_UPDATED_EVENT, handleUpdate);
+      document.removeEventListener(AI_PURCHASE_UPDATED_EVENT, handleUpdate);
       window.removeEventListener('storage', handleUpdate);
     };
   }, []);
@@ -42,6 +48,17 @@ export default function AdminTrafficDashboard() {
   const filteredRecent = analytics.recentVisits.filter((item) => {
     if (!filterPage) return true;
     return item.path.toLowerCase().includes(filterPage.toLowerCase()) || (item.title && item.title.toLowerCase().includes(filterPage.toLowerCase()));
+  });
+
+  const filteredAiPurchases = aiPurchases.list.filter((item) => {
+    if (!filterAiAccount) return true;
+    const q = filterAiAccount.toLowerCase();
+    return (
+      item.email.toLowerCase().includes(q) ||
+      (item.customerName && item.customerName.toLowerCase().includes(q)) ||
+      item.orderCode.includes(q) ||
+      item.packageName.toLowerCase().includes(q)
+    );
   });
 
   return (
@@ -127,6 +144,15 @@ export default function AdminTrafficDashboard() {
             <span className="kpi-label">Lượt Thử đồ bằng AI</span>
             <strong className="kpi-value">{analytics.aiTryOnTotal.toLocaleString('vi-VN')}</strong>
             <small className="kpi-sub highlight">Tỷ lệ tương tác cao</small>
+          </div>
+        </div>
+
+        <div className="admin-kpi-card highlight" style={{ borderColor: '#86efac', background: 'linear-gradient(135deg, #ffffff 0%, #ecfdf5 100%)' }}>
+          <div className="kpi-icon" style={{ background: '#dcfce7', color: '#059669', fontSize: '1.4rem' }}>💳</div>
+          <div className="kpi-content">
+            <span className="kpi-label">Doanh thu Gói AI (PayOS)</span>
+            <strong className="kpi-value" style={{ color: '#047857' }}>{aiPurchases.totalRevenue.toLocaleString('vi-VN')} đ</strong>
+            <small className="kpi-sub positive">{aiPurchases.totalCount} đơn ({aiPurchases.dayPassCount} gói ngày, {aiPurchases.monthPassCount} gói tháng)</small>
           </div>
         </div>
       </div>
@@ -226,6 +252,138 @@ export default function AdminTrafficDashboard() {
                   </td>
                 </tr>
               ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* AI Package Purchase History & PayOS Transactions */}
+      <div className="admin-box-section">
+        <div className="admin-box-head">
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+              <span className="tryon-badge" style={{ fontSize: '0.72rem' }}>Thương mại AI Stylist</span>
+              <span className="chart-badge" style={{ background: '#ecfdf5', color: '#065f46', border: '1px solid #a7f3d0' }}>
+                Tổng thu: <strong>{aiPurchases.totalRevenue.toLocaleString('vi-VN')} đ</strong>
+              </span>
+            </div>
+            <h3 style={{ margin: '4px 0' }}>Lịch sử Mua Gói AI & Giao dịch PayOS</h3>
+            <small className="admin-muted">
+              Ghi nhận các tài khoản đã mua và kích hoạt gói thử đồ AI qua cổng thanh toán PayOS
+            </small>
+          </div>
+          <div className="admin-table-filter">
+            <input
+              type="text"
+              placeholder="Lọc theo email hoặc mã đơn..."
+              value={filterAiAccount}
+              onChange={(e) => setFilterAiAccount(e.target.value)}
+            />
+          </div>
+        </div>
+
+        {/* Quick summary chips */}
+        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '16px' }}>
+          <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', padding: '8px 14px', borderRadius: '8px', fontSize: '0.84rem' }}>
+            <span>⚡ Gói Ngày (10.000đ): </span>
+            <strong style={{ color: '#047857' }}>{aiPurchases.dayPassCount} tài khoản ({aiPurchases.dayPassRevenue.toLocaleString('vi-VN')} đ)</strong>
+          </div>
+          <div style={{ background: '#faf5ff', border: '1px solid #e9d5ff', padding: '8px 14px', borderRadius: '8px', fontSize: '0.84rem' }}>
+            <span>👑 Gói Tháng VIP (50.000đ): </span>
+            <strong style={{ color: '#6b21a8' }}>{aiPurchases.monthPassCount} tài khoản ({aiPurchases.monthPassRevenue.toLocaleString('vi-VN')} đ)</strong>
+          </div>
+          <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', padding: '8px 14px', borderRadius: '8px', fontSize: '0.84rem' }}>
+            <span>🛡️ Cổng thanh toán: </span>
+            <strong style={{ color: '#1e293b' }}>100% PayOS / VietQR (Đã thanh toán)</strong>
+          </div>
+        </div>
+
+        <div className="admin-orders-table-wrap">
+          <table className="admin-orders-table">
+            <thead>
+              <tr>
+                <th>Mã đơn (PayOS)</th>
+                <th>Tài khoản / Email</th>
+                <th>Gói đăng ký</th>
+                <th>Thời hạn</th>
+                <th>Số tiền</th>
+                <th>Cổng thanh toán</th>
+                <th>Thời gian thanh toán</th>
+                <th>Trạng thái</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredAiPurchases.length === 0 ? (
+                <tr>
+                  <td colSpan="8" style={{ textAlign: 'center', padding: '24px' }}>
+                    Không tìm thấy giao dịch nào khớp với bộ lọc.
+                  </td>
+                </tr>
+              ) : (
+                filteredAiPurchases.map((item) => {
+                  const dateObj = new Date(item.purchasedAt);
+                  const formattedTime = dateObj.toLocaleTimeString('vi-VN', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                  });
+                  const formattedDate = dateObj.toLocaleDateString('vi-VN', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                  });
+                  const isMonth = item.packageId === 'ai_month_pass';
+
+                  return (
+                    <tr key={item.orderCode}>
+                      <td>
+                        <code>DRM{item.orderCode}</code>
+                      </td>
+                      <td>
+                        <strong>{item.customerName || item.email.split('@')[0]}</strong>
+                        <small>{item.email}</small>
+                      </td>
+                      <td>
+                        <span
+                          style={{
+                            display: 'inline-block',
+                            padding: '3px 8px',
+                            borderRadius: '6px',
+                            fontWeight: '600',
+                            fontSize: '0.78rem',
+                            background: isMonth ? '#f3e8ff' : '#eff6ff',
+                            color: isMonth ? '#6b21a8' : '#1d4ed8',
+                            border: `1px solid ${isMonth ? '#d8b4fe' : '#bfdbfe'}`,
+                          }}
+                        >
+                          {isMonth ? '👑 ' : '⚡ '}
+                          {item.packageName}
+                        </span>
+                      </td>
+                      <td>
+                        <b>{item.durationText}</b>
+                      </td>
+                      <td>
+                        <b style={{ color: isMonth ? '#7e22ce' : '#047857' }}>{item.priceDisplay}</b>
+                      </td>
+                      <td>
+                        <span style={{ fontSize: '0.82rem', fontWeight: '500', color: '#374151' }}>
+                          🏦 {item.providerName || 'PayOS (VietQR)'}
+                        </span>
+                      </td>
+                      <td>
+                        <strong>{formattedTime}</strong>
+                        <small>{formattedDate}</small>
+                      </td>
+                      <td>
+                        <span className="admin-status-pill delivered" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          <span style={{ fontSize: '0.85em' }}>✓</span> {item.statusText || 'Đã kích hoạt'}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
           </table>
         </div>

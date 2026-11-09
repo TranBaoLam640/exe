@@ -11,6 +11,8 @@ import {
   savePendingAiPayment,
 } from './aiPaymentService.js';
 import { getApiErrorMessage } from '../../../utils/apiError.js';
+import { recordNewAiPurchase } from './aiPurchaseHistory.js';
+import { getSession } from '../../auth/authService.js';
 
 const STATUS_LABELS = {
   creating: 'Đang tạo mã thanh toán PayOS...',
@@ -45,6 +47,14 @@ export default function AiPricingModal({ isOpen, onClose, onPackagePurchased, in
     clearPendingAiPayment();
     setPurchaseSuccess(result);
     setPaymentState('paid');
+    if (result?.record) {
+      try {
+        const session = getSession();
+        recordNewAiPurchase(result.record, { email: session?.email, name: session?.name });
+      } catch {
+        // Ignore write failure
+      }
+    }
     if (onPackagePurchased) onPackagePurchased(result);
   }, [onPackagePurchased]);
 

@@ -3,6 +3,7 @@ import { getApiErrorMessage as getSharedApiErrorMessage } from '../../utils/apiE
 import api from "../../config/api.js";
 import { syncGuestCartToServer } from '../cart/cartService.js';
 import { isDisposableEmail } from './disposableEmailBlocklist.js';
+import { syncUserAiSubscriptionOnLogin } from '../ai/tryon/aiPurchaseHistory.js';
 
 export const USERS_KEY = 'dorentme_users';
 export const SESSION_KEY = 'dorentme_session';
@@ -45,6 +46,9 @@ export function setSession(user, options = {}) {
   };
 
   writeJsonValue(storage, SESSION_KEY, session);
+  if (user?.email) {
+    syncUserAiSubscriptionOnLogin(user.email, storage);
+  }
   dispatchAppEvent(eventTarget, AUTH_CHANGED_EVENT, session);
   return session;
 }
@@ -76,6 +80,10 @@ export function markFreeTrialClaimed(email, storage = getBrowserStorage('localSt
 export function handleTrialQuotaOnLogin(email, options = {}) {
   const localStorage = options.storage || getBrowserStorage('localStorage');
   const sessStorage = options.sessionStorage || getBrowserStorage('sessionStorage');
+
+  if (email) {
+    syncUserAiSubscriptionOnLogin(email, localStorage);
+  }
 
   if (!hasClaimedFreeTrial(email, localStorage)) {
     markFreeTrialClaimed(email, localStorage);
